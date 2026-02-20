@@ -1,8 +1,7 @@
 -- ╔══════════════════════════════════════════════════════════════════╗
--- ║     PUDIM HUB — v5  (Tp Biomes + SliderBars + Fixes)           ║
--- ║  + Tp Biomes em Avançado Funções                                ║
--- ║  + SliderBar no Fly Speed / Speed / Jump Power                  ║
--- ║  + LayoutOrder correto no Player tab                            ║
+-- ║     PUDIM HUB — v5  COMPLETO + Sistema de Notificações v3       ║
+-- ║  + Toggle de Notificações na aba Info                           ║
+-- ║  + Notifs integradas em ESP, Bring, Player, Avançado            ║
 -- ╚══════════════════════════════════════════════════════════════════╝
 
 local TweenService     = game:GetService("TweenService")
@@ -10,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService       = game:GetService("RunService")
 local Players          = game:GetService("Players")
 local Lighting         = game:GetService("Lighting")
+local SoundService     = game:GetService("SoundService")
 
 local Player = Players.LocalPlayer
 local Cam    = workspace.CurrentCamera
@@ -23,6 +23,385 @@ ScreenGui.Parent          = game.CoreGui
 ScreenGui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn    = false
 ScreenGui.DisplayOrder    = 999
+
+-- ══════════════════════════════════════════════════════
+--  SISTEMA DE NOTIFICAÇÕES v3
+-- ══════════════════════════════════════════════════════
+local notifEnabled = true   -- Toggle global
+
+local NOTIF_CFG = {
+    MAX_VISIBLE      = 5,
+    HISTORY_MAX      = 30,
+    DEFAULT_DURATION = 4.5,
+    WIDTH            = 320,
+    CORNER           = "TR",
+    PADDING          = 14,
+    GAP              = 8,
+    SOUND_ENABLED    = true,
+}
+
+local NOTIF_TIPOS = {
+    success     = { title="Sucesso",    accent=Color3.fromRGB(87,242,135),  icon="✓", bg=Color3.fromRGB(18,38,28),  sound=5928788253 },
+    error       = { title="Erro",       accent=Color3.fromRGB(255,75,75),   icon="✕", bg=Color3.fromRGB(38,18,18),  sound=9119713951 },
+    warn        = { title="Aviso",      accent=Color3.fromRGB(255,200,50),  icon="⚠", bg=Color3.fromRGB(36,30,14),  sound=5989740700 },
+    info        = { title="Info",       accent=Color3.fromRGB(88,150,255),  icon="ℹ", bg=Color3.fromRGB(16,24,44),  sound=5989740700 },
+    achievement = { title="Conquista!", accent=Color3.fromRGB(255,210,60),  icon="★", bg=Color3.fromRGB(34,28,10),  sound=6042053626 },
+    custom      = { title="Aviso",      accent=Color3.fromRGB(88,101,242),  icon="◆", bg=Color3.fromRGB(22,22,36),  sound=5989740700 },
+}
+
+local nQueue     = {}
+local nActive    = {}
+local nHistory   = {}
+local nHistOpen  = false
+local nCount     = 0
+local nHistLO    = 0
+
+-- Container raiz
+local NotifRoot = Instance.new("Frame", ScreenGui)
+NotifRoot.Name                   = "PudimNotifRoot"
+NotifRoot.BackgroundTransparency = 1
+NotifRoot.Size                   = UDim2.new(1,0,1,0)
+NotifRoot.ZIndex                 = 500
+NotifRoot.BorderSizePixel        = 0
+
+-- Badge 🔔
+local NBadge = Instance.new("Frame", NotifRoot)
+NBadge.Name               = "NotifBadge"
+NBadge.BackgroundColor3   = Color3.fromRGB(88,101,242)
+NBadge.BorderSizePixel    = 0
+NBadge.AnchorPoint        = Vector2.new(1,1)
+NBadge.Position           = UDim2.new(1,-14,1,-14)
+NBadge.Size               = UDim2.new(0,36,0,36)
+NBadge.ZIndex             = 502
+NBadge.Visible            = false
+Instance.new("UICorner",NBadge).CornerRadius = UDim.new(1,0)
+local NBadgeStroke = Instance.new("UIStroke",NBadge)
+NBadgeStroke.Color = Color3.fromRGB(130,150,255); NBadgeStroke.Thickness=1.5
+local NBadgeBell = Instance.new("TextLabel",NBadge)
+NBadgeBell.BackgroundTransparency=1; NBadgeBell.Size=UDim2.new(1,0,1,0)
+NBadgeBell.Font=Enum.Font.GothamBold; NBadgeBell.Text="🔔"
+NBadgeBell.TextSize=16; NBadgeBell.ZIndex=503
+local NBadgeCountFrame = Instance.new("Frame",NBadge)
+NBadgeCountFrame.BackgroundColor3=Color3.fromRGB(255,60,60); NBadgeCountFrame.BorderSizePixel=0
+NBadgeCountFrame.AnchorPoint=Vector2.new(1,0); NBadgeCountFrame.Position=UDim2.new(1,5,0,-5)
+NBadgeCountFrame.Size=UDim2.new(0,18,0,18); NBadgeCountFrame.ZIndex=504; NBadgeCountFrame.Visible=false
+Instance.new("UICorner",NBadgeCountFrame).CornerRadius=UDim.new(1,0)
+local NBadgeCountLbl = Instance.new("TextLabel",NBadgeCountFrame)
+NBadgeCountLbl.BackgroundTransparency=1; NBadgeCountLbl.Size=UDim2.new(1,0,1,0)
+NBadgeCountLbl.Font=Enum.Font.GothamBlack; NBadgeCountLbl.Text="0"
+NBadgeCountLbl.TextSize=9; NBadgeCountLbl.TextColor3=Color3.fromRGB(255,255,255); NBadgeCountLbl.ZIndex=505
+local NBadgeBtn = Instance.new("TextButton",NBadge)
+NBadgeBtn.BackgroundTransparency=1; NBadgeBtn.Size=UDim2.new(1,0,1,0); NBadgeBtn.Text=""; NBadgeBtn.ZIndex=506
+
+-- Painel histórico
+local NHistPanel = Instance.new("Frame",NotifRoot)
+NHistPanel.Name="HistPanel"; NHistPanel.BackgroundColor3=Color3.fromRGB(20,21,26)
+NHistPanel.BorderSizePixel=0; NHistPanel.AnchorPoint=Vector2.new(1,1)
+NHistPanel.Position=UDim2.new(1,-14,1,-58); NHistPanel.Size=UDim2.new(0,340,0,0)
+NHistPanel.ZIndex=510; NHistPanel.ClipsDescendants=true; NHistPanel.Visible=false
+Instance.new("UICorner",NHistPanel).CornerRadius=UDim.new(0,14)
+local NHistStroke=Instance.new("UIStroke",NHistPanel); NHistStroke.Color=Color3.fromRGB(55,60,80); NHistStroke.Thickness=1.5
+
+local NHistHeader=Instance.new("Frame",NHistPanel)
+NHistHeader.BackgroundColor3=Color3.fromRGB(14,15,20); NHistHeader.BorderSizePixel=0
+NHistHeader.Size=UDim2.new(1,0,0,44); NHistHeader.ZIndex=511
+Instance.new("UICorner",NHistHeader).CornerRadius=UDim.new(0,14)
+local NHistHeaderFix=Instance.new("Frame",NHistHeader)
+NHistHeaderFix.BackgroundColor3=Color3.fromRGB(14,15,20); NHistHeaderFix.BorderSizePixel=0
+NHistHeaderFix.Position=UDim2.new(0,0,0.5,0); NHistHeaderFix.Size=UDim2.new(1,0,0.5,0); NHistHeaderFix.ZIndex=511
+local NHistTitle=Instance.new("TextLabel",NHistHeader)
+NHistTitle.BackgroundTransparency=1; NHistTitle.Position=UDim2.new(0,14,0,0)
+NHistTitle.Size=UDim2.new(1,-60,1,0); NHistTitle.Font=Enum.Font.GothamBlack
+NHistTitle.Text="🔔  Notificações"; NHistTitle.TextColor3=Color3.fromRGB(200,210,255)
+NHistTitle.TextSize=12; NHistTitle.TextXAlignment=Enum.TextXAlignment.Left; NHistTitle.ZIndex=512
+local NHistClearBtn=Instance.new("TextButton",NHistHeader)
+NHistClearBtn.BackgroundColor3=Color3.fromRGB(50,30,30); NHistClearBtn.BackgroundTransparency=0.3
+NHistClearBtn.BorderSizePixel=0; NHistClearBtn.AnchorPoint=Vector2.new(1,0.5)
+NHistClearBtn.Position=UDim2.new(1,-10,0.5,0); NHistClearBtn.Size=UDim2.new(0,58,0,24)
+NHistClearBtn.Font=Enum.Font.GothamBold; NHistClearBtn.Text="Limpar"
+NHistClearBtn.TextColor3=Color3.fromRGB(255,100,100); NHistClearBtn.TextSize=9; NHistClearBtn.ZIndex=512
+Instance.new("UICorner",NHistClearBtn).CornerRadius=UDim.new(0,7)
+
+local NHistScroll=Instance.new("ScrollingFrame",NHistPanel)
+NHistScroll.BackgroundTransparency=1; NHistScroll.BorderSizePixel=0
+NHistScroll.Position=UDim2.new(0,0,0,44); NHistScroll.Size=UDim2.new(1,0,1,-44)
+NHistScroll.ZIndex=511; NHistScroll.ScrollBarThickness=3
+NHistScroll.ScrollBarImageColor3=Color3.fromRGB(88,101,242)
+NHistScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y; NHistScroll.CanvasSize=UDim2.new(0,0,0,0)
+local NHistList=Instance.new("UIListLayout",NHistScroll)
+NHistList.Padding=UDim.new(0,4); NHistList.SortOrder=Enum.SortOrder.LayoutOrder
+local NHistPad=Instance.new("UIPadding",NHistScroll)
+NHistPad.PaddingTop=UDim.new(0,8); NHistPad.PaddingLeft=UDim.new(0,10)
+NHistPad.PaddingRight=UDim.new(0,10); NHistPad.PaddingBottom=UDim.new(0,8)
+local NEmptyLbl=Instance.new("TextLabel",NHistScroll)
+NEmptyLbl.BackgroundTransparency=1; NEmptyLbl.Size=UDim2.new(1,0,0,60)
+NEmptyLbl.Font=Enum.Font.GothamSemibold; NEmptyLbl.Text="Nenhuma notificação ainda."
+NEmptyLbl.TextColor3=Color3.fromRGB(70,80,100); NEmptyLbl.TextSize=11
+NEmptyLbl.LayoutOrder=9999; NEmptyLbl.ZIndex=512
+
+-- Utilitários internos
+local function nPlaySound(id)
+    if not NOTIF_CFG.SOUND_ENABLED or not id then return end
+    pcall(function()
+        local snd=Instance.new("Sound",SoundService); snd.SoundId="rbxassetid://"..tostring(id)
+        snd.Volume=0.35; snd.RollOffMaxDistance=0; snd:Play()
+        game:GetService("Debris"):AddItem(snd,4)
+    end)
+end
+
+local function nReflow()
+    local isBottom = NOTIF_CFG.CORNER=="BR" or NOTIF_CFG.CORNER=="BL"
+    local isLeft   = NOTIF_CFG.CORNER=="TL" or NOTIF_CFG.CORNER=="BL"
+    local totalOff = 0
+    for _, entry in ipairs(nActive) do
+        if entry and entry.frame and entry.frame.Parent then
+            local h = entry.frame.AbsoluteSize.Y
+            local xOff = isLeft and NOTIF_CFG.PADDING or -(NOTIF_CFG.PADDING + NOTIF_CFG.WIDTH)
+            local yOff = isBottom and -(NOTIF_CFG.PADDING + h + totalOff) or (NOTIF_CFG.PADDING + totalOff)
+            TweenService:Create(entry.frame,TweenInfo.new(0.28,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),{
+                Position=UDim2.new(isLeft and 0 or 1, xOff, isBottom and 1 or 0, yOff)
+            }):Play()
+            totalOff = totalOff + h + NOTIF_CFG.GAP
+        end
+    end
+end
+
+local function nAddHistory(cfg, tipo)
+    NEmptyLbl.Visible=false; nHistLO=nHistLO+1
+    local t=NOTIF_TIPOS[tipo] or NOTIF_TIPOS.custom
+    local hRow=Instance.new("Frame",NHistScroll)
+    hRow.BackgroundColor3=Color3.fromRGB(28,30,40); hRow.BackgroundTransparency=0.1
+    hRow.BorderSizePixel=0; hRow.Size=UDim2.new(1,0,0,44); hRow.LayoutOrder=-nHistLO; hRow.ZIndex=512
+    Instance.new("UICorner",hRow).CornerRadius=UDim.new(0,8)
+    local hBar=Instance.new("Frame",hRow); hBar.BackgroundColor3=t.accent; hBar.BorderSizePixel=0
+    hBar.Size=UDim2.new(0,3,1,0); hBar.ZIndex=513; Instance.new("UICorner",hBar).CornerRadius=UDim.new(0,2)
+    local hIcon=Instance.new("TextLabel",hRow); hIcon.BackgroundTransparency=1
+    hIcon.Position=UDim2.new(0,10,0,0); hIcon.Size=UDim2.new(0,20,1,0)
+    hIcon.Font=Enum.Font.GothamBold; hIcon.Text=cfg.icon or t.icon
+    hIcon.TextColor3=t.accent; hIcon.TextSize=14; hIcon.ZIndex=513
+    local hTitle=Instance.new("TextLabel",hRow); hTitle.BackgroundTransparency=1
+    hTitle.Position=UDim2.new(0,34,0,6); hTitle.Size=UDim2.new(1,-44,0,14)
+    hTitle.Font=Enum.Font.GothamBold; hTitle.Text=cfg.title or t.title
+    hTitle.TextColor3=Color3.fromRGB(220,225,245); hTitle.TextSize=10
+    hTitle.TextXAlignment=Enum.TextXAlignment.Left; hTitle.ZIndex=513
+    local hMsg=Instance.new("TextLabel",hRow); hMsg.BackgroundTransparency=1
+    hMsg.Position=UDim2.new(0,34,0,22); hMsg.Size=UDim2.new(1,-44,0,14)
+    hMsg.Font=Enum.Font.Gotham; hMsg.Text=cfg.msg or ""
+    hMsg.TextColor3=Color3.fromRGB(110,120,145); hMsg.TextSize=9
+    hMsg.TextXAlignment=Enum.TextXAlignment.Left; hMsg.TextTruncate=Enum.TextTruncate.AtEnd; hMsg.ZIndex=513
+    local children=NHistScroll:GetChildren(); local rows={}
+    for _,c in ipairs(children) do if c:IsA("Frame") then table.insert(rows,c) end end
+    if #rows>NOTIF_CFG.HISTORY_MAX then
+        table.sort(rows,function(a,b) return a.LayoutOrder<b.LayoutOrder end); rows[1]:Destroy()
+    end
+end
+
+local function nRemoveEntry(entry, instant)
+    if entry._removed then return end; entry._removed=true
+    for i,e in ipairs(nActive) do if e==entry then table.remove(nActive,i); break end end
+    local frame=entry.frame
+    local isLeft=NOTIF_CFG.CORNER=="TL" or NOTIF_CFG.CORNER=="BL"
+    local slideX=isLeft and -(NOTIF_CFG.WIDTH+30) or (NOTIF_CFG.WIDTH+30)
+    local dur=instant and 0 or 0.3
+    TweenService:Create(frame,TweenInfo.new(dur,Enum.EasingStyle.Quint,Enum.EasingDirection.In),{
+        Position=UDim2.new(frame.Position.X.Scale,frame.Position.X.Offset+slideX,frame.Position.Y.Scale,frame.Position.Y.Offset),
+    }):Play()
+    task.delay(dur+0.05,function() pcall(function() frame:Destroy() end); nReflow() end)
+end
+
+local Notify = {}
+
+local function nCreateCard(cfg, tipo)
+    local t=NOTIF_TIPOS[tipo] or NOTIF_TIPOS.custom
+    local title=cfg.title or t.title; local msg=cfg.msg or ""; local icon=cfg.icon or t.icon
+    local accent=cfg.accent or t.accent; local bg=cfg.bg or t.bg
+    local dur=cfg.duration or NOTIF_CFG.DEFAULT_DURATION; local action=cfg.action
+    local BASE_H=68; local extraH=(msg~="" and 16 or 0)+(action and 32 or 0); local TOTAL_H=BASE_H+extraH
+    local isLeft=NOTIF_CFG.CORNER=="TL" or NOTIF_CFG.CORNER=="BL"
+    local isBottom=NOTIF_CFG.CORNER=="BR" or NOTIF_CFG.CORNER=="BL"
+    local startXOff=isLeft and -(NOTIF_CFG.WIDTH+40) or (NOTIF_CFG.WIDTH+40)
+    local totalOff=0
+    for _,e in ipairs(nActive) do if e and e.frame and e.frame.Parent then totalOff=totalOff+e.frame.AbsoluteSize.Y+NOTIF_CFG.GAP end end
+    local yOff=isBottom and -(NOTIF_CFG.PADDING+TOTAL_H+totalOff) or (NOTIF_CFG.PADDING+totalOff)
+    -- Card
+    local card=Instance.new("Frame",NotifRoot)
+    card.Name="PudimNotif_"..tostring(tick()); card.BackgroundColor3=bg; card.BorderSizePixel=0
+    card.AnchorPoint=Vector2.new(isLeft and 0 or 1,isBottom and 1 or 0)
+    card.Position=UDim2.new(isLeft and 0 or 1,startXOff,isBottom and 1 or 0,yOff)
+    card.Size=UDim2.new(0,NOTIF_CFG.WIDTH,0,TOTAL_H); card.ZIndex=520; card.ClipsDescendants=true
+    Instance.new("UICorner",card).CornerRadius=UDim.new(0,12)
+    local cardStroke=Instance.new("UIStroke",card); cardStroke.Color=accent; cardStroke.Thickness=1.2; cardStroke.Transparency=0.55
+    -- Sidebar
+    local sideBar=Instance.new("Frame",card); sideBar.BackgroundColor3=accent; sideBar.BorderSizePixel=0
+    sideBar.Size=UDim2.new(0,4,1,0); sideBar.ZIndex=521; Instance.new("UICorner",sideBar).CornerRadius=UDim.new(0,3)
+    -- Glow
+    local glow=Instance.new("Frame",card); glow.BackgroundColor3=accent; glow.BackgroundTransparency=0.88
+    glow.BorderSizePixel=0; glow.Size=UDim2.new(1,0,1,0); glow.ZIndex=520
+    -- Icon
+    local iconBg=Instance.new("Frame",card); iconBg.BackgroundColor3=accent; iconBg.BackgroundTransparency=0.75
+    iconBg.BorderSizePixel=0; iconBg.AnchorPoint=Vector2.new(0.5,0)
+    iconBg.Position=UDim2.new(0,30,0,12); iconBg.Size=UDim2.new(0,32,0,32); iconBg.ZIndex=522
+    Instance.new("UICorner",iconBg).CornerRadius=UDim.new(1,0)
+    local iconStroke=Instance.new("UIStroke",iconBg); iconStroke.Color=accent; iconStroke.Thickness=1.5; iconStroke.Transparency=0.5
+    local iconLbl=Instance.new("TextLabel",iconBg); iconLbl.BackgroundTransparency=1
+    iconLbl.Size=UDim2.new(1,0,1,0); iconLbl.Font=Enum.Font.GothamBold; iconLbl.Text=icon
+    iconLbl.TextColor3=accent; iconLbl.TextSize=15; iconLbl.ZIndex=523
+    -- Title
+    local titleLbl=Instance.new("TextLabel",card); titleLbl.BackgroundTransparency=1
+    titleLbl.Position=UDim2.new(0,56,0,10); titleLbl.Size=UDim2.new(1,-82,0,18)
+    titleLbl.Font=Enum.Font.GothamBlack; titleLbl.Text=title
+    titleLbl.TextColor3=Color3.fromRGB(238,242,255); titleLbl.TextSize=12
+    titleLbl.TextXAlignment=Enum.TextXAlignment.Left; titleLbl.TextTruncate=Enum.TextTruncate.AtEnd; titleLbl.ZIndex=522
+    -- Badge tipo
+    local typeBadge=Instance.new("Frame",card); typeBadge.BackgroundColor3=accent
+    typeBadge.BackgroundTransparency=0.82; typeBadge.BorderSizePixel=0
+    typeBadge.Position=UDim2.new(0,56,0,30); typeBadge.Size=UDim2.new(0,0,0,13)
+    typeBadge.AutomaticSize=Enum.AutomaticSize.X; typeBadge.ZIndex=522
+    Instance.new("UICorner",typeBadge).CornerRadius=UDim.new(0,4)
+    local typePad=Instance.new("UIPadding",typeBadge); typePad.PaddingLeft=UDim.new(0,5); typePad.PaddingRight=UDim.new(0,5)
+    local typeLbl=Instance.new("TextLabel",typeBadge); typeLbl.BackgroundTransparency=1
+    typeLbl.Size=UDim2.new(0,0,1,0); typeLbl.AutomaticSize=Enum.AutomaticSize.X
+    typeLbl.Font=Enum.Font.GothamBold; typeLbl.Text=tipo:upper()
+    typeLbl.TextColor3=accent; typeLbl.TextSize=7; typeLbl.ZIndex=523
+    -- Msg
+    if msg~="" then
+        local msgLbl=Instance.new("TextLabel",card); msgLbl.BackgroundTransparency=1
+        msgLbl.Position=UDim2.new(0,56,0,46); msgLbl.Size=UDim2.new(1,-66,0,16)
+        msgLbl.Font=Enum.Font.Gotham; msgLbl.Text=msg
+        msgLbl.TextColor3=Color3.fromRGB(150,160,185); msgLbl.TextSize=10
+        msgLbl.TextXAlignment=Enum.TextXAlignment.Left; msgLbl.TextTruncate=Enum.TextTruncate.AtEnd; msgLbl.ZIndex=522
+    end
+    -- Botão ação
+    if action then
+        local actionBtn=Instance.new("TextButton",card); actionBtn.BackgroundColor3=accent
+        actionBtn.BackgroundTransparency=0.78; actionBtn.BorderSizePixel=0
+        actionBtn.Position=UDim2.new(0,56,0,BASE_H+extraH-36); actionBtn.Size=UDim2.new(0,100,0,26)
+        actionBtn.Font=Enum.Font.GothamBold; actionBtn.Text=action.label or "Ver"
+        actionBtn.TextColor3=accent; actionBtn.TextSize=10; actionBtn.ZIndex=523
+        Instance.new("UICorner",actionBtn).CornerRadius=UDim.new(0,7)
+        local aS=Instance.new("UIStroke",actionBtn); aS.Color=accent; aS.Thickness=1; aS.Transparency=0.5
+        actionBtn.MouseEnter:Connect(function() TweenService:Create(actionBtn,TweenInfo.new(0.1),{BackgroundTransparency=0.5}):Play() end)
+        actionBtn.MouseLeave:Connect(function() TweenService:Create(actionBtn,TweenInfo.new(0.1),{BackgroundTransparency=0.78}):Play() end)
+        actionBtn.MouseButton1Click:Connect(function() pcall(action.callback) end)
+    end
+    -- Fechar
+    local closeBtn=Instance.new("TextButton",card); closeBtn.BackgroundTransparency=1
+    closeBtn.Position=UDim2.new(1,-28,0,6); closeBtn.Size=UDim2.new(0,22,0,22)
+    closeBtn.Font=Enum.Font.GothamBold; closeBtn.Text="×"; closeBtn.TextColor3=Color3.fromRGB(90,100,120)
+    closeBtn.TextSize=18; closeBtn.ZIndex=524
+    closeBtn.MouseEnter:Connect(function() TweenService:Create(closeBtn,TweenInfo.new(0.1),{TextColor3=Color3.fromRGB(255,100,100)}):Play() end)
+    closeBtn.MouseLeave:Connect(function() TweenService:Create(closeBtn,TweenInfo.new(0.1),{TextColor3=Color3.fromRGB(90,100,120)}):Play() end)
+    -- Barra progresso
+    local progressBg=Instance.new("Frame",card); progressBg.BackgroundColor3=Color3.fromRGB(25,28,38)
+    progressBg.BorderSizePixel=0; progressBg.Position=UDim2.new(0,0,1,-3); progressBg.Size=UDim2.new(1,0,0,3); progressBg.ZIndex=522
+    Instance.new("UICorner",progressBg).CornerRadius=UDim.new(0,2)
+    local progressFill=Instance.new("Frame",progressBg); progressFill.BackgroundColor3=accent
+    progressFill.BorderSizePixel=0; progressFill.Size=UDim2.new(1,0,1,0); progressFill.ZIndex=523
+    Instance.new("UICorner",progressFill).CornerRadius=UDim.new(0,2)
+    -- Entry
+    local entry={frame=card,cfg=cfg,tipo=tipo,startTick=tick(),duration=dur,paused=false,pauseAcc=0,pauseFrom=0,_removed=false,progress=progressFill}
+    table.insert(nActive,entry)
+    nCount=nCount+1; NBadgeCountLbl.Text=tostring(nCount); NBadgeCountFrame.Visible=(nCount>0); NBadge.Visible=true
+    -- Hover pause
+    local hitbox=Instance.new("TextButton",card); hitbox.BackgroundTransparency=1
+    hitbox.Size=UDim2.new(1,0,1,0); hitbox.Text=""; hitbox.ZIndex=521
+    hitbox.MouseEnter:Connect(function()
+        if entry._removed then return end; entry.paused=true; entry.pauseFrom=tick()
+        TweenService:Create(cardStroke,TweenInfo.new(0.15),{Transparency=0.1}):Play()
+    end)
+    hitbox.MouseLeave:Connect(function()
+        if entry._removed then return end; entry.paused=false; entry.pauseAcc=entry.pauseAcc+(tick()-entry.pauseFrom)
+        TweenService:Create(cardStroke,TweenInfo.new(0.15),{Transparency=0.55}):Play()
+    end)
+    closeBtn.MouseButton1Click:Connect(function() nRemoveEntry(entry) end)
+    -- Slide in
+    local targetXOff=isLeft and NOTIF_CFG.PADDING or -NOTIF_CFG.PADDING
+    nReflow()
+    card.Position=UDim2.new(isLeft and 0 or 1,startXOff,isBottom and 1 or 0,yOff)
+    task.wait()
+    TweenService:Create(card,TweenInfo.new(0.42,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+        Position=UDim2.new(isLeft and 0 or 1,targetXOff,isBottom and 1 or 0,yOff)
+    }):Play()
+    task.spawn(function()
+        task.wait(0.1)
+        TweenService:Create(iconBg,TweenInfo.new(0.15,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,36,0,36),Position=UDim2.new(0,28,0,10)}):Play()
+        task.wait(0.2)
+        TweenService:Create(iconBg,TweenInfo.new(0.2,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,32,0,32),Position=UDim2.new(0,30,0,12)}):Play()
+    end)
+    -- Timer
+    task.spawn(function()
+        while not entry._removed do
+            task.wait(0.05)
+            if entry._removed then break end
+            local elapsed=tick()-entry.startTick-entry.pauseAcc
+            if entry.paused then elapsed=entry.pauseFrom-entry.startTick-entry.pauseAcc end
+            local pct=math.clamp(1-(elapsed/entry.duration),0,1)
+            pcall(function() entry.progress.Size=UDim2.new(pct,0,1,0) end)
+            if pct<=0 and not entry.paused then nRemoveEntry(entry); break end
+        end
+    end)
+    nPlaySound(t.sound)
+    return entry
+end
+
+function Notify.send(cfg)
+    if not notifEnabled then return end
+    local tipo=cfg.tipo or "info"
+    if #nActive>=NOTIF_CFG.MAX_VISIBLE then table.insert(nQueue,cfg); return end
+    local entry=nCreateCard(cfg,tipo); nAddHistory(cfg,tipo)
+    task.spawn(function()
+        while not entry._removed do task.wait(0.1) end
+        if #nQueue>0 then local next=table.remove(nQueue,1); Notify.send(next) end
+        nCount=math.max(0,nCount-1); NBadgeCountLbl.Text=tostring(nCount); NBadgeCountFrame.Visible=(nCount>0)
+        if #nActive==0 then
+            task.delay(3,function()
+                if #nActive==0 then
+                    TweenService:Create(NBadge,TweenInfo.new(0.4),{BackgroundTransparency=1}):Play()
+                    task.wait(0.5); NBadge.Visible=false; NBadge.BackgroundTransparency=0
+                end
+            end)
+        end
+    end)
+end
+
+function Notify.success(title,msg,dur) Notify.send({tipo="success",title=title,msg=msg or "",duration=dur}) end
+function Notify.error(title,msg,dur)   Notify.send({tipo="error",  title=title,msg=msg or "",duration=dur}) end
+function Notify.warn(title,msg,dur)    Notify.send({tipo="warn",   title=title,msg=msg or "",duration=dur}) end
+function Notify.info(title,msg,dur)    Notify.send({tipo="info",   title=title,msg=msg or "",duration=dur}) end
+function Notify.achievement(title,msg,icon) Notify.send({tipo="achievement",title=title,msg=msg or "",icon=icon or "★",duration=6}) end
+
+-- Badge toggle histórico
+NBadgeBtn.MouseButton1Click:Connect(function()
+    nHistOpen=not nHistOpen
+    if nHistOpen then
+        NHistPanel.Visible=true; NHistPanel.Size=UDim2.new(0,340,0,0)
+        TweenService:Create(NHistPanel,TweenInfo.new(0.35,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,340,0,360)}):Play()
+        TweenService:Create(NBadge,TweenInfo.new(0.2),{BackgroundColor3=Color3.fromRGB(130,60,255)}):Play()
+    else
+        TweenService:Create(NHistPanel,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{Size=UDim2.new(0,340,0,0)}):Play()
+        TweenService:Create(NBadge,TweenInfo.new(0.2),{BackgroundColor3=Color3.fromRGB(88,101,242)}):Play()
+        task.delay(0.25,function() NHistPanel.Visible=false end)
+    end
+end)
+NHistClearBtn.MouseButton1Click:Connect(function()
+    for _,c in ipairs(NHistScroll:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
+    NEmptyLbl.Visible=true; nHistLO=0
+end)
+UserInputService.InputBegan:Connect(function(input)
+    if not nHistOpen then return end
+    if input.UserInputType~=Enum.UserInputType.MouseButton1 then return end
+    local mp=UserInputService:GetMouseLocation()
+    local ap,as=NHistPanel.AbsolutePosition,NHistPanel.AbsoluteSize
+    local bp,bs=NBadge.AbsolutePosition,NBadge.AbsoluteSize
+    local inH=mp.X>=ap.X and mp.X<=ap.X+as.X and mp.Y>=ap.Y and mp.Y<=ap.Y+as.Y
+    local inB=mp.X>=bp.X and mp.X<=bp.X+bs.X and mp.Y>=bp.Y and mp.Y<=bp.Y+bs.Y
+    if not inH and not inB then
+        nHistOpen=false
+        TweenService:Create(NHistPanel,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{Size=UDim2.new(0,340,0,0)}):Play()
+        TweenService:Create(NBadge,TweenInfo.new(0.2),{BackgroundColor3=Color3.fromRGB(88,101,242)}):Play()
+        task.delay(0.25,function() NHistPanel.Visible=false end)
+    end
+end)
 
 -- ══════════════════════════════════════════════════════
 --  MAIN FRAME
@@ -358,10 +737,12 @@ local function UltraBooster(state)
                 if not origTextures[obj] then origTextures[obj]=obj.Transparency end; obj.Transparency=1
             end
         end) end
+        Notify.warn("Booster Ultra", "Ativo — Visuais reduzidos para máxima performance.", 4)
     else
         for obj,p in pairs(origMaterials) do pcall(function() if obj and obj.Parent then obj.Material=p.M; obj.Color=p.C; obj.Reflectance=p.R; obj.Transparency=p.T; obj.CastShadow=true end end) end
         for obj,t in pairs(origTextures) do pcall(function() if obj and obj.Parent then obj.Transparency=t end end) end
         origMaterials={}; origTextures={}
+        Notify.info("Booster Ultra", "Desativado — Visuais restaurados.")
     end
 end
 
@@ -378,8 +759,10 @@ local function ForceRemoveEffects(s)
                 hidEffects[o]=o.Enabled; o.Enabled=false
             end
         end) end
+        Notify.warn("Remover Efeitos", "Partículas e luzes desativadas.")
     else
         for e,w in pairs(hidEffects) do pcall(function() if e and e.Parent then e.Enabled=w end end) end; hidEffects={}
+        Notify.info("Remover Efeitos", "Efeitos restaurados.")
     end
 end
 
@@ -396,8 +779,10 @@ local function ForceRemoveNPCs(s)
                 end
             end
         end) end
+        Notify.warn("Remover NPCs", "NPCs invisíveis e sem colisão.")
     else
         for p,d in pairs(hidNPCs) do pcall(function() if p and p.Parent then p.Transparency=d.T; p.CanCollide=d.CC end end) end; hidNPCs={}
+        Notify.info("Remover NPCs", "NPCs restaurados.")
     end
 end
 
@@ -408,10 +793,14 @@ local function ForceLagCleaner(s)
         settings().Rendering.QualityLevel=Enum.QualityLevel.Level01
         settings().Rendering.MeshPartDetailLevel=Enum.MeshPartDetailLevel.Level01
         settings().Physics.AllowSleep=true
-    end) else pcall(function()
+    end)
+        Notify.warn("Limpar Lag", "Qualidade reduzida ao mínimo.")
+    else pcall(function()
         if origSet.Q then settings().Rendering.QualityLevel=origSet.Q end
         if origSet.M then settings().Rendering.MeshPartDetailLevel=origSet.M end
-    end); origSet={} end
+    end); origSet={}
+        Notify.info("Limpar Lag", "Qualidade restaurada.")
+    end
 end
 
 -- ══════════════════════════════════════════════════════
@@ -475,7 +864,10 @@ rejBtn.Size=UDim2.new(1,0,0,32); rejBtn.Font=Enum.Font.GothamBold
 rejBtn.Text="🔄  REJOIN SERVER"; rejBtn.TextColor3=Color3.fromRGB(255,255,255); rejBtn.TextSize=11; rejBtn.ZIndex=201
 Instance.new("UICorner",rejBtn).CornerRadius=UDim.new(0,7)
 rejBtn.MouseButton1Click:Connect(function()
-    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId,game.JobId,Player)
+    Notify.warn("Rejoin", "Reconectando ao servidor...")
+    task.delay(1, function()
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId,game.JobId,Player)
+    end)
 end)
 
 -- ══════════════════════════════════════════════════════
@@ -558,7 +950,7 @@ UserInputService.InputBegan:Connect(function(input)
 end)
 
 -- ══════════════════════════════════════════════════════
---  ABA INFO
+--  ABA INFO — inclui toggle de notificações
 -- ══════════════════════════════════════════════════════
 local function copyToClipboard(text)
     pcall(function() if setclipboard then setclipboard(text) end end)
@@ -628,13 +1020,109 @@ infoStatusSub.Text="ID: "..tostring(game.PlaceId).."  •  Hub v5"
 infoStatusSub.TextColor3=Color3.fromRGB(120,130,145); infoStatusSub.TextSize=9
 infoStatusSub.TextXAlignment=Enum.TextXAlignment.Left; infoStatusSub.ZIndex=7
 
+-- ═══════════════════════════════════════
+--  TOGGLE NOTIFICAÇÕES (aba Info, LO=1)
+-- ═══════════════════════════════════════
+local notifToggleRow = Instance.new("Frame", Pages["Info"])
+notifToggleRow.BackgroundColor3   = Color3.fromRGB(22,24,32)
+notifToggleRow.BorderSizePixel    = 0
+notifToggleRow.Size               = UDim2.new(1,0,0,62)
+notifToggleRow.LayoutOrder        = 1
+notifToggleRow.ZIndex             = 5
+Instance.new("UICorner", notifToggleRow).CornerRadius = UDim.new(0,10)
+local ntStroke = Instance.new("UIStroke", notifToggleRow)
+ntStroke.Color = Color3.fromRGB(88,101,242); ntStroke.Thickness = 1.5
+
+-- Ícone 🔔 à esquerda
+local ntIconBg = Instance.new("Frame", notifToggleRow)
+ntIconBg.BackgroundColor3   = Color3.fromRGB(88,101,242)
+ntIconBg.BackgroundTransparency = 0.75
+ntIconBg.BorderSizePixel    = 0
+ntIconBg.Position           = UDim2.new(0,10,0.5,-18)
+ntIconBg.Size               = UDim2.new(0,36,0,36)
+ntIconBg.ZIndex             = 6
+Instance.new("UICorner",ntIconBg).CornerRadius=UDim.new(1,0)
+local ntIconLbl = Instance.new("TextLabel",ntIconBg)
+ntIconLbl.BackgroundTransparency=1; ntIconLbl.Size=UDim2.new(1,0,1,0)
+ntIconLbl.Font=Enum.Font.GothamBold; ntIconLbl.Text="🔔"; ntIconLbl.TextSize=18; ntIconLbl.ZIndex=7
+
+-- Textos
+local ntTitle = Instance.new("TextLabel",notifToggleRow)
+ntTitle.BackgroundTransparency=1; ntTitle.Position=UDim2.new(0,56,0,10)
+ntTitle.Size=UDim2.new(1,-110,0,18); ntTitle.Font=Enum.Font.GothamBlack
+ntTitle.Text="Notificações"; ntTitle.TextColor3=Color3.fromRGB(220,225,240)
+ntTitle.TextSize=12; ntTitle.TextXAlignment=Enum.TextXAlignment.Left; ntTitle.ZIndex=6
+
+local ntDesc = Instance.new("TextLabel",notifToggleRow)
+ntDesc.BackgroundTransparency=1; ntDesc.Position=UDim2.new(0,56,0,30)
+ntDesc.Size=UDim2.new(1,-110,0,24); ntDesc.Font=Enum.Font.Gotham
+ntDesc.Text="Ativa/desativa todas as notificações do hub"; ntDesc.TextColor3=Color3.fromRGB(90,100,120)
+ntDesc.TextSize=9; ntDesc.TextXAlignment=Enum.TextXAlignment.Left; ntDesc.TextWrapped=true; ntDesc.ZIndex=6
+
+-- Pill toggle
+local ntPill = Instance.new("Frame",notifToggleRow)
+ntPill.BackgroundColor3   = Color3.fromRGB(88,101,242)   -- começa ATIVO (verde-azulado)
+ntPill.BorderSizePixel    = 0
+ntPill.Position           = UDim2.new(1,-58,0.5,-13)
+ntPill.Size               = UDim2.new(0,48,0,26)
+ntPill.ZIndex             = 7
+Instance.new("UICorner",ntPill).CornerRadius=UDim.new(1,0)
+local ntKnob = Instance.new("Frame",ntPill)
+ntKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); ntKnob.BorderSizePixel=0
+ntKnob.Position = UDim2.new(1,-24,0.5,-11); ntKnob.Size=UDim2.new(0,22,0,22); ntKnob.ZIndex=8
+Instance.new("UICorner",ntKnob).CornerRadius=UDim.new(1,0)
+
+-- Status label (ON/OFF)
+local ntStatusLbl = Instance.new("TextLabel",notifToggleRow)
+ntStatusLbl.BackgroundTransparency=1; ntStatusLbl.Position=UDim2.new(1,-58,0,10)
+ntStatusLbl.Size=UDim2.new(0,48,0,12); ntStatusLbl.Font=Enum.Font.GothamBold
+ntStatusLbl.Text="ON"; ntStatusLbl.TextColor3=Color3.fromRGB(88,101,242)
+ntStatusLbl.TextSize=8; ntStatusLbl.TextXAlignment=Enum.TextXAlignment.Center; ntStatusLbl.ZIndex=7
+
+local ntBtn = Instance.new("TextButton",notifToggleRow)
+ntBtn.BackgroundTransparency=1; ntBtn.Size=UDim2.new(1,0,1,0); ntBtn.Text=""; ntBtn.ZIndex=9
+ntBtn.MouseButton1Click:Connect(function()
+    notifEnabled = not notifEnabled
+    local onColor   = Color3.fromRGB(88,101,242)
+    local offColor  = Color3.fromRGB(45,50,62)
+    TweenService:Create(ntPill,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{
+        BackgroundColor3 = notifEnabled and onColor or offColor
+    }):Play()
+    TweenService:Create(ntKnob,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+        Position = notifEnabled and UDim2.new(1,-24,0.5,-11) or UDim2.new(0,2,0.5,-11),
+        BackgroundColor3 = notifEnabled and Color3.fromRGB(255,255,255) or Color3.fromRGB(160,170,185)
+    }):Play()
+    TweenService:Create(ntStroke,TweenInfo.new(0.2),{
+        Color = notifEnabled and onColor or Color3.fromRGB(55,58,66)
+    }):Play()
+    TweenService:Create(ntStatusLbl,TweenInfo.new(0.15),{
+        TextColor3 = notifEnabled and onColor or Color3.fromRGB(100,110,130)
+    }):Play()
+    ntStatusLbl.Text  = notifEnabled and "ON" or "OFF"
+    ntIconBg.BackgroundTransparency = notifEnabled and 0.75 or 0.9
+    -- Notificação de confirmação (sempre dispara, independente do toggle)
+    -- Para garantir feedback mesmo ao desativar:
+    if notifEnabled then
+        task.delay(0.1, function()
+            Notify.info("Notificações", "Notificações ativadas ✓")
+        end)
+    else
+        -- Dispara manualmente sem checar notifEnabled
+        local cfg = {tipo="warn", title="Notificações", msg="Notificações desativadas.", duration=3}
+        local tipo = "warn"
+        if #nActive < NOTIF_CFG.MAX_VISIBLE then
+            nCreateCard(cfg, tipo); nAddHistory(cfg, tipo)
+        end
+    end
+end)
+
 local infoSep=Instance.new("Frame",Pages["Info"])
 infoSep.BackgroundColor3=Color3.fromRGB(50,54,65); infoSep.BorderSizePixel=0
-infoSep.Size=UDim2.new(1,0,0,1); infoSep.LayoutOrder=1; infoSep.ZIndex=5
+infoSep.Size=UDim2.new(1,0,0,1); infoSep.LayoutOrder=2; infoSep.ZIndex=5
 
 local dadosHeader=Instance.new("TextButton",Pages["Info"])
 dadosHeader.BackgroundColor3=Color3.fromRGB(26,28,34); dadosHeader.BorderSizePixel=0
-dadosHeader.Size=UDim2.new(1,0,0,32); dadosHeader.LayoutOrder=2; dadosHeader.Text=""; dadosHeader.ZIndex=5
+dadosHeader.Size=UDim2.new(1,0,0,32); dadosHeader.LayoutOrder=3; dadosHeader.Text=""; dadosHeader.ZIndex=5
 Instance.new("UICorner",dadosHeader).CornerRadius=UDim.new(0,8)
 local dadosStroke=Instance.new("UIStroke",dadosHeader); dadosStroke.Color=Color3.fromRGB(55,58,66); dadosStroke.Thickness=1
 
@@ -654,7 +1142,7 @@ dadosArrow.ScaleType=Enum.ScaleType.Fit; dadosArrow.Rotation=180; dadosArrow.ZIn
 
 local dadosContent=Instance.new("Frame",Pages["Info"])
 dadosContent.BackgroundColor3=Color3.fromRGB(22,24,30); dadosContent.BorderSizePixel=0
-dadosContent.Size=UDim2.new(1,0,0,0); dadosContent.LayoutOrder=3; dadosContent.ZIndex=5
+dadosContent.Size=UDim2.new(1,0,0,0); dadosContent.LayoutOrder=4; dadosContent.ZIndex=5
 dadosContent.ClipsDescendants=true
 Instance.new("UICorner",dadosContent).CornerRadius=UDim.new(0,8)
 local dadosStroke2=Instance.new("UIStroke",dadosContent); dadosStroke2.Color=Color3.fromRGB(45,48,58); dadosStroke2.Thickness=1
@@ -702,6 +1190,7 @@ makeDadosBtn(dadosBtnsRow,"🔗 Discord Link",Color3.fromRGB(88,101,242),functio
 end,0)
 makeDadosBtn(dadosBtnsRow,"📋 Copy ID",Color3.fromRGB(60,160,80),function()
     copyToClipboard(tostring(game.JobId))
+    Notify.info("Copiado!", "Job ID copiado para a área de transferência.")
 end,1)
 
 local dadosOpen=false
@@ -1059,7 +1548,7 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
--- UI ESP (mantida igual à v4)
+-- UI ESP
 local espTabLO=0
 local function espLO() espTabLO+=1; return espTabLO end
 local function makeEspSection(titulo,cor)
@@ -1111,6 +1600,11 @@ local function makeEspRow(cat)
             BackgroundColor3=estado and Color3.fromRGB(255,255,255) or Color3.fromRGB(160,170,185),
         }):Play()
         TweenService:Create(rowStroke,TweenInfo.new(0.2),{Color=estado and cat.cor or Color3.fromRGB(45,48,58)}):Play()
+        if estado then
+            Notify.info("ESP Ativo", cat.label.." rastreado.")
+        else
+            Notify.info("ESP Inativo", cat.label.." desativado.")
+        end
     end)
 end
 
@@ -1273,9 +1767,11 @@ local function makeBringRow(bcat)
             btnBring.Text="▼ BRING"; TweenService:Create(btnBring,TweenInfo.new(0.15),{BackgroundTransparency=0.15}):Play()
             if count>0 then
                 feedbackLbl.Text="✓ "..count.." item(s)"; feedbackLbl.TextColor3=bcat.cor; feedbackLbl.TextTransparency=0
+                Notify.success(bcat.label, count.." item(s) trazidos com sucesso! ✓", 3.5)
                 task.delay(3,function() TweenService:Create(feedbackLbl,TweenInfo.new(0.5),{TextTransparency=1}):Play(); task.wait(0.6); feedbackLbl.Text=""; feedbackLbl.TextTransparency=0 end)
             else
                 feedbackLbl.Text="✗ Nenhum item"; feedbackLbl.TextColor3=Color3.fromRGB(200,80,80); feedbackLbl.TextTransparency=0
+                Notify.warn(bcat.label, "Nenhum item encontrado no mapa.", 3)
                 task.delay(2.5,function() TweenService:Create(feedbackLbl,TweenInfo.new(0.4),{TextTransparency=1}):Play(); task.wait(0.5); feedbackLbl.Text=""; feedbackLbl.TextTransparency=0; feedbackLbl.TextColor3=bcat.cor end)
             end
             TweenService:Create(rowStroke,TweenInfo.new(0.2),{Color=bcat.cor}):Play()
@@ -1299,8 +1795,7 @@ for _,grp in ipairs(bringGroupOrder) do
 end
 
 -- ══════════════════════════════════════════════════════
---  PLAYER TAB — Speed, Jump, Fly, Noclip, TpClick, BauANC
---  (CORRIGIDO: LayoutOrder fixo + SliderBars)
+--  PLAYER TAB
 -- ══════════════════════════════════════════════════════
 local playerSpeed = 30
 local playerJump  = 80
@@ -1359,10 +1854,12 @@ local function setFly(state)
             flyBodyVel.Velocity=dir.Magnitude>0 and dir.Unit*flySpeed or Vector3.zero
             flyBodyGyro.CFrame=cam.CFrame
         end)
+        Notify.info("Fly Ativo", "W/A/S/D mover • Espaço subir • Ctrl descer")
     else
         if flyConn then flyConn:Disconnect(); flyConn=nil end
         pcall(function() if flyBodyVel then flyBodyVel:Destroy(); flyBodyVel=nil end end)
         pcall(function() if flyBodyGyro then flyBodyGyro:Destroy(); flyBodyGyro=nil end end)
+        Notify.info("Fly", "Voo desativado.")
     end
 end
 
@@ -1382,12 +1879,14 @@ local function setNoclip(state)
             for _, part in ipairs(ch:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
             if hrp then hrp.CanCollide = false end
         end)
+        Notify.warn("Noclip", "Atravessando paredes. Anti-void ativo.")
     else
         if noclipConn2 then noclipConn2:Disconnect(); noclipConn2=nil end
         pcall(function()
             local ch=Player.Character; if not ch then return end
             for _, part in ipairs(ch:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = true end end
         end)
+        Notify.info("Noclip", "Colisão restaurada.")
     end
 end
 
@@ -1407,8 +1906,10 @@ local function setTpClick(state)
                 hrp.CFrame=CFrame.new(ray.Position.X,safeY,ray.Position.Z)
             end
         end)
+        Notify.info("TP Click", "Clique no chão para teleportar.")
     else
         if tpClickConn then tpClickConn:Disconnect(); tpClickConn=nil end
+        Notify.info("TP Click", "Teleporte por clique desativado.")
     end
 end
 
@@ -1425,23 +1926,21 @@ local function setBauANC(state)
                 end
             end)
         end)
+        Notify.info("Baú ANC", "Baús agora abrem instantaneamente.")
     else
         if bauANCConn then bauANCConn:Disconnect(); bauANCConn=nil end
+        Notify.info("Baú ANC", "Velocidade de baú normalizada.")
     end
 end
 
--- ══════════════════════════════════════════════════════
---  UI PLAYER — LayoutOrder FIXO com contador
--- ══════════════════════════════════════════════════════
+-- UI PLAYER
 local plLO = 0
 local function plNextLO() plLO+=1; return plLO end
 
--- Seção header (usa plNextLO para ordem correta)
 local function makePlSec(titulo, cor)
     local hdr=Instance.new("Frame",Pages["Player"]); hdr.BackgroundColor3=Color3.fromRGB(20,22,30)
     hdr.BackgroundTransparency=0.3; hdr.BorderSizePixel=0; hdr.Size=UDim2.new(1,0,0,22)
-    hdr.LayoutOrder=plNextLO()  -- CORRIGIDO: usa contador fixo
-    hdr.ZIndex=4
+    hdr.LayoutOrder=plNextLO(); hdr.ZIndex=4
     Instance.new("UICorner",hdr).CornerRadius=UDim.new(0,6)
     local bar=Instance.new("Frame",hdr); bar.BackgroundColor3=cor; bar.BorderSizePixel=0
     bar.Size=UDim2.new(0,3,1,0); bar.ZIndex=5; Instance.new("UICorner",bar).CornerRadius=UDim.new(0,3)
@@ -1450,7 +1949,6 @@ local function makePlSec(titulo, cor)
     lbl.TextColor3=cor; lbl.TextSize=9; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.ZIndex=5
 end
 
--- Toggle para player tab
 local function makePlToggle(lbl_txt, desc_txt, cor, onToggle)
     local row=Instance.new("Frame",Pages["Player"]); row.BackgroundColor3=Color3.fromRGB(28,30,38)
     row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,56); row.LayoutOrder=plNextLO(); row.ZIndex=5
@@ -1483,67 +1981,42 @@ local function makePlToggle(lbl_txt, desc_txt, cor, onToggle)
     end)
 end
 
--- ══════════════════════════════════════════════════════
---  SLIDERBAR (drag) — substitui os botões de +/-
--- ══════════════════════════════════════════════════════
 local function makeSliderBar(parentPage, lbl_txt, desc_txt, cor, minV, maxV, initVal, onChange)
     local row = Instance.new("Frame", parentPage)
-    row.BackgroundColor3 = Color3.fromRGB(28,30,38)
-    row.BorderSizePixel = 0
-    row.Size = UDim2.new(1,0,0,78)
-    row.LayoutOrder = plNextLO()
-    row.ZIndex = 5
+    row.BackgroundColor3 = Color3.fromRGB(28,30,38); row.BorderSizePixel = 0
+    row.Size = UDim2.new(1,0,0,78); row.LayoutOrder = plNextLO(); row.ZIndex = 5
     Instance.new("UICorner", row).CornerRadius = UDim.new(0,9)
     local rowS = Instance.new("UIStroke", row); rowS.Color = Color3.fromRGB(42,46,58); rowS.Thickness = 1
-
-    -- Labels
     local tl = Instance.new("TextLabel", row); tl.BackgroundTransparency=1
     tl.Position=UDim2.new(0,14,0,8); tl.Size=UDim2.new(0.65,0,0,16); tl.Font=Enum.Font.GothamBold
-    tl.Text=lbl_txt; tl.TextColor3=Color3.fromRGB(220,225,240); tl.TextSize=12
-    tl.TextXAlignment=Enum.TextXAlignment.Left; tl.ZIndex=7
-
+    tl.Text=lbl_txt; tl.TextColor3=Color3.fromRGB(220,225,240); tl.TextSize=12; tl.TextXAlignment=Enum.TextXAlignment.Left; tl.ZIndex=7
     local valLbl = Instance.new("TextLabel", row); valLbl.BackgroundTransparency=1
     valLbl.Position=UDim2.new(1,-60,0,8); valLbl.Size=UDim2.new(0,52,0,16); valLbl.Font=Enum.Font.GothamBold
-    valLbl.Text=tostring(initVal); valLbl.TextColor3=cor; valLbl.TextSize=12
-    valLbl.TextXAlignment=Enum.TextXAlignment.Right; valLbl.ZIndex=7
-
+    valLbl.Text=tostring(initVal); valLbl.TextColor3=cor; valLbl.TextSize=12; valLbl.TextXAlignment=Enum.TextXAlignment.Right; valLbl.ZIndex=7
     local td = Instance.new("TextLabel", row); td.BackgroundTransparency=1
     td.Position=UDim2.new(0,14,0,26); td.Size=UDim2.new(1,-20,0,14); td.Font=Enum.Font.Gotham
-    td.Text=desc_txt; td.TextColor3=Color3.fromRGB(90,100,120); td.TextSize=9
-    td.TextXAlignment=Enum.TextXAlignment.Left; td.ZIndex=7
-
-    -- Track
+    td.Text=desc_txt; td.TextColor3=Color3.fromRGB(90,100,120); td.TextSize=9; td.TextXAlignment=Enum.TextXAlignment.Left; td.ZIndex=7
     local trackBg = Instance.new("Frame", row); trackBg.BackgroundColor3=Color3.fromRGB(42,48,62)
     trackBg.BorderSizePixel=0; trackBg.Position=UDim2.new(0,14,0,52); trackBg.Size=UDim2.new(1,-28,0,14)
     trackBg.ZIndex=7; Instance.new("UICorner",trackBg).CornerRadius=UDim.new(1,0)
-
     local pct0 = math.clamp((initVal - minV) / (maxV - minV), 0, 1)
-
     local fill = Instance.new("Frame", trackBg); fill.BackgroundColor3=cor; fill.BorderSizePixel=0
-    fill.Size=UDim2.new(pct0,0,1,0); fill.ZIndex=8
-    Instance.new("UICorner",fill).CornerRadius=UDim.new(1,0)
-
+    fill.Size=UDim2.new(pct0,0,1,0); fill.ZIndex=8; Instance.new("UICorner",fill).CornerRadius=UDim.new(1,0)
     local knob = Instance.new("Frame", trackBg); knob.BackgroundColor3=Color3.fromRGB(255,255,255)
     knob.BorderSizePixel=0; knob.AnchorPoint=Vector2.new(0.5,0.5)
     knob.Position=UDim2.new(pct0,0,0.5,0); knob.Size=UDim2.new(0,18,0,18); knob.ZIndex=9
     Instance.new("UICorner",knob).CornerRadius=UDim.new(1,0)
     local kS=Instance.new("UIStroke",knob); kS.Color=cor; kS.Thickness=2
-
     local dragging = false
-    local curV = {initVal}
-
     local function setVal(pct)
         pct = math.clamp(pct, 0, 1)
         local v = math.round(minV + (maxV - minV) * pct)
-        curV[1] = v; valLbl.Text = tostring(v)
-        fill.Size = UDim2.new(pct,0,1,0); knob.Position = UDim2.new(pct,0,0.5,0)
+        valLbl.Text = tostring(v); fill.Size = UDim2.new(pct,0,1,0); knob.Position = UDim2.new(pct,0,0.5,0)
         onChange(v)
     end
-
     local sliderBtn = Instance.new("TextButton", trackBg)
     sliderBtn.BackgroundTransparency=1; sliderBtn.Size=UDim2.new(1,20,1,20)
     sliderBtn.Position=UDim2.new(0,-10,0,-10); sliderBtn.Text=""; sliderBtn.ZIndex=10
-
     sliderBtn.MouseButton1Down:Connect(function()
         dragging = true
         local mp = UserInputService:GetMouseLocation()
@@ -1561,9 +2034,6 @@ local function makeSliderBar(parentPage, lbl_txt, desc_txt, cor, minV, maxV, ini
     end)
 end
 
--- ══════════════════════════════════════════════════════
---  CONSTRUÇÃO DA ABA PLAYER (ordem correta)
--- ══════════════════════════════════════════════════════
 makePlSec("⚡ VELOCIDADE & PULO", Color3.fromRGB(255,200,50))
 makeSliderBar(Pages["Player"], "⚡ Speed", "Velocidade de caminhada  (padrão: 16)", Color3.fromRGB(255,180,30), 16, 275, 30, function(v) playerSpeed=v; applySpeed(v) end)
 makeSliderBar(Pages["Player"], "🦘 Jump Power", "Altura do pulo  (padrão: 50)", Color3.fromRGB(100,220,255), 50, 1285, 80, function(v) playerJump=v; applyJump(v) end)
@@ -1592,17 +2062,14 @@ for _, n in ipairs(ANIMAL_NAMES) do ANIMAL_SET[n] = true end
 local function findNearestAnimalHrp()
     local ch = Player.Character; if not ch then return nil end
     local hrp = ch:FindFirstChild("HumanoidRootPart"); if not hrp then return nil end
-    local myPos = hrp.Position
-    local best, bestDist = nil, math.huge
+    local myPos = hrp.Position; local best, bestDist = nil, math.huge
     local pchars={}; for _,pl in ipairs(Players:GetPlayers()) do if pl.Character then pchars[pl.Character]=true end end
     for _, obj in ipairs(workspace:GetDescendants()) do
         pcall(function()
-            if not obj:IsA("Model") then return end
-            if pchars[obj] then return end
+            if not obj:IsA("Model") then return end; if pchars[obj] then return end
             local hum = obj:FindFirstChildWhichIsA("Humanoid"); if not hum or hum.Health<=0 then return end
             if not ANIMAL_SET[obj.Name:lower()] then return end
-            local anHrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
-            if not anHrp then return end
+            local anHrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart"); if not anHrp then return end
             local d = (anHrp.Position - myPos).Magnitude
             if d < bestDist then bestDist=d; best=anHrp end
         end)
@@ -1618,8 +2085,7 @@ workspace.DescendantAdded:Connect(function(obj)
     if not aimbotEnabled then return end
     task.defer(function()
         if not obj or not obj.Parent or not obj:IsA("BasePart") then return end
-        local speed = obj.AssemblyLinearVelocity.Magnitude
-        if speed < 10 then return end
+        local speed = obj.AssemblyLinearVelocity.Magnitude; if speed < 10 then return end
         local par = obj.Parent
         for _ = 1, 3 do
             if par and par:IsA("Model") and par:FindFirstChildWhichIsA("Humanoid") then
@@ -1629,8 +2095,7 @@ workspace.DescendantAdded:Connect(function(obj)
             end
             par = par and par.Parent
         end
-        local anHrp = findNearestAnimalHrp()
-        if not anHrp then return end
+        local anHrp = findNearestAnimalHrp(); if not anHrp then return end
         local steps = 0
         local conn; conn = RunService.Heartbeat:Connect(function()
             steps+=1
@@ -1649,8 +2114,7 @@ local function startAimbotAuto()
         while aimbotAutoEnabled do
             task.wait(0.15)
             pcall(function()
-                local anHrp = findNearestAnimalHrp()
-                if not anHrp then return end
+                local anHrp = findNearestAnimalHrp(); if not anHrp then return end
                 local ch = Player.Character; if not ch then return end
                 local myHrp = ch:FindFirstChild("HumanoidRootPart"); if not myHrp then return end
                 local dir = (anHrp.Position - myHrp.Position).Unit
@@ -1717,9 +2181,7 @@ local function makeAvToggle(lbl_txt, desc_txt, cor, onToggle)
     end)
 end
 
--- ══════════════════════════════════════════════════════
---  TP BIOMES — sistema completo
--- ══════════════════════════════════════════════════════
+-- TP BIOMES
 local BIOMES_99N = {
     { name="🌲 Floresta",    keywords={"spawn","spawnpoint","forestground","foresttree","greentree","treestump","forestbiome"} },
     { name="🏜️ Deserto",     keywords={"desert","desertground","cactus","sanddune","desertrock","desertbiome","sandbiome"} },
@@ -1728,7 +2190,7 @@ local BIOMES_99N = {
     { name="🌿 Pântano",     keywords={"swamp","swampground","swamptree","bog","swampbiome","marshbiome"} },
     { name="⛏️ Caverna",     keywords={"cave","underground","caveentrance","cavern","cavebiome","cavetunnel","caveground","cavewall"} },
     { name="👽 Área Alien",  keywords={"alien","ufo","crashsite","alienbase","ufowreck","alienbiome","alienzone","alienground"} },
-    { name="🎃 Halloween",   keywords={"halloween","halloweenbiome","pumpkin","hauntedhouse","graveyard","cauldron","halloween"} },
+    { name="🎃 Halloween",   keywords={"halloween","halloweenbiome","pumpkin","hauntedhouse","graveyard","cauldron"} },
     { name="🌊 Praia",       keywords={"beach","shore","coastalrock","beachsand","coastalbiome","shorebiome"} },
     { name="⛰️ Montanha",    keywords={"mountain","mountainpeak","mountainbiome","highground","peak","cliffbiome"} },
 }
@@ -1743,16 +2205,9 @@ local function findBiomePos(biome)
             for _, kw in ipairs(biome.keywords) do
                 if nm:find(kw, 1, true) then
                     local pos
-                    if obj:IsA("BasePart") then
-                        pos = obj.Position
-                    elseif obj:IsA("Model") then
-                        local bp = obj:FindFirstChildWhichIsA("BasePart")
-                        if bp then pos = bp.Position end
-                    end
-                    if pos and pos.Y > -300 and pos.Magnitude < 15000 then
-                        best = pos
-                    end
-                    return
+                    if obj:IsA("BasePart") then pos = obj.Position
+                    elseif obj:IsA("Model") then local bp = obj:FindFirstChildWhichIsA("BasePart"); if bp then pos = bp.Position end end
+                    if pos and pos.Y > -300 and pos.Magnitude < 15000 then best = pos end; return
                 end
             end
         end)
@@ -1760,175 +2215,122 @@ local function findBiomePos(biome)
     return best
 end
 
--- UI do painel Tp Biomes
 local function makeTpBiomesPanel()
     local BIOME_COR     = Color3.fromRGB(100,200,255)
     local BIOME_COR_SEL = Color3.fromRGB(87,242,135)
-    local BASE_H  = 56
-    local DROP_H  = #BIOMES_99N * 36 + 16
-    local SEL_H   = 50
-    local ERR_H   = 40
-
+    local BASE_H=56; local DROP_H=#BIOMES_99N*36+16; local SEL_H=50; local ERR_H=40
     local panel = Instance.new("Frame", Pages["AvancadoFuncoes"])
-    panel.BackgroundColor3 = Color3.fromRGB(20,22,32); panel.BorderSizePixel=0
-    panel.Size = UDim2.new(1,0,0,BASE_H); panel.LayoutOrder=avNextLO(); panel.ZIndex=5; panel.ClipsDescendants=true
+    panel.BackgroundColor3=Color3.fromRGB(20,22,32); panel.BorderSizePixel=0
+    panel.Size=UDim2.new(1,0,0,BASE_H); panel.LayoutOrder=avNextLO(); panel.ZIndex=5; panel.ClipsDescendants=true
     Instance.new("UICorner",panel).CornerRadius=UDim.new(0,10)
     local panStroke=Instance.new("UIStroke",panel); panStroke.Color=Color3.fromRGB(60,80,130); panStroke.Thickness=1.3
-
-    -- Header row
     local hdrRow=Instance.new("Frame",panel); hdrRow.BackgroundTransparency=1; hdrRow.BorderSizePixel=0
     hdrRow.Position=UDim2.new(0,0,0,0); hdrRow.Size=UDim2.new(1,0,0,BASE_H); hdrRow.ZIndex=6
-
     local hdrIcon=Instance.new("TextLabel",hdrRow); hdrIcon.BackgroundTransparency=1
     hdrIcon.Position=UDim2.new(0,12,0,0); hdrIcon.Size=UDim2.new(0,26,1,0)
     hdrIcon.Font=Enum.Font.GothamBold; hdrIcon.Text="🗺️"; hdrIcon.TextSize=18; hdrIcon.ZIndex=7
-
     local hdrTitle=Instance.new("TextLabel",hdrRow); hdrTitle.BackgroundTransparency=1
     hdrTitle.Position=UDim2.new(0,42,0,0); hdrTitle.Size=UDim2.new(0.55,0,1,0); hdrTitle.Font=Enum.Font.GothamBold
-    hdrTitle.Text="Tp Biomes"; hdrTitle.TextColor3=BIOME_COR; hdrTitle.TextSize=13
-    hdrTitle.TextXAlignment=Enum.TextXAlignment.Left; hdrTitle.ZIndex=7
-
+    hdrTitle.Text="Tp Biomes"; hdrTitle.TextColor3=BIOME_COR; hdrTitle.TextSize=13; hdrTitle.TextXAlignment=Enum.TextXAlignment.Left; hdrTitle.ZIndex=7
     local selBtn=Instance.new("TextButton",hdrRow)
     selBtn.BackgroundColor3=BIOME_COR; selBtn.BackgroundTransparency=0.22; selBtn.BorderSizePixel=0
     selBtn.Position=UDim2.new(1,-114,0.5,-15); selBtn.Size=UDim2.new(0,104,0,30)
-    selBtn.Font=Enum.Font.GothamBold; selBtn.Text="▼ Selecione"; selBtn.TextColor3=Color3.fromRGB(255,255,255)
-    selBtn.TextSize=10; selBtn.ZIndex=8
+    selBtn.Font=Enum.Font.GothamBold; selBtn.Text="▼ Selecione"; selBtn.TextColor3=Color3.fromRGB(255,255,255); selBtn.TextSize=10; selBtn.ZIndex=8
     Instance.new("UICorner",selBtn).CornerRadius=UDim.new(0,8)
-
-    -- Dropdown frame (aparece abaixo do header)
     local dropdown=Instance.new("ScrollingFrame",panel)
     dropdown.BackgroundColor3=Color3.fromRGB(16,18,26); dropdown.BorderSizePixel=0
-    dropdown.Position=UDim2.new(0,0,0,BASE_H); dropdown.Size=UDim2.new(1,0,0,0) -- começa fechado
+    dropdown.Position=UDim2.new(0,0,0,BASE_H); dropdown.Size=UDim2.new(1,0,0,0)
     dropdown.ZIndex=7; dropdown.ClipsDescendants=true; dropdown.ScrollBarThickness=3
-    dropdown.ScrollBarImageColor3=BIOME_COR; dropdown.CanvasSize=UDim2.new(0,0,0,0)
-    dropdown.AutomaticCanvasSize=Enum.AutomaticSize.Y
+    dropdown.ScrollBarImageColor3=BIOME_COR; dropdown.CanvasSize=UDim2.new(0,0,0,0); dropdown.AutomaticCanvasSize=Enum.AutomaticSize.Y
     local dropList=Instance.new("UIListLayout",dropdown); dropList.Padding=UDim.new(0,4); dropList.SortOrder=Enum.SortOrder.LayoutOrder
     local dropPad=Instance.new("UIPadding",dropdown)
-    dropPad.PaddingTop=UDim.new(0,8); dropPad.PaddingLeft=UDim.new(0,10)
-    dropPad.PaddingRight=UDim.new(0,10); dropPad.PaddingBottom=UDim.new(0,8)
-
-    -- Linha de biome selecionado (abaixo do dropdown quando fechado)
+    dropPad.PaddingTop=UDim.new(0,8); dropPad.PaddingLeft=UDim.new(0,10); dropPad.PaddingRight=UDim.new(0,10); dropPad.PaddingBottom=UDim.new(0,8)
     local selRow=Instance.new("Frame",panel); selRow.BackgroundColor3=Color3.fromRGB(18,22,30)
     selRow.BackgroundTransparency=0.4; selRow.BorderSizePixel=0
-    selRow.Position=UDim2.new(0,0,0,BASE_H); selRow.Size=UDim2.new(1,0,0,SEL_H)
-    selRow.Visible=false; selRow.ZIndex=6
+    selRow.Position=UDim2.new(0,0,0,BASE_H); selRow.Size=UDim2.new(1,0,0,SEL_H); selRow.Visible=false; selRow.ZIndex=6
     Instance.new("UICorner",selRow).CornerRadius=UDim.new(0,8)
-
     local selNameLbl=Instance.new("TextLabel",selRow); selNameLbl.BackgroundTransparency=1
     selNameLbl.Position=UDim2.new(0,14,0,0); selNameLbl.Size=UDim2.new(1,-128,1,0); selNameLbl.Font=Enum.Font.GothamBold
-    selNameLbl.Text=""; selNameLbl.TextColor3=BIOME_COR_SEL; selNameLbl.TextSize=12
-    selNameLbl.TextXAlignment=Enum.TextXAlignment.Left; selNameLbl.ZIndex=7
-
+    selNameLbl.Text=""; selNameLbl.TextColor3=BIOME_COR_SEL; selNameLbl.TextSize=12; selNameLbl.TextXAlignment=Enum.TextXAlignment.Left; selNameLbl.ZIndex=7
     local tpBtn=Instance.new("TextButton",selRow)
     tpBtn.BackgroundColor3=BIOME_COR_SEL; tpBtn.BackgroundTransparency=0.18; tpBtn.BorderSizePixel=0
     tpBtn.Position=UDim2.new(1,-114,0.5,-15); tpBtn.Size=UDim2.new(0,104,0,30)
-    tpBtn.Font=Enum.Font.GothamBold; tpBtn.Text="▼  Tp"; tpBtn.TextColor3=Color3.fromRGB(255,255,255)
-    tpBtn.TextSize=11; tpBtn.ZIndex=8
+    tpBtn.Font=Enum.Font.GothamBold; tpBtn.Text="▼  Tp"; tpBtn.TextColor3=Color3.fromRGB(255,255,255); tpBtn.TextSize=11; tpBtn.ZIndex=8
     Instance.new("UICorner",tpBtn).CornerRadius=UDim.new(0,8)
-
-    -- Aviso de biome não encontrado
     local errRow=Instance.new("Frame",panel); errRow.BackgroundColor3=Color3.fromRGB(60,20,20)
     errRow.BackgroundTransparency=0.35; errRow.BorderSizePixel=0
-    errRow.Position=UDim2.new(0,0,0,BASE_H+SEL_H); errRow.Size=UDim2.new(1,0,0,ERR_H)
-    errRow.Visible=false; errRow.ZIndex=6
+    errRow.Position=UDim2.new(0,0,0,BASE_H+SEL_H); errRow.Size=UDim2.new(1,0,0,ERR_H); errRow.Visible=false; errRow.ZIndex=6
     Instance.new("UICorner",errRow).CornerRadius=UDim.new(0,8)
     local errLbl=Instance.new("TextLabel",errRow); errLbl.BackgroundTransparency=1
     errLbl.Position=UDim2.new(0,10,0,0); errLbl.Size=UDim2.new(1,-14,1,0); errLbl.Font=Enum.Font.GothamSemibold
-    errLbl.Text="⚠️  Biome não localizado, Por favor explore o mapa novamente!"
-    errLbl.TextColor3=Color3.fromRGB(255,120,120); errLbl.TextSize=9; errLbl.TextWrapped=true
-    errLbl.TextXAlignment=Enum.TextXAlignment.Left; errLbl.ZIndex=7
-
-    -- Estado do painel
-    local dropOpen     = false
-    local selectedBiome = nil
-
+    errLbl.Text="⚠️  Biome não localizado, explore o mapa mais!"; errLbl.TextColor3=Color3.fromRGB(255,120,120)
+    errLbl.TextSize=9; errLbl.TextWrapped=true; errLbl.TextXAlignment=Enum.TextXAlignment.Left; errLbl.ZIndex=7
+    local dropOpen=false; local selectedBiome=nil
     local function calcHeight()
-        local h = BASE_H
-        if dropOpen  then h = h + DROP_H end
-        if selRow.Visible and not dropOpen then h = h + SEL_H end
-        if errRow.Visible and not dropOpen then h = h + ERR_H end
+        local h=BASE_H
+        if dropOpen then h=h+DROP_H end
+        if selRow.Visible and not dropOpen then h=h+SEL_H end
+        if errRow.Visible and not dropOpen then h=h+ERR_H end
         return h
     end
-
     local function refreshPanel(animated)
-        local h = calcHeight()
-        -- posicionar selRow abaixo do dropdown
-        selRow.Position = UDim2.new(0,0,0, dropOpen and BASE_H + DROP_H or BASE_H)
-        errRow.Position = UDim2.new(0,0,0, (dropOpen and BASE_H + DROP_H or BASE_H) + (selRow.Visible and SEL_H or 0))
-        if animated then
-            TweenService:Create(panel,TweenInfo.new(0.28,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(1,0,0,h)}):Play()
-        else
-            panel.Size=UDim2.new(1,0,0,h)
-        end
+        local h=calcHeight()
+        selRow.Position=UDim2.new(0,0,0,dropOpen and BASE_H+DROP_H or BASE_H)
+        errRow.Position=UDim2.new(0,0,0,(dropOpen and BASE_H+DROP_H or BASE_H)+(selRow.Visible and SEL_H or 0))
+        if animated then TweenService:Create(panel,TweenInfo.new(0.28,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(1,0,0,h)}):Play()
+        else panel.Size=UDim2.new(1,0,0,h) end
     end
-
     local function openDrop()
         dropOpen=true; selBtn.Text="▲ Fechar"
         TweenService:Create(panStroke,TweenInfo.new(0.2),{Color=BIOME_COR}):Play()
         TweenService:Create(dropdown,TweenInfo.new(0.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(1,0,0,DROP_H)}):Play()
         refreshPanel(true)
     end
-
     local function closeDrop()
         dropOpen=false; selBtn.Text="▼ Selecione"
         TweenService:Create(panStroke,TweenInfo.new(0.2),{Color=Color3.fromRGB(60,80,130)}):Play()
         TweenService:Create(dropdown,TweenInfo.new(0.2,Enum.EasingStyle.Quad),{Size=UDim2.new(1,0,0,0)}):Play()
         task.delay(0.22,function() refreshPanel(true) end)
     end
-
     selBtn.MouseButton1Click:Connect(function() if dropOpen then closeDrop() else openDrop() end end)
-
-    -- Criar botões dos biomes no dropdown
     for idx, biome in ipairs(BIOMES_99N) do
         local bBtn=Instance.new("TextButton",dropdown); bBtn.BackgroundColor3=Color3.fromRGB(26,30,44)
         bBtn.BackgroundTransparency=0.25; bBtn.BorderSizePixel=0; bBtn.Size=UDim2.new(1,0,0,32)
         bBtn.Font=Enum.Font.GothamSemibold; bBtn.Text="  "..biome.name; bBtn.TextColor3=Color3.fromRGB(200,215,240)
         bBtn.TextSize=11; bBtn.TextXAlignment=Enum.TextXAlignment.Left; bBtn.ZIndex=9; bBtn.LayoutOrder=idx
         Instance.new("UICorner",bBtn).CornerRadius=UDim.new(0,7)
-
-        bBtn.MouseEnter:Connect(function()
-            TweenService:Create(bBtn,TweenInfo.new(0.1),{BackgroundTransparency=0,BackgroundColor3=Color3.fromRGB(40,50,80)}):Play()
-        end)
-        bBtn.MouseLeave:Connect(function()
-            TweenService:Create(bBtn,TweenInfo.new(0.1),{BackgroundTransparency=0.25,BackgroundColor3=Color3.fromRGB(26,30,44)}):Play()
-        end)
+        bBtn.MouseEnter:Connect(function() TweenService:Create(bBtn,TweenInfo.new(0.1),{BackgroundTransparency=0,BackgroundColor3=Color3.fromRGB(40,50,80)}):Play() end)
+        bBtn.MouseLeave:Connect(function() TweenService:Create(bBtn,TweenInfo.new(0.1),{BackgroundTransparency=0.25,BackgroundColor3=Color3.fromRGB(26,30,44)}):Play() end)
         bBtn.MouseButton1Click:Connect(function()
-            selectedBiome = biome
-            selNameLbl.Text = biome.name.."  selecionado"
-            errRow.Visible = false
-            selRow.Visible = true
-            tpBtn.Text = "▼  Tp"
-            tpBtn.BackgroundTransparency = 0.18
+            selectedBiome=biome; selNameLbl.Text=biome.name.."  selecionado"
+            errRow.Visible=false; selRow.Visible=true; tpBtn.Text="▼  Tp"; tpBtn.BackgroundTransparency=0.18
             closeDrop()
         end)
     end
-
-    -- Tp button
     tpBtn.MouseButton1Click:Connect(function()
         if not selectedBiome then return end
-        errRow.Visible = false
-        tpBtn.Text = "⏳ Buscando..."; tpBtn.BackgroundTransparency=0.5
+        errRow.Visible=false; tpBtn.Text="⏳ Buscando..."; tpBtn.BackgroundTransparency=0.5
         task.spawn(function()
-            local pos = findBiomePos(selectedBiome)
+            local pos=findBiomePos(selectedBiome)
             if pos then
-                local ok = pcall(function()
-                    local ch = Player.Character; if not ch then error("sem personagem") end
-                    local hrp = ch:FindFirstChild("HumanoidRootPart"); if not hrp then error("sem hrp") end
-                    hrp.CFrame = CFrame.new(pos + Vector3.new(0,6,0))
+                local ok=pcall(function()
+                    local ch=Player.Character; if not ch then error("sem personagem") end
+                    local hrp=ch:FindFirstChild("HumanoidRootPart"); if not hrp then error("sem hrp") end
+                    hrp.CFrame=CFrame.new(pos+Vector3.new(0,6,0))
                 end)
                 if ok then
-                    tpBtn.Text = "✓ Teleportado!"; tpBtn.BackgroundTransparency=0.15
-                    task.delay(2.5, function() tpBtn.Text="▼  Tp"; tpBtn.BackgroundTransparency=0.18 end)
+                    tpBtn.Text="✓ Teleportado!"; tpBtn.BackgroundTransparency=0.15
+                    Notify.success("Tp Biomes", "Teleportado para "..selectedBiome.name.." ✓", 4)
+                    task.delay(2.5,function() tpBtn.Text="▼  Tp"; tpBtn.BackgroundTransparency=0.18 end)
                 else
-                    tpBtn.Text = "▼  Tp"; tpBtn.BackgroundTransparency=0.18
+                    tpBtn.Text="▼  Tp"; tpBtn.BackgroundTransparency=0.18
                     errRow.Visible=true; refreshPanel(true)
+                    Notify.error("Tp Biomes", "Falha ao teleportar. Tente novamente.")
                 end
             else
-                -- Biome não encontrado
-                tpBtn.Text = "▼  Tp"; tpBtn.BackgroundTransparency=0.18
-                errRow.Visible = true
-                refreshPanel(true)
-                task.delay(5, function()
+                tpBtn.Text="▼  Tp"; tpBtn.BackgroundTransparency=0.18; errRow.Visible=true; refreshPanel(true)
+                Notify.warn("Tp Biomes", selectedBiome.name.." não localizado. Explore mais o mapa!", 5)
+                task.delay(5,function()
                     TweenService:Create(errRow,TweenInfo.new(0.4),{BackgroundTransparency=1}):Play()
                     task.wait(0.5); errRow.Visible=false; errRow.BackgroundTransparency=0.35; refreshPanel(true)
                 end)
@@ -1937,21 +2339,40 @@ local function makeTpBiomesPanel()
     end)
 end
 
--- Montar aba Avançado Funções
 makeAvSec("🎯 COMBATE AUTOMÁTICO", Color3.fromRGB(255,80,80))
-makeAvToggle("🎯 Aimbot (Teleguiado)", "Projéteis se movem automaticamente para o animal mais próximo.", Color3.fromRGB(255,80,80), function(s) aimbotEnabled = s end)
-makeAvToggle("🤖 Aimbot AUTO", "Com arma ranged equipada: atira sozinho nos animais próximos.", Color3.fromRGB(255,140,40), function(s) aimbotAutoEnabled = s; if s then startAimbotAuto() end end)
+makeAvToggle("🎯 Aimbot (Teleguiado)", "Projéteis se movem automaticamente para o animal mais próximo.", Color3.fromRGB(255,80,80), function(s)
+    aimbotEnabled = s
+    if s then Notify.warn("Aimbot", "Projéteis teleguiados ativados.") else Notify.info("Aimbot", "Desativado.") end
+end)
+makeAvToggle("🤖 Aimbot AUTO", "Com arma ranged equipada: atira sozinho nos animais próximos.", Color3.fromRGB(255,140,40), function(s)
+    aimbotAutoEnabled = s
+    if s then startAimbotAuto(); Notify.warn("Aimbot AUTO", "Modo automático ativado — atira sozinho!") else Notify.info("Aimbot AUTO", "Modo automático desativado.") end
+end)
 
 makeAvSec("🗺️ TELEPORTE", Color3.fromRGB(100,200,255))
 makeTpBiomesPanel()
 
 -- ══════════════════════════════════════════════════════
---  ABA INICIAL
+--  ABA INICIAL + NOTIF BOAS-VINDAS
 -- ══════════════════════════════════════════════════════
 task.wait(0.05)
 selectTab("Info")
 
+task.delay(1.5, function()
+    Notify.send({
+        tipo    = "custom",
+        icon    = "🌲",
+        accent  = Color3.fromRGB(88,101,242),
+        title   = "PudimHub v5 Carregado!",
+        msg     = "Bem-vindo, "..Player.DisplayName.." ✨",
+        duration = 5,
+    })
+end)
+task.delay(2.8, function()
+    Notify.info("Dica", "Passe o mouse sobre a notif para pausar o timer 🔔")
+end)
+
 print("╔══════════════════════════════════════════════════════╗")
-print("║  PUDIM HUB v5 — COMPLETO  Fev 2026                  ║")
-print("║  + Tp Biomes | SliderBars | Player LayoutOrder fix   ║")
+print("║  PUDIM HUB v5 COMPLETO + Notificações v3  Fev 2026  ║")
+print("║  Toggle Notifs na aba Info                          ║")
 print("╚══════════════════════════════════════════════════════╝")
