@@ -1,8 +1,7 @@
 -- ╔══════════════════════════════════════════════════════════════════╗
--- ║     PUDIM HUB — MERGED v4 + V3  (ícones + fixes + Info)        ║
--- ║  UI V3 completa + ESP/BRING v4 + ícones + fix minimize + Info  ║
--- ║  CORRIGIDO: Green Frog | sem The Bat | Mega Cultist | Armaduras ║
--- ║             Carcaças completas (Hellephant, PolarBear, etc)     ║
+-- ║  PUDIM HUB v4.5 — COM SISTEMA DE NOTIFICAÇÕES PROFISSIONAL     ║
+-- ║  Notif: info|success|warning|error|connection • Anti-spam 2x   ║
+-- ║  Toggle na aba Info • Auto-desaparece em 2s • Slide animado    ║
 -- ╚══════════════════════════════════════════════════════════════════╝
 
 local TweenService     = game:GetService("TweenService")
@@ -23,6 +22,211 @@ ScreenGui.Parent          = game.CoreGui
 ScreenGui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn    = false
 ScreenGui.DisplayOrder    = 999
+
+-- ══════════════════════════════════════════════════════
+--  SISTEMA DE NOTIFICAÇÕES
+-- ══════════════════════════════════════════════════════
+local NOTIF_ENABLED = true  -- começa ATIVADO
+
+local NotifContainer = Instance.new("Frame", ScreenGui)
+NotifContainer.Name = "NotifContainer"
+NotifContainer.BackgroundTransparency = 1
+NotifContainer.BorderSizePixel = 0
+NotifContainer.Position = UDim2.new(1, -308, 1, -16)
+NotifContainer.Size = UDim2.new(0, 298, 1, -16)
+NotifContainer.ZIndex = 500
+NotifContainer.ClipsDescendants = false
+
+local NotifList = Instance.new("UIListLayout", NotifContainer)
+NotifList.Padding = UDim.new(0, 6)
+NotifList.SortOrder = Enum.SortOrder.LayoutOrder
+NotifList.VerticalAlignment = Enum.VerticalAlignment.Bottom
+NotifList.FillDirection = Enum.FillDirection.Vertical
+
+local NOTIF_TYPES = {
+    info       = { cor = Color3.fromRGB(88, 130, 242),   icone = "ℹ",  titulo_cor = Color3.fromRGB(140, 175, 255), bg = Color3.fromRGB(20, 24, 42) },
+    success    = { cor = Color3.fromRGB(60, 210, 120),   icone = "✔",  titulo_cor = Color3.fromRGB(100, 240, 160), bg = Color3.fromRGB(16, 32, 24) },
+    warning    = { cor = Color3.fromRGB(255, 200, 50),   icone = "⚠",  titulo_cor = Color3.fromRGB(255, 220, 90),  bg = Color3.fromRGB(32, 26, 14) },
+    error      = { cor = Color3.fromRGB(230, 60, 60),    icone = "✖",  titulo_cor = Color3.fromRGB(255, 100, 100), bg = Color3.fromRGB(36, 16, 16) },
+    connection = { cor = Color3.fromRGB(255, 140, 30),   icone = "⚡", titulo_cor = Color3.fromRGB(255, 170, 80),  bg = Color3.fromRGB(34, 22, 10) },
+}
+
+-- anti-spam: chave = tipo.."|"..titulo
+local spamCount = {}
+local spamMax = 2
+
+local notifOrder = 0
+local function notif(tipo, titulo, mensagem)
+    if not NOTIF_ENABLED then return end
+    tipo = tipo or "info"
+    local cfg = NOTIF_TYPES[tipo] or NOTIF_TYPES.info
+    local spamKey = tipo .. "|" .. titulo
+    spamCount[spamKey] = (spamCount[spamKey] or 0) + 1
+    if spamCount[spamKey] > spamMax then
+        spamCount[spamKey] = spamCount[spamKey] - 1
+        return
+    end
+
+    notifOrder += 1
+
+    -- Frame principal
+    local card = Instance.new("Frame", NotifContainer)
+    card.BackgroundColor3 = cfg.bg
+    card.BackgroundTransparency = 0.05
+    card.BorderSizePixel = 0
+    card.Size = UDim2.new(1, 0, 0, 68)
+    card.LayoutOrder = notifOrder
+    card.ZIndex = 500
+    card.Position = UDim2.new(0, 320, 0, 0) -- fora da tela inicialmente
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
+
+    -- Borda sutil
+    local cardStroke = Instance.new("UIStroke", card)
+    cardStroke.Color = cfg.cor
+    cardStroke.Thickness = 1.2
+    cardStroke.Transparency = 0.55
+
+    -- Barra lateral colorida
+    local barraLateral = Instance.new("Frame", card)
+    barraLateral.BackgroundColor3 = cfg.cor
+    barraLateral.BorderSizePixel = 0
+    barraLateral.Position = UDim2.new(0, 0, 0.1, 0)
+    barraLateral.Size = UDim2.new(0, 4, 0.8, 0)
+    barraLateral.ZIndex = 501
+    Instance.new("UICorner", barraLateral).CornerRadius = UDim.new(0, 3)
+
+    -- Brilho sutil no topo
+    local brilho = Instance.new("Frame", card)
+    brilho.BackgroundColor3 = cfg.cor
+    brilho.BackgroundTransparency = 0.82
+    brilho.BorderSizePixel = 0
+    brilho.Position = UDim2.new(0, 4, 0, 0)
+    brilho.Size = UDim2.new(1, -4, 0, 2)
+    brilho.ZIndex = 501
+    Instance.new("UICorner", brilho).CornerRadius = UDim.new(0, 2)
+
+    -- Ícone de tipo (círculo colorido com emoji)
+    local iconeFrame = Instance.new("Frame", card)
+    iconeFrame.BackgroundColor3 = cfg.cor
+    iconeFrame.BackgroundTransparency = 0.72
+    iconeFrame.BorderSizePixel = 0
+    iconeFrame.Position = UDim2.new(0, 14, 0.5, -16)
+    iconeFrame.Size = UDim2.new(0, 32, 0, 32)
+    iconeFrame.ZIndex = 502
+    Instance.new("UICorner", iconeFrame).CornerRadius = UDim.new(1, 0)
+
+    local iconeLabel = Instance.new("TextLabel", iconeFrame)
+    iconeLabel.BackgroundTransparency = 1
+    iconeLabel.Size = UDim2.new(1, 0, 1, 0)
+    iconeLabel.Font = Enum.Font.GothamBold
+    iconeLabel.Text = cfg.icone
+    iconeLabel.TextColor3 = cfg.cor
+    iconeLabel.TextSize = 15
+    iconeLabel.ZIndex = 503
+
+    -- Linha de "tipo" (badge pequeno)
+    local badgeTipo = Instance.new("Frame", card)
+    badgeTipo.BackgroundColor3 = cfg.cor
+    badgeTipo.BackgroundTransparency = 0.8
+    badgeTipo.BorderSizePixel = 0
+    badgeTipo.Position = UDim2.new(0, 52, 0, 10)
+    badgeTipo.Size = UDim2.new(0, 60, 0, 13)
+    badgeTipo.ZIndex = 502
+    Instance.new("UICorner", badgeTipo).CornerRadius = UDim.new(0, 4)
+
+    local badgeTxt = Instance.new("TextLabel", badgeTipo)
+    badgeTxt.BackgroundTransparency = 1
+    badgeTxt.Size = UDim2.new(1, 0, 1, 0)
+    badgeTxt.Font = Enum.Font.GothamBlack
+    badgeTxt.Text = tipo:upper()
+    badgeTxt.TextColor3 = cfg.cor
+    badgeTxt.TextSize = 7
+    badgeTxt.ZIndex = 503
+
+    -- Título
+    local titleLbl = Instance.new("TextLabel", card)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Position = UDim2.new(0, 52, 0, 24)
+    titleLbl.Size = UDim2.new(1, -62, 0, 16)
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.Text = titulo
+    titleLbl.TextColor3 = cfg.titulo_cor
+    titleLbl.TextSize = 11
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.TextTruncate = Enum.TextTruncate.AtEnd
+    titleLbl.ZIndex = 502
+
+    -- Mensagem
+    local msgLbl = Instance.new("TextLabel", card)
+    msgLbl.BackgroundTransparency = 1
+    msgLbl.Position = UDim2.new(0, 52, 0, 41)
+    msgLbl.Size = UDim2.new(1, -62, 0, 22)
+    msgLbl.Font = Enum.Font.Gotham
+    msgLbl.Text = mensagem
+    msgLbl.TextColor3 = Color3.fromRGB(145, 155, 175)
+    msgLbl.TextSize = 9
+    msgLbl.TextXAlignment = Enum.TextXAlignment.Left
+    msgLbl.TextWrapped = true
+    msgLbl.ZIndex = 502
+
+    -- Barra de progresso (countdown visual)
+    local progressBg = Instance.new("Frame", card)
+    progressBg.BackgroundColor3 = Color3.fromRGB(30, 32, 40)
+    progressBg.BorderSizePixel = 0
+    progressBg.Position = UDim2.new(0, 4, 1, -4)
+    progressBg.Size = UDim2.new(1, -8, 0, 3)
+    progressBg.ZIndex = 502
+    Instance.new("UICorner", progressBg).CornerRadius = UDim.new(1, 0)
+
+    local progressBar = Instance.new("Frame", progressBg)
+    progressBar.BackgroundColor3 = cfg.cor
+    progressBar.BorderSizePixel = 0
+    progressBar.Size = UDim2.new(1, 0, 1, 0)
+    progressBar.ZIndex = 503
+    Instance.new("UICorner", progressBar).CornerRadius = UDim.new(1, 0)
+
+    -- Slide in
+    TweenService:Create(card, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0, 0, 0, 0)
+    }):Play()
+
+    -- Progress countdown
+    TweenService:Create(progressBar, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+        Size = UDim2.new(0, 0, 1, 0)
+    }):Play()
+
+    -- Auto remove após 2s
+    task.delay(2, function()
+        if card and card.Parent then
+            TweenService:Create(card, TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                Position = UDim2.new(0, 320, 0, 0),
+                BackgroundTransparency = 1
+            }):Play()
+            TweenService:Create(cardStroke, TweenInfo.new(0.28), { Transparency = 1 }):Play()
+            task.wait(0.3)
+            if card and card.Parent then card:Destroy() end
+            spamCount[spamKey] = math.max(0, (spamCount[spamKey] or 1) - 1)
+        end
+    end)
+
+    -- Fechar ao clicar
+    local closeBtn = Instance.new("TextButton", card)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Size = UDim2.new(1, 0, 1, 0)
+    closeBtn.Text = ""
+    closeBtn.ZIndex = 504
+    closeBtn.MouseButton1Click:Connect(function()
+        if card and card.Parent then
+            TweenService:Create(card, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+                Position = UDim2.new(0, 320, 0, 0),
+                BackgroundTransparency = 1
+            }):Play()
+            task.wait(0.22)
+            if card and card.Parent then card:Destroy() end
+            spamCount[spamKey] = math.max(0, (spamCount[spamKey] or 1) - 1)
+        end
+    end)
+end
 
 -- ══════════════════════════════════════════════════════
 --  MAIN FRAME
@@ -358,10 +562,12 @@ local function UltraBooster(state)
                 if not origTextures[obj] then origTextures[obj]=obj.Transparency end; obj.Transparency=1
             end
         end) end
+        notif("success","⚡ Booster Ultra Ativado","Texturas, sombras e reflexos removidos para máx FPS.")
     else
         for obj,p in pairs(origMaterials) do pcall(function() if obj and obj.Parent then obj.Material=p.M; obj.Color=p.C; obj.Reflectance=p.R; obj.Transparency=p.T; obj.CastShadow=true end end) end
         for obj,t in pairs(origTextures) do pcall(function() if obj and obj.Parent then obj.Transparency=t end end) end
         origMaterials={}; origTextures={}
+        notif("info","⚡ Booster Ultra Desativado","Visual restaurado ao estado original.")
     end
 end
 
@@ -378,8 +584,10 @@ local function ForceRemoveEffects(s)
                 hidEffects[o]=o.Enabled; o.Enabled=false
             end
         end) end
+        notif("success","🎨 Efeitos Removidos","Partículas, luzes e pós-proc desativados.")
     else
         for e,w in pairs(hidEffects) do pcall(function() if e and e.Parent then e.Enabled=w end end) end; hidEffects={}
+        notif("info","🎨 Efeitos Restaurados","Todos os efeitos visuais foram reativados.")
     end
 end
 
@@ -396,8 +604,10 @@ local function ForceRemoveNPCs(s)
                 end
             end
         end) end
+        notif("warning","👻 NPCs Ocultados","Todos os NPCs ficaram invisíveis e sem colisão.")
     else
         for p,d in pairs(hidNPCs) do pcall(function() if p and p.Parent then p.Transparency=d.T; p.CanCollide=d.CC end end) end; hidNPCs={}
+        notif("info","👻 NPCs Visíveis","NPCs restaurados ao estado original.")
     end
 end
 
@@ -408,9 +618,11 @@ local function ForceLagCleaner(s)
         settings().Rendering.QualityLevel=Enum.QualityLevel.Level01
         settings().Rendering.MeshPartDetailLevel=Enum.MeshPartDetailLevel.Level01
         settings().Physics.AllowSleep=true
+        notif("success","🧹 Lag Cleaner Ativado","Qualidade no nível 1, physics otimizadas.")
     end) else pcall(function()
         if origSet.Q then settings().Rendering.QualityLevel=origSet.Q end
         if origSet.M then settings().Rendering.MeshPartDetailLevel=origSet.M end
+        notif("info","🧹 Lag Cleaner Desativado","Configurações de render restauradas.")
     end); origSet={} end
 end
 
@@ -475,7 +687,10 @@ rejBtn.Size=UDim2.new(1,0,0,32); rejBtn.Font=Enum.Font.GothamBold
 rejBtn.Text="🔄  REJOIN SERVER"; rejBtn.TextColor3=Color3.fromRGB(255,255,255); rejBtn.TextSize=11; rejBtn.ZIndex=201
 Instance.new("UICorner",rejBtn).CornerRadius=UDim.new(0,7)
 rejBtn.MouseButton1Click:Connect(function()
-    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId,game.JobId,Player)
+    notif("connection","🔄 Rejoinando...","Reconectando ao servidor. Aguarde...")
+    task.delay(0.5, function()
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId,game.JobId,Player)
+    end)
 end)
 
 -- ══════════════════════════════════════════════════════
@@ -507,6 +722,7 @@ FloatClick.MouseButton1Click:Connect(function()
         MainFrame.Visible=true; MainFrame.Size=UDim2.new(0,540,0,0)
         TweenService:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,540,0,370)}):Play()
         task.delay(0.2,function() SideBar.Visible=true; ContentArea.Visible=true; Divider.Visible=true; Footer.Visible=true end)
+        notif("info","🌲 PudimHub Reaberto","Interface restaurada. Bem-vindo de volta!")
     end)
 end)
 
@@ -522,6 +738,7 @@ TopBtns["Minimize"].MouseButton1Click:Connect(function()
         Footer.Visible=false
         SideBar.Visible=false; ContentArea.Visible=false; Divider.Visible=false
         TweenService:Create(MainFrame,TweenInfo.new(0.25,Enum.EasingStyle.Quad),{Size=UDim2.new(0,540,0,40)}):Play()
+        notif("info","➖ Interface Minimizada","Clique em Maximizar para restaurar.")
     else
         TweenService:Create(MainFrame,TweenInfo.new(0.25,Enum.EasingStyle.Quad),{Size=UDim2.new(0,540,0,370)}):Play()
         task.delay(0.2,function()
@@ -547,6 +764,7 @@ TopBtns["Close"].MouseButton1Click:Connect(function()
         MainFrame.Visible=false; MainFrame.Size=UDim2.new(0,540,0,370)
         SideBar.Visible=true; ContentArea.Visible=true; Divider.Visible=true; Footer.Visible=true
         showFloatBtn()
+        notif("warning","❌ Interface Fechada","Hub minimizado. Clique no botão PD para reabrir.")
     end)
 end)
 
@@ -632,6 +850,7 @@ local infoSep=Instance.new("Frame",Pages["Info"])
 infoSep.BackgroundColor3=Color3.fromRGB(50,54,65); infoSep.BorderSizePixel=0
 infoSep.Size=UDim2.new(1,0,0,1); infoSep.LayoutOrder=1; infoSep.ZIndex=5
 
+-- ══ DADOS ══
 local dadosHeader=Instance.new("TextButton",Pages["Info"])
 dadosHeader.BackgroundColor3=Color3.fromRGB(26,28,34); dadosHeader.BorderSizePixel=0
 dadosHeader.Size=UDim2.new(1,0,0,32); dadosHeader.LayoutOrder=2; dadosHeader.Text=""; dadosHeader.ZIndex=5
@@ -699,9 +918,11 @@ end
 
 makeDadosBtn(dadosBtnsRow,"🔗 Discord Link",Color3.fromRGB(88,101,242),function()
     copyToClipboard("Sem link no momento")
+    notif("info","🔗 Discord","Link copiado! (sem link no momento)")
 end,0)
 makeDadosBtn(dadosBtnsRow,"📋 Copy ID",Color3.fromRGB(60,160,80),function()
     copyToClipboard(tostring(game.JobId))
+    notif("success","📋 Job ID Copiado","ID do servidor copiado para a área de transferência.")
 end,1)
 
 local dadosOpen=false
@@ -712,6 +933,139 @@ dadosHeader.MouseButton1Click:Connect(function()
     TweenService:Create(dadosArrow,TweenInfo.new(0.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Rotation=dadosOpen and 0 or 180}):Play()
     TweenService:Create(dadosContent,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(1,0,0,dadosOpen and DADOS_H or 0)}):Play()
     TweenService:Create(dadosStroke,TweenInfo.new(0.2),{Color=dadosOpen and C_ACCENT or Color3.fromRGB(55,58,66)}):Play()
+end)
+
+-- ══════════════════════════════════════════════════════
+--  SEÇÃO NOTIFICAÇÕES NA ABA INFO
+-- ══════════════════════════════════════════════════════
+local notifSep=Instance.new("Frame",Pages["Info"])
+notifSep.BackgroundColor3=Color3.fromRGB(50,54,65); notifSep.BorderSizePixel=0
+notifSep.Size=UDim2.new(1,0,0,1); notifSep.LayoutOrder=4; notifSep.ZIndex=5
+
+-- Header acordeão de Notificações
+local notifAccHeader=Instance.new("TextButton",Pages["Info"])
+notifAccHeader.BackgroundColor3=Color3.fromRGB(26,28,34); notifAccHeader.BorderSizePixel=0
+notifAccHeader.Size=UDim2.new(1,0,0,32); notifAccHeader.LayoutOrder=5; notifAccHeader.Text=""; notifAccHeader.ZIndex=5
+Instance.new("UICorner",notifAccHeader).CornerRadius=UDim.new(0,8)
+local notifAccStroke=Instance.new("UIStroke",notifAccHeader)
+notifAccStroke.Color=Color3.fromRGB(88,101,242); notifAccStroke.Thickness=1.2
+
+local notifAccTitleLbl=Instance.new("TextLabel",notifAccHeader)
+notifAccTitleLbl.BackgroundTransparency=1; notifAccTitleLbl.Position=UDim2.new(0,12,0,0)
+notifAccTitleLbl.Size=UDim2.new(1,-40,1,0); notifAccTitleLbl.Font=Enum.Font.GothamBold
+notifAccTitleLbl.Text="🔔  Notificações"; notifAccTitleLbl.TextColor3=Color3.fromRGB(140,175,255)
+notifAccTitleLbl.TextSize=11; notifAccTitleLbl.TextXAlignment=Enum.TextXAlignment.Left; notifAccTitleLbl.ZIndex=6
+
+local notifAccArrowFrame=Instance.new("Frame",notifAccHeader)
+notifAccArrowFrame.BackgroundTransparency=1; notifAccArrowFrame.Position=UDim2.new(1,-28,0.5,-8)
+notifAccArrowFrame.Size=UDim2.new(0,16,0,16); notifAccArrowFrame.ZIndex=6
+local notifAccArrow=Instance.new("ImageLabel",notifAccArrowFrame)
+notifAccArrow.BackgroundTransparency=1; notifAccArrow.Size=UDim2.new(1,0,1,0)
+notifAccArrow.Image="rbxassetid://6034818375"; notifAccArrow.ImageColor3=C_ACCENT
+notifAccArrow.ScaleType=Enum.ScaleType.Fit; notifAccArrow.Rotation=180; notifAccArrow.ZIndex=7
+
+-- Conteúdo da seção Notificações
+local NOTIF_ACC_H = 128
+
+local notifAccContent=Instance.new("Frame",Pages["Info"])
+notifAccContent.BackgroundColor3=Color3.fromRGB(18,20,28); notifAccContent.BorderSizePixel=0
+notifAccContent.Size=UDim2.new(1,0,0,0); notifAccContent.LayoutOrder=6; notifAccContent.ZIndex=5
+notifAccContent.ClipsDescendants=true
+Instance.new("UICorner",notifAccContent).CornerRadius=UDim.new(0,8)
+local notifAccStroke2=Instance.new("UIStroke",notifAccContent)
+notifAccStroke2.Color=Color3.fromRGB(55,70,120); notifAccStroke2.Thickness=1
+
+local notifAccPad=Instance.new("UIPadding",notifAccContent)
+notifAccPad.PaddingTop=UDim.new(0,12); notifAccPad.PaddingLeft=UDim.new(0,14)
+notifAccPad.PaddingRight=UDim.new(0,14); notifAccPad.PaddingBottom=UDim.new(0,12)
+local notifAccList=Instance.new("UIListLayout",notifAccContent)
+notifAccList.Padding=UDim.new(0,10); notifAccList.SortOrder=Enum.SortOrder.LayoutOrder
+
+-- Linha superior: toggle + status
+local notifToggleRow=Instance.new("Frame",notifAccContent)
+notifToggleRow.BackgroundColor3=Color3.fromRGB(26,30,44); notifToggleRow.BorderSizePixel=0
+notifToggleRow.Size=UDim2.new(1,0,0,42); notifToggleRow.LayoutOrder=0; notifToggleRow.ZIndex=7
+Instance.new("UICorner",notifToggleRow).CornerRadius=UDim.new(0,8)
+local ntStroke=Instance.new("UIStroke",notifToggleRow); ntStroke.Color=Color3.fromRGB(60,80,160); ntStroke.Thickness=1
+
+local ntLabel=Instance.new("TextLabel",notifToggleRow)
+ntLabel.BackgroundTransparency=1; ntLabel.Position=UDim2.new(0,12,0,4)
+ntLabel.Size=UDim2.new(1,-70,0,16); ntLabel.Font=Enum.Font.GothamBold
+ntLabel.Text="Ativar Notificações"; ntLabel.TextColor3=Color3.fromRGB(200,215,255)
+ntLabel.TextSize=11; ntLabel.TextXAlignment=Enum.TextXAlignment.Left; ntLabel.ZIndex=8
+
+local ntStatusLbl=Instance.new("TextLabel",notifToggleRow)
+ntStatusLbl.BackgroundTransparency=1; ntStatusLbl.Position=UDim2.new(0,12,0,22)
+ntStatusLbl.Size=UDim2.new(1,-70,0,14); ntStatusLbl.Font=Enum.Font.Gotham
+ntStatusLbl.Text="● ATIVO — aparecem no canto inferior direito"
+ntStatusLbl.TextColor3=Color3.fromRGB(87,242,135); ntStatusLbl.TextSize=9
+ntStatusLbl.TextXAlignment=Enum.TextXAlignment.Left; ntStatusLbl.ZIndex=8
+
+-- Pill toggle de notificações
+local ntPill=Instance.new("Frame",notifToggleRow)
+ntPill.BackgroundColor3=Color3.fromRGB(87,242,135); ntPill.BorderSizePixel=0
+ntPill.Position=UDim2.new(1,-54,0.5,-12); ntPill.Size=UDim2.new(0,46,0,24); ntPill.ZIndex=9
+Instance.new("UICorner",ntPill).CornerRadius=UDim.new(1,0)
+
+local ntKnob=Instance.new("Frame",ntPill)
+ntKnob.BackgroundColor3=Color3.fromRGB(255,255,255); ntKnob.BorderSizePixel=0
+ntKnob.Position=UDim2.new(1,-22,0.5,-10); ntKnob.Size=UDim2.new(0,20,0,20); ntKnob.ZIndex=10
+Instance.new("UICorner",ntKnob).CornerRadius=UDim.new(1,0)
+
+local ntBtn=Instance.new("TextButton",notifToggleRow)
+ntBtn.BackgroundTransparency=1; ntBtn.Size=UDim2.new(1,0,1,0); ntBtn.Text=""; ntBtn.ZIndex=11
+ntBtn.MouseButton1Click:Connect(function()
+    NOTIF_ENABLED = not NOTIF_ENABLED
+    if NOTIF_ENABLED then
+        TweenService:Create(ntPill,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{BackgroundColor3=Color3.fromRGB(87,242,135)}):Play()
+        TweenService:Create(ntKnob,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Position=UDim2.new(1,-22,0.5,-10)}):Play()
+        ntStatusLbl.Text="● ATIVO — aparecem no canto inferior direito"
+        ntStatusLbl.TextColor3=Color3.fromRGB(87,242,135)
+        -- reativa e mostra notif de confirmação
+        task.delay(0.1, function()
+            notif("success","🔔 Notificações Ativadas","Alertas de ações, erros e status estão ativos.")
+        end)
+    else
+        TweenService:Create(ntPill,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{BackgroundColor3=Color3.fromRGB(55,60,75)}):Play()
+        TweenService:Create(ntKnob,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Position=UDim2.new(0,2,0.5,-10)}):Play()
+        ntStatusLbl.Text="● INATIVO — notificações silenciadas"
+        ntStatusLbl.TextColor3=Color3.fromRGB(130,140,160)
+    end
+end)
+
+-- Legenda de tipos
+local ntLegendRow=Instance.new("Frame",notifAccContent)
+ntLegendRow.BackgroundTransparency=1; ntLegendRow.BorderSizePixel=0
+ntLegendRow.Size=UDim2.new(1,0,0,56); ntLegendRow.LayoutOrder=1; ntLegendRow.ZIndex=7
+local ntLegList=Instance.new("UIListLayout",ntLegendRow)
+ntLegList.FillDirection=Enum.FillDirection.Horizontal; ntLegList.Padding=UDim.new(0,6)
+ntLegList.SortOrder=Enum.SortOrder.LayoutOrder; ntLegList.WrapsEnabled=true
+
+local legendItems={
+    {"ℹ","INFO","#5882F2"},{"✔","OK","#3CD278"},{"⚠","AVISO","#FFC832"},
+    {"✖","ERRO","#E63C3C"},{"⚡","CONN.","#FF8C1E"},
+}
+for i,li in ipairs(legendItems) do
+    local pill2=Instance.new("Frame",ntLegendRow)
+    pill2.BackgroundColor3=Color3.fromHex(li[3]); pill2.BackgroundTransparency=0.82
+    pill2.BorderSizePixel=0; pill2.Size=UDim2.new(0,54,0,24); pill2.LayoutOrder=i; pill2.ZIndex=8
+    Instance.new("UICorner",pill2).CornerRadius=UDim.new(0,6)
+    local pillStroke=Instance.new("UIStroke",pill2); pillStroke.Color=Color3.fromHex(li[3]); pillStroke.Thickness=1; pillStroke.Transparency=0.5
+    local icL=Instance.new("TextLabel",pill2); icL.BackgroundTransparency=1
+    icL.Position=UDim2.new(0,4,0,0); icL.Size=UDim2.new(0,16,1,0); icL.Font=Enum.Font.GothamBold
+    icL.Text=li[1]; icL.TextColor3=Color3.fromHex(li[3]); icL.TextSize=10; icL.ZIndex=9
+    local txtL=Instance.new("TextLabel",pill2); txtL.BackgroundTransparency=1
+    txtL.Position=UDim2.new(0,18,0,0); txtL.Size=UDim2.new(1,-20,1,0); txtL.Font=Enum.Font.GothamBlack
+    txtL.Text=li[2]; txtL.TextColor3=Color3.fromHex(li[3]); txtL.TextSize=7; txtL.ZIndex=9
+    txtL.TextXAlignment=Enum.TextXAlignment.Left
+end
+
+local notifAccOpen=false
+notifAccHeader.MouseButton1Click:Connect(function()
+    notifAccOpen=not notifAccOpen
+    TweenService:Create(notifAccArrow,TweenInfo.new(0.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Rotation=notifAccOpen and 0 or 180}):Play()
+    TweenService:Create(notifAccContent,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(1,0,0,notifAccOpen and NOTIF_ACC_H or 0)}):Play()
+    TweenService:Create(notifAccStroke,TweenInfo.new(0.2),{Color=notifAccOpen and C_ACCENT or Color3.fromRGB(55,58,66)}):Play()
 end)
 
 -- ══════════════════════════════════════════════════════
@@ -1111,8 +1465,8 @@ local function makeEspRow(cat)
     Instance.new("UICorner",knob).CornerRadius=UDim.new(1,0)
     local estado=false
     local btn=Instance.new("TextButton",row); btn.BackgroundTransparency=1; btn.Size=UDim2.new(1,0,1,0); btn.Text=""; btn.ZIndex=9
-    btn.MouseEnter:Connect(function() TweenService:Create(row,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(34,37,45)}):Play() end)
-    btn.MouseLeave:Connect(function() TweenService:Create(row,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(30,32,38)}):Play() end)
+    btn.MouseEnter:Connect(function() if currentTab~=cat.key then TweenService:Create(row,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(34,37,45)}):Play() end end)
+    btn.MouseLeave:Connect(function() if currentTab~=cat.key then TweenService:Create(row,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(30,32,38)}):Play() end end)
     btn.MouseButton1Click:Connect(function()
         estado=not estado; espAtivo[cat.key]=estado; lastCache=0
         TweenService:Create(pill,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{BackgroundColor3=estado and cat.cor or Color3.fromRGB(45,50,62)}):Play()
@@ -1121,6 +1475,11 @@ local function makeEspRow(cat)
             BackgroundColor3=estado and Color3.fromRGB(255,255,255) or Color3.fromRGB(160,170,185),
         }):Play()
         TweenService:Create(rowStroke,TweenInfo.new(0.2),{Color=estado and cat.cor or Color3.fromRGB(45,48,58)}):Play()
+        if estado then
+            notif("warning","ESP Ativado","Rastreando: "..cat.label:sub(1,30))
+        else
+            notif("info","ESP Desativado","Parou de rastrear: "..cat.label:sub(1,28))
+        end
     end)
 end
 
@@ -1281,14 +1640,17 @@ local function makeBringRow(bcat)
     btnBring.MouseButton1Click:Connect(function()
         if running then return end; running=true
         btnBring.Text="⏳..."; TweenService:Create(btnBring,TweenInfo.new(0.08),{BackgroundTransparency=0.4}):Play()
+        notif("info","⏳ Bring Executando","Buscando "..bcat.label:gsub("🪵 ",""):gsub("🔥 ",""):gsub("🦴 ",""):gsub("🔩 ",""):gsub("💎 ",""):gsub("🍖 ",""):gsub("🐟 ",""):gsub("🌱 ",""):gsub("🪓 ",""):gsub("⚔️ ",""):gsub("🔫 ",""):gsub("💊 ",""):gsub("🦺 ",""):gsub("🗝️ ",""):gsub("⚙️ ",""):gsub("🧪 ",""):gsub("📋 ","").." no mapa...")
         task.spawn(function()
             local count=executarBring(bcat.key) or 0; task.wait(0.3)
             btnBring.Text="▼ BRING"; TweenService:Create(btnBring,TweenInfo.new(0.15),{BackgroundTransparency=0.15}):Play()
             if count>0 then
                 feedbackLbl.Text="✓ "..count.." item(s)"; feedbackLbl.TextColor3=bcat.cor; feedbackLbl.TextTransparency=0
+                notif("success","✔ Bring Concluído",count.." item(s) trazidos com sucesso!")
                 task.delay(3,function() TweenService:Create(feedbackLbl,TweenInfo.new(0.5),{TextTransparency=1}):Play(); task.wait(0.6); feedbackLbl.Text=""; feedbackLbl.TextTransparency=0 end)
             else
                 feedbackLbl.Text="✗ Nenhum item"; feedbackLbl.TextColor3=Color3.fromRGB(200,80,80); feedbackLbl.TextTransparency=0
+                notif("error","✖ Bring: Nenhum Item","Nenhum item encontrado no mapa agora.")
                 task.delay(2.5,function() TweenService:Create(feedbackLbl,TweenInfo.new(0.4),{TextTransparency=1}):Play(); task.wait(0.5); feedbackLbl.Text=""; feedbackLbl.TextTransparency=0; feedbackLbl.TextColor3=bcat.cor end)
             end
             TweenService:Create(rowStroke,TweenInfo.new(0.2),{Color=bcat.cor}):Play()
@@ -1372,10 +1734,12 @@ local function setFly(state)
             flyBodyVel.Velocity=dir.Magnitude>0 and dir.Unit*flySpeed or Vector3.zero
             flyBodyGyro.CFrame=cam.CFrame
         end)
+        notif("success","✈️ Fly Ativado","W/A/S/D mover • Espaço subir • Ctrl descer.")
     else
         if flyConn then flyConn:Disconnect(); flyConn=nil end
         pcall(function() if flyBodyVel then flyBodyVel:Destroy(); flyBodyVel=nil end end)
         pcall(function() if flyBodyGyro then flyBodyGyro:Destroy(); flyBodyGyro=nil end end)
+        notif("info","✈️ Fly Desativado","Modo de voo desligado.")
     end
 end
 
@@ -1400,6 +1764,7 @@ local function setNoclip(state)
             end
             if hrp then hrp.CanCollide = false end
         end)
+        notif("warning","👻 Noclip Ativado","Atravessando paredes. Anti-void Y=-100 ativo.")
     else
         if noclipConn2 then noclipConn2:Disconnect(); noclipConn2=nil end
         pcall(function()
@@ -1408,6 +1773,7 @@ local function setNoclip(state)
                 if part:IsA("BasePart") then part.CanCollide = true end
             end
         end)
+        notif("info","👻 Noclip Desativado","Colisão restaurada.")
     end
 end
 
@@ -1427,8 +1793,10 @@ local function setTpClick(state)
                 hrp.CFrame=CFrame.new(ray.Position.X,safeY,ray.Position.Z)
             end
         end)
+        notif("warning","⚡ TP Click Ativado","Clique no chão para teleportar instantaneamente.")
     else
         if tpClickConn then tpClickConn:Disconnect(); tpClickConn=nil end
+        notif("info","⚡ TP Click Desativado","Teleporte por clique desligado.")
     end
 end
 
@@ -1447,12 +1815,14 @@ local function setBauANC(state)
                 end
             end)
         end)
+        notif("success","📦 Baú ANC Ativado","Baús e animações abrem instantaneamente.")
     else
         if bauANCConn then bauANCConn:Disconnect(); bauANCConn=nil end
+        notif("info","📦 Baú ANC Desativado","Velocidade de animação restaurada.")
     end
 end
 
--- UI Player (simplificada com toggles funcionais)
+-- UI Player
 local function makePlSec2(titulo, cor)
     local hdr=Instance.new("Frame",Pages["Player"]); hdr.BackgroundColor3=Color3.fromRGB(20,22,30)
     hdr.BackgroundTransparency=0.3; hdr.BorderSizePixel=0; hdr.Size=UDim2.new(1,0,0,22)
@@ -1518,7 +1888,10 @@ local function makePlSlider(lbl_txt, desc_txt, cor, minV, maxV, step, initVal, o
     valLbl.Position=UDim2.new(0.5,-25,0,0); valLbl.Size=UDim2.new(0,50,1,0); valLbl.Font=Enum.Font.GothamBold
     valLbl.Text=tostring(initVal); valLbl.TextColor3=cor; valLbl.TextSize=12; valLbl.ZIndex=9
     local curV={initVal}
-    local function upd(v) v=math.clamp(v,minV,maxV); curV[1]=v; valLbl.Text=tostring(v); onChange(v) end
+    local function upd(v)
+        v=math.clamp(v,minV,maxV); curV[1]=v; valLbl.Text=tostring(v); onChange(v)
+        notif("info","⚙️ "..lbl_txt,"Valor ajustado para: "..tostring(v))
+    end
     local btns={{"-"..tostring(step*5),-step*5},{"-"..tostring(step),-step},{"+"..tostring(step),step},{"+"..tostring(step*5),step*5}}
     for i,bd in ipairs(btns) do
         local b=Instance.new("TextButton",ctrl); b.BackgroundColor3=cor; b.BackgroundTransparency=0.35
@@ -1679,16 +2052,44 @@ local function makeAvToggle2(lbl_txt, desc_txt, cor, onToggle)
 end
 
 makeAvSec2("🎯 COMBATE AUTOMÁTICO", Color3.fromRGB(255,80,80))
-makeAvToggle2("🎯 Aimbot (Teleguiado)", "Projéteis se movem automaticamente para o animal mais próximo.", Color3.fromRGB(255,80,80), function(s) aimbotEnabled = s end)
-makeAvToggle2("🤖 Aimbot AUTO", "Com arma ranged equipada: atira sozinho nos animais próximos.", Color3.fromRGB(255,140,40), function(s) aimbotAutoEnabled = s; if s then startAimbotAuto() end end)
+makeAvToggle2("🎯 Aimbot (Teleguiado)", "Projéteis se movem automaticamente para o animal mais próximo.", Color3.fromRGB(255,80,80), function(s)
+    aimbotEnabled = s
+    if s then
+        notif("warning","🎯 Aimbot Ativado","Projéteis serão guiados ao animal mais próximo.")
+    else
+        notif("info","🎯 Aimbot Desativado","Projéteis voltaram ao modo normal.")
+    end
+end)
+makeAvToggle2("🤖 Aimbot AUTO", "Com arma ranged equipada: atira sozinho nos animais próximos.", Color3.fromRGB(255,140,40), function(s)
+    aimbotAutoEnabled = s
+    if s then
+        startAimbotAuto()
+        notif("warning","🤖 Aimbot AUTO Ativado","Mirando e atirando automaticamente nos animais.")
+    else
+        notif("info","🤖 Aimbot AUTO Desativado","Modo automático desligado.")
+    end
+end)
 
 -- ══════════════════════════════════════════════════════
---  ABA INICIAL
+--  ABA INICIAL + NOTIFICAÇÃO DE BOOT
 -- ══════════════════════════════════════════════════════
 task.wait(0.05)
 selectTab("Info")
 
+-- Notificação de inicialização com delay para aparecer após o hub
+task.delay(0.8, function()
+    notif("info","🌲 PudimHub v4 Carregado","ESP 20 cats • Bring 17 cats • Player • Aimbot — tudo pronto!")
+end)
+task.delay(2.4, function()
+    notif("success","✔ Conexão Estabelecida","Servidor: "..tostring(game.PlaceId).." • Hub funcionando normalmente.")
+end)
+task.delay(4.0, function()
+    notif("warning","⚠ Leia a aba Info","Confira os dados do script e ative as notificações lá.")
+end)
+
 print("╔══════════════════════════════════════════════════════╗")
-print("║  PUDIM HUB v4.5 — COMPLETO  Fev 2026                ║")
+print("║  PUDIM HUB v4.5 + NOTIFICAÇÕES — COMPLETO Fev 2026  ║")
 print("║  ESP 20 cats | BRING 17 cats | Player | Aimbot      ║")
+print("║  Notif: info|success|warning|error|connection        ║")
+print("║  Anti-spam 2x | Auto-hide 2s | Toggle na aba Info   ║")
 print("╚══════════════════════════════════════════════════════╝")
