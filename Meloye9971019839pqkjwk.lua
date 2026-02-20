@@ -1,0 +1,2779 @@
+-- ╔══════════════════════════════════════════════════════════════════╗
+-- ║     PUDIM HUB — MERGED v4 + V3  (ícones + fixes + Info)        ║
+-- ║  UI V3 completa + ESP/BRING v4 + ícones + fix minimize + Info  ║
+-- ║  CORRIGIDO: Green Frog | sem The Bat | Mega Cultist | Armaduras ║
+-- ║             Carcaças completas (Hellephant, PolarBear, etc)     ║
+-- ╚══════════════════════════════════════════════════════════════════╝
+
+task.wait(1) -- Adiciona um pequeno atraso para o ambiente carregar
+
+local CoreGui = game:GetService("CoreGui")
+if not CoreGui then
+    warn("PudimHub: CoreGui não encontrado. O script não pode criar a interface.")
+    return
+end
+if not PlayersService then
+    warn("PudimHub: PlayersService não encontrado.")
+    return
+end
+
+local Player = PlayersService.LocalPlayer
+if not Player then
+    warn("PudimHub: LocalPlayer não encontrado. O script pode não funcionar corretamente.")
+    return
+end
+
+local success, TweenService = pcall(function() return game:GetService("TweenService") end)
+if not success or not TweenService then
+    warn("PudimHub: TweenService não encontrado.")
+    return
+end
+local success, UserInputService = pcall(function() return game:GetService("UserInputService") end)
+if not success or not UserInputService then
+    warn("PudimHub: UserInputService não encontrado.")
+    return
+end
+local success, RunService = pcall(function() return game:GetService("RunService") end)
+if not success or not RunService then
+    warn("PudimHub: RunService não encontrado.")
+    return
+end
+
+local success, Lighting = pcall(function() return game:GetService("Lighting") end)
+if not success or not Lighting then
+    warn("PudimHub: Lighting não encontrado.")
+    return
+end
+
+-- local Player = Players.LocalPlayer -- Já verificado acima
+local Cam = workspace.CurrentCamera
+if not Cam then
+    warn("PudimHub: CurrentCamera não encontrado.")
+    return
+end
+
+-- ══════════════════════════════════════════════════════
+--  SCREEN GUI
+-- ══════════════════════════════════════════════════════
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name            = "PudimHubMerged"
+ScreenGui.Parent          = CoreGui
+ScreenGui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn    = false
+ScreenGui.DisplayOrder    = 999
+
+-- ══════════════════════════════════════════════════════
+--  MAIN FRAME
+-- ══════════════════════════════════════════════════════
+local MainFrame = Instance.new("Frame")
+MainFrame.Name             = "MainFrame"
+MainFrame.Parent           = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(32, 34, 37)
+MainFrame.Position         = UDim2.new(0.5, -270, 0.5, -185)
+MainFrame.Size             = UDim2.new(0, 540, 0, 370)
+MainFrame.BorderSizePixel  = 0
+MainFrame.Active           = true
+MainFrame.Draggable        = true
+MainFrame.ZIndex           = 2
+MainFrame.ClipsDescendants = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+local MainStroke = Instance.new("UIStroke", MainFrame)
+MainStroke.Color = Color3.fromRGB(55, 58, 66); MainStroke.Thickness = 1.5
+
+-- ══════════════════════════════════════════════════════
+--  TOP BAR
+-- ══════════════════════════════════════════════════════
+local TopBar = Instance.new("Frame", MainFrame)
+TopBar.Name             = "TopBar"
+TopBar.BackgroundColor3 = Color3.fromRGB(24, 25, 28)
+TopBar.Size             = UDim2.new(1, 0, 0, 40)
+TopBar.BorderSizePixel  = 0
+TopBar.ZIndex           = 3
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
+local topFix = Instance.new("Frame", TopBar)
+topFix.BackgroundColor3 = Color3.fromRGB(24,25,28)
+topFix.BorderSizePixel = 0
+topFix.Position = UDim2.new(0,0,0.5,0)
+topFix.Size = UDim2.new(1,0,0.5,0)
+topFix.ZIndex = 3
+
+local TitleBox = Instance.new("Frame", TopBar)
+TitleBox.BackgroundTransparency = 1
+TitleBox.Position = UDim2.new(0, 12, 0, 0)
+TitleBox.Size     = UDim2.new(0, 220, 1, 0)
+TitleBox.ZIndex   = 4
+
+local TitleIcon = Instance.new("ImageLabel", TitleBox)
+TitleIcon.BackgroundTransparency = 1
+TitleIcon.Position = UDim2.new(0, 0, 0.5, -10)
+TitleIcon.Size     = UDim2.new(0, 20, 0, 20)
+TitleIcon.Image    = "rbxassetid://12766380903"
+TitleIcon.ZIndex   = 5
+
+local TitleLabel = Instance.new("TextLabel", TitleBox)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position       = UDim2.new(0, 26, 0, 0)
+TitleLabel.Size           = UDim2.new(1, -26, 1, 0)
+TitleLabel.Font           = Enum.Font.GothamBlack
+TitleLabel.Text           = "PudimHub v4"
+TitleLabel.TextColor3     = Color3.fromRGB(88, 101, 242)
+TitleLabel.TextSize       = 15
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.ZIndex         = 5
+
+local btnData = {
+    { name="Theme",    icon="rbxassetid://7734053495" },
+    { name="Minimize", icon="rbxassetid://7733956134" },
+    { name="Maximize", icon="rbxassetid://7733919682" },
+    { name="Close",    icon="rbxassetid://7734053426" },
+}
+local TopBtns = {}
+local btnX = -10
+for _, d in ipairs(btnData) do
+    local btn = Instance.new("ImageButton", TopBar)
+    btn.Name = d.name; btn.BackgroundTransparency = 1
+    btn.Position = UDim2.new(1, btnX - 20, 0.5, -9)
+    btn.Size = UDim2.new(0, 18, 0, 18); btn.Image = d.icon
+    btn.ImageColor3 = Color3.fromRGB(160, 165, 175); btn.ZIndex = 5
+    btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.15), {ImageColor3 = Color3.fromRGB(255,255,255)}):Play() end)
+    btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.15), {ImageColor3 = Color3.fromRGB(160,165,175)}):Play() end)
+    TopBtns[d.name] = btn; btnX = btnX - 30
+end
+
+-- ══════════════════════════════════════════════════════
+--  SIDEBAR
+-- ══════════════════════════════════════════════════════
+local SideBar = Instance.new("ScrollingFrame", MainFrame)
+SideBar.Name = "SideBar"; SideBar.BackgroundColor3 = Color3.fromRGB(24, 25, 28)
+SideBar.Position = UDim2.new(0,0,0,40); SideBar.Size = UDim2.new(0,175,1,-78)
+SideBar.BorderSizePixel = 0; SideBar.ScrollBarThickness = 0
+SideBar.AutomaticCanvasSize = Enum.AutomaticSize.Y; SideBar.CanvasSize = UDim2.new(0,0,0,0); SideBar.ZIndex = 3
+local SideList = Instance.new("UIListLayout", SideBar)
+SideList.Padding = UDim.new(0,2); SideList.SortOrder = Enum.SortOrder.LayoutOrder
+SideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+local SidePad = Instance.new("UIPadding", SideBar)
+SidePad.PaddingTop = UDim.new(0,8); SidePad.PaddingLeft = UDim.new(0,8)
+SidePad.PaddingRight = UDim.new(0,8); SidePad.PaddingBottom = UDim.new(0,8)
+
+local Divider = Instance.new("Frame", MainFrame)
+Divider.BackgroundColor3 = Color3.fromRGB(14,15,17); Divider.BorderSizePixel = 0
+Divider.Position = UDim2.new(0,175,0,40); Divider.Size = UDim2.new(0,1,1,-40); Divider.ZIndex = 3
+
+-- ══════════════════════════════════════════════════════
+--  CONTENT AREA
+-- ══════════════════════════════════════════════════════
+local ContentArea = Instance.new("Frame", MainFrame)
+ContentArea.Name = "ContentArea"; ContentArea.BackgroundColor3 = Color3.fromRGB(36,38,42)
+ContentArea.Position = UDim2.new(0,176,0,40); ContentArea.Size = UDim2.new(1,-176,1,-40)
+ContentArea.BorderSizePixel = 0; ContentArea.ZIndex = 3; ContentArea.ClipsDescendants = true
+
+-- ══════════════════════════════════════════════════════
+--  FOOTER
+-- ══════════════════════════════════════════════════════
+local Footer = Instance.new("Frame", MainFrame)
+Footer.BackgroundColor3 = Color3.fromRGB(18,19,22); Footer.BorderSizePixel = 0
+Footer.Position = UDim2.new(0,0,1,-38); Footer.Size = UDim2.new(0,175,0,38); Footer.ZIndex = 4
+Instance.new("UICorner", Footer).CornerRadius = UDim.new(0, 12)
+
+local AvatarBg = Instance.new("Frame", Footer)
+AvatarBg.BackgroundColor3 = Color3.fromRGB(88,101,242)
+AvatarBg.Position = UDim2.new(0,8,0.5,-12); AvatarBg.Size = UDim2.new(0,24,0,24); AvatarBg.ZIndex = 5
+Instance.new("UICorner", AvatarBg).CornerRadius = UDim.new(1,0)
+local AvatarImg = Instance.new("ImageLabel", AvatarBg)
+AvatarImg.BackgroundTransparency = 1; AvatarImg.Size = UDim2.new(1,0,1,0)
+AvatarImg.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..tostring(Player.UserId).."&width=48&height=48&format=png"
+AvatarImg.ZIndex = 6; Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1,0)
+
+local OnlineDot = Instance.new("Frame", Footer)
+OnlineDot.BackgroundColor3 = Color3.fromRGB(87,242,135); OnlineDot.BorderSizePixel = 0
+OnlineDot.Position = UDim2.new(0,24,0.5,3); OnlineDot.Size = UDim2.new(0,8,0,8); OnlineDot.ZIndex = 6
+Instance.new("UICorner", OnlineDot).CornerRadius = UDim.new(1,0)
+
+local FName = Instance.new("TextLabel", Footer)
+FName.BackgroundTransparency = 1; FName.Position = UDim2.new(0,40,0,4)
+FName.Size = UDim2.new(1,-48,0,14); FName.Font = Enum.Font.GothamBold
+FName.Text = Player.DisplayName; FName.TextColor3 = Color3.fromRGB(225,228,232)
+FName.TextSize = 10; FName.TextXAlignment = Enum.TextXAlignment.Left
+FName.TextTruncate = Enum.TextTruncate.AtEnd; FName.ZIndex = 5
+
+local FTag = Instance.new("TextLabel", Footer)
+FTag.BackgroundTransparency = 1; FTag.Position = UDim2.new(0,40,0,19)
+FTag.Size = UDim2.new(1,-48,0,12); FTag.Font = Enum.Font.Gotham
+FTag.Text = "@"..Player.Name; FTag.TextColor3 = Color3.fromRGB(80,90,110)
+FTag.TextSize = 9; FTag.TextXAlignment = Enum.TextXAlignment.Left
+FTag.TextTruncate = Enum.TextTruncate.AtEnd; FTag.ZIndex = 5
+
+-- ══════════════════════════════════════════════════════
+--  PAGES
+-- ══════════════════════════════════════════════════════
+local Pages = {}
+local C_ACCENT   = Color3.fromRGB(88,101,242)
+local C_TEXT_OFF = Color3.fromRGB(130,140,158)
+local C_TEXT_ON  = Color3.fromRGB(240,242,255)
+local C_BG_HOV   = Color3.fromRGB(40,43,52)
+local C_BG_ACT   = Color3.fromRGB(48,52,72)
+local C_ICON_IDLE   = Color3.fromRGB(90,100,120)
+local C_ICON_ACTIVE = Color3.fromRGB(180,190,255)
+
+local TabConfig = {
+    {key="Info",label="Info"},{key="Status",label="Status"},{key="Farm",label="Farm"},
+    {key="Esp",label="ESP"},{key="Bring",label="Bring"},{key="AvancadoFarm",label="Avançado Farm"},
+    {key="Player",label="Player"},{key="Configuracoes",label="Configurações"},{key="AvancadoFuncoes",label="Avançado Funções"},
+}
+local GroupConfig = {
+    {label="GERAL",   keys={"Info","Status"}},
+    {label="COMBATE", keys={"Farm","Esp","Bring","AvancadoFarm"}},
+    {label="EXTRA",   keys={"Player","Configuracoes","AvancadoFuncoes"}},
+}
+
+for _, t in ipairs(TabConfig) do
+    local page = Instance.new("ScrollingFrame", ContentArea)
+    page.Name = t.key.."Page"; page.Size = UDim2.new(1,0,1,0)
+    page.BackgroundTransparency = 1; page.Visible = false
+    page.ScrollBarThickness = 3; page.ScrollBarImageColor3 = C_ACCENT
+    page.BorderSizePixel = 0; page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    page.CanvasSize = UDim2.new(0,0,0,0); page.ZIndex = 4
+    local pp = Instance.new("UIPadding", page)
+    pp.PaddingTop = UDim.new(0,14); pp.PaddingLeft = UDim.new(0,14)
+    pp.PaddingRight = UDim.new(0,14); pp.PaddingBottom = UDim.new(0,14)
+    local pl = Instance.new("UIListLayout", page)
+    pl.Padding = UDim.new(0,8); pl.SortOrder = Enum.SortOrder.LayoutOrder
+    Pages[t.key] = page
+end
+
+-- ══════════════════════════════════════════════════════
+--  SISTEMA DE ABAS
+-- ══════════════════════════════════════════════════════
+local allTabs = {}; local currentTab = nil
+
+local function mkRect(parent,x,y,w,h,color,radius)
+    local f=Instance.new("Frame",parent); f.BackgroundColor3=color or C_ICON_IDLE
+    f.BorderSizePixel=0; f.Position=UDim2.new(0,x,0,y); f.Size=UDim2.new(0,w,0,h)
+    f.ZIndex=parent.ZIndex+1
+    if radius then Instance.new("UICorner",f).CornerRadius=UDim.new(0,radius) end
+    return f
+end
+local function mkCircle(parent,x,y,r,color) return mkRect(parent,x-r,y-r,r*2,r*2,color,r*2) end
+
+local function createTabIcon(parent,key)
+    local ic = C_ICON_IDLE
+    local cont = Instance.new("Frame",parent); cont.BackgroundTransparency=1; cont.BorderSizePixel=0
+    cont.Position=UDim2.new(0,8,0.5,-10); cont.Size=UDim2.new(0,20,0,20)
+    cont.ZIndex=parent.ZIndex+2; cont.ClipsDescendants=false
+    local parts={}
+    local function p(f) table.insert(parts,f); return f end
+    if key=="Info" then
+        p(mkCircle(cont,10,10,9,ic)); local inner=mkCircle(cont,10,10,7,Color3.fromRGB(24,26,32)); inner.ZIndex=cont.ZIndex+1
+        p(mkCircle(cont,10,4,2,ic)); p(mkRect(cont,8,8,4,8,ic,2))
+    elseif key=="Status" then
+        p(mkRect(cont,0,12,4,8,ic,1)); p(mkRect(cont,8,6,4,14,ic,1)); p(mkRect(cont,16,9,4,11,ic,1))
+    elseif key=="Farm" then
+        p(mkRect(cont,11,0,5,2,ic,1)); p(mkRect(cont,6,2,8,2,ic,0)); p(mkRect(cont,4,4,10,2,ic,0))
+        p(mkRect(cont,8,6,8,2,ic,0)); p(mkRect(cont,6,8,8,2,ic,0)); p(mkRect(cont,4,10,8,2,ic,0))
+        p(mkRect(cont,2,12,10,2,ic,0)); p(mkRect(cont,4,14,6,2,ic,0)); p(mkRect(cont,3,18,5,2,ic,1))
+    elseif key=="Esp" then
+        p(mkRect(cont,2,6,16,8,ic,8)); local ei=mkRect(cont,3,7,14,6,Color3.fromRGB(24,26,32),7); ei.ZIndex=cont.ZIndex+1
+        p(mkCircle(cont,10,10,4,ic)); local pi=mkCircle(cont,10,10,2,Color3.fromRGB(24,26,32)); pi.ZIndex=cont.ZIndex+3
+        p(mkCircle(cont,12,8,1,Color3.fromRGB(200,220,255)))
+    elseif key=="Bring" then
+        p(mkRect(cont,2,2,5,12,ic,2)); p(mkRect(cont,13,2,5,12,ic,2)); p(mkRect(cont,2,2,16,5,ic,2))
+        p(mkRect(cont,2,14,5,4,Color3.fromRGB(220,60,60),2)); p(mkRect(cont,13,14,5,4,Color3.fromRGB(60,120,220),2))
+    elseif key=="AvancadoFarm" then
+        p(mkRect(cont,9,14,2,6,ic,1)); p(mkRect(cont,9,2,2,12,ic,1))
+        p(mkRect(cont,3,4,6,3,ic,2)); p(mkRect(cont,11,4,6,3,ic,2))
+        p(mkRect(cont,3,8,6,3,ic,2)); p(mkRect(cont,11,8,6,3,ic,2)); p(mkRect(cont,6,0,8,3,ic,2))
+    elseif key=="Player" then
+        p(mkCircle(cont,10,5,4,ic)); p(mkRect(cont,5,11,10,7,ic,3))
+        p(mkRect(cont,3,13,4,7,ic,2)); p(mkRect(cont,13,13,4,7,ic,2))
+    elseif key=="Configuracoes" then
+        p(mkCircle(cont,10,10,5,ic)); local ci=mkCircle(cont,10,10,3,Color3.fromRGB(24,26,32)); ci.ZIndex=cont.ZIndex+2
+        for _,deg in ipairs({0,45,90,135,180,225,270,315}) do
+            local rad=math.rad(deg)
+            p(mkRect(cont,10+math.cos(rad)*8-2,10+math.sin(rad)*8-2,4,4,ic,1))
+        end
+    elseif key=="AvancadoFuncoes" then
+        p(mkRect(cont,1,13,12,4,ic,2)); p(mkCircle(cont,15,6,5,ic))
+        local furo=mkCircle(cont,15,6,3,Color3.fromRGB(24,26,32)); furo.ZIndex=cont.ZIndex+2
+        p(mkRect(cont,8,9,6,3,ic,1))
+    end
+    return cont, parts
+end
+
+local function setIconColor(parts,color)
+    for _,part in ipairs(parts) do if part and part.Parent then part.BackgroundColor3=color end end
+end
+
+local function selectTab(key)
+    if currentTab==key then return end; currentTab=key
+    for _,e in ipairs(allTabs) do
+        local isThis=(e.key==key)
+        TweenService:Create(e.bg,TweenInfo.new(0.18,Enum.EasingStyle.Quad),{
+            BackgroundTransparency=isThis and 0.72 or 1,
+            BackgroundColor3=isThis and C_BG_ACT or C_BG_HOV,
+        }):Play()
+        setIconColor(e.iconParts,isThis and C_ICON_ACTIVE or C_ICON_IDLE)
+        TweenService:Create(e.label,TweenInfo.new(0.18),{TextColor3=isThis and C_TEXT_ON or C_TEXT_OFF}):Play()
+        e.bar.Visible=isThis
+        if Pages[e.key] then Pages[e.key].Visible=isThis end
+    end
+end
+
+local layoutOrder=0
+local function makeGroupLabel(text,groupTabs)
+    layoutOrder+=1
+    if layoutOrder>1 then
+        local line=Instance.new("Frame",SideBar); line.BackgroundColor3=Color3.fromRGB(38,41,48)
+        line.BorderSizePixel=0; line.Size=UDim2.new(1,0,0,1); line.LayoutOrder=layoutOrder*100
+    end
+    layoutOrder+=1
+    local header=Instance.new("TextButton",SideBar); header.BackgroundTransparency=1
+    header.Size=UDim2.new(1,0,0,24); header.Text=""; header.LayoutOrder=layoutOrder*100; header.ZIndex=4
+    local hl=Instance.new("TextLabel",header); hl.BackgroundTransparency=1
+    hl.Position=UDim2.new(0,4,0,0); hl.Size=UDim2.new(1,-24,1,0); hl.Font=Enum.Font.GothamBlack
+    hl.Text=text; hl.TextColor3=C_ACCENT; hl.TextSize=8
+    hl.TextXAlignment=Enum.TextXAlignment.Left; hl.ZIndex=5
+    local af=Instance.new("Frame",header); af.BackgroundTransparency=1
+    af.Position=UDim2.new(1,-20,0.5,-8); af.Size=UDim2.new(0,16,0,16); af.ZIndex=5
+    local arrow=Instance.new("ImageLabel",af); arrow.BackgroundTransparency=1
+    arrow.Size=UDim2.new(1,0,1,0); arrow.Image="rbxassetid://6034818375"
+    arrow.ImageColor3=C_ACCENT; arrow.ScaleType=Enum.ScaleType.Fit; arrow.Rotation=0; arrow.ZIndex=6
+    local isOpen=true
+    header.MouseButton1Click:Connect(function()
+        isOpen=not isOpen
+        TweenService:Create(arrow,TweenInfo.new(0.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Rotation=isOpen and 0 or 180}):Play()
+        for _,entry in ipairs(groupTabs) do
+            TweenService:Create(entry.bg,TweenInfo.new(0.25,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=isOpen and UDim2.new(1,0,0,36) or UDim2.new(1,0,0,0)}):Play()
+            entry.bg.ClipsDescendants=true
+        end
+    end)
+end
+
+local function makeTab(cfg,groupTabs)
+    layoutOrder+=1; local order=layoutOrder*100
+    local bg=Instance.new("Frame",SideBar); bg.Name=cfg.key.."Tab"
+    bg.BackgroundColor3=C_BG_HOV; bg.BackgroundTransparency=1; bg.BorderSizePixel=0
+    bg.Size=UDim2.new(1,0,0,36); bg.LayoutOrder=order; bg.ZIndex=4; bg.ClipsDescendants=true
+    Instance.new("UICorner",bg).CornerRadius=UDim.new(0,7)
+    local bar=Instance.new("Frame",bg); bar.BackgroundColor3=C_ACCENT; bar.BorderSizePixel=0
+    bar.Position=UDim2.new(0,0,0.2,0); bar.Size=UDim2.new(0,3,0.6,0); bar.Visible=false; bar.ZIndex=6
+    Instance.new("UICorner",bar).CornerRadius=UDim.new(0,2)
+    local icon,iconParts=createTabIcon(bg,cfg.key)
+    local label=Instance.new("TextLabel",bg); label.BackgroundTransparency=1
+    label.Position=UDim2.new(0,37,0,0); label.Size=UDim2.new(1,-42,1,0)
+    label.Font=Enum.Font.GothamSemibold; label.Text=cfg.label; label.TextColor3=C_TEXT_OFF
+    label.TextSize=11; label.TextXAlignment=Enum.TextXAlignment.Left
+    label.TextTruncate=Enum.TextTruncate.AtEnd; label.ZIndex=6
+    local btn=Instance.new("TextButton",bg); btn.BackgroundTransparency=1
+    btn.Size=UDim2.new(1,0,1,0); btn.Text=""; btn.ZIndex=7
+    btn.MouseEnter:Connect(function() if currentTab~=cfg.key then TweenService:Create(bg,TweenInfo.new(0.15),{BackgroundTransparency=0.78}):Play() end end)
+    btn.MouseLeave:Connect(function() if currentTab~=cfg.key then TweenService:Create(bg,TweenInfo.new(0.15),{BackgroundTransparency=1}):Play() end end)
+    btn.MouseButton1Click:Connect(function() selectTab(cfg.key) end)
+    local entry={key=cfg.key,bg=bg,icon=icon,iconParts=iconParts,label=label,bar=bar}
+    table.insert(allTabs,entry); table.insert(groupTabs,entry)
+end
+
+local keyMap={}
+for _,t in ipairs(TabConfig) do keyMap[t.key]=t end
+for _,g in ipairs(GroupConfig) do
+    local groupTabs={}; makeGroupLabel(g.label,groupTabs)
+    for _,k in ipairs(g.keys) do if keyMap[k] then makeTab(keyMap[k],groupTabs) end end
+end
+
+-- ══════════════════════════════════════════════════════
+--  BOOST FUNCTIONS
+-- ══════════════════════════════════════════════════════
+local origMaterials={}; local origTextures={}
+local function UltraBooster(state)
+    if state then
+        pcall(function() settings().Network.IncomingReplicationLag=0; settings().Network.DataSendRate=60; settings().Network.DataReceiveRate=60 end)
+        pcall(function() sethiddenproperty(Player,"MaximumSimulationRadius",math.huge); sethiddenproperty(Player,"SimulationRadius",math.huge) end)
+        for _,obj in pairs(workspace:GetDescendants()) do pcall(function()
+            if obj:IsA("BasePart") then
+                if not origMaterials[obj] then origMaterials[obj]={M=obj.Material,C=obj.Color,R=obj.Reflectance,T=obj.Transparency} end
+                obj.Material=Enum.Material.Plastic; obj.Color=Color3.fromRGB(128,128,128); obj.Reflectance=0; obj.CastShadow=false
+            end
+            if obj:IsA("Texture") or obj:IsA("Decal") then
+                if not origTextures[obj] then origTextures[obj]=obj.Transparency end; obj.Transparency=1
+            end
+        end) end
+    else
+        for obj,p in pairs(origMaterials) do pcall(function() if obj and obj.Parent then obj.Material=p.M; obj.Color=p.C; obj.Reflectance=p.R; obj.Transparency=p.T; obj.CastShadow=true end end) end
+        for obj,t in pairs(origTextures) do pcall(function() if obj and obj.Parent then obj.Transparency=t end end) end
+        origMaterials={}; origTextures={}
+    end
+end
+
+local hidEffects={}
+local function ForceRemoveEffects(s)
+    if s then
+        for _,v in pairs(Lighting:GetChildren()) do pcall(function()
+            if v:IsA("PostEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("BloomEffect") or v:IsA("DepthOfFieldEffect") then
+                hidEffects[v]=v.Enabled; v.Enabled=false
+            end
+        end) end
+        for _,o in pairs(workspace:GetDescendants()) do pcall(function()
+            if o:IsA("ParticleEmitter") or o:IsA("Trail") or o:IsA("Beam") or o:IsA("Smoke") or o:IsA("Fire") or o:IsA("Sparkles") or o:IsA("PointLight") or o:IsA("SpotLight") or o:IsA("SurfaceLight") then
+                hidEffects[o]=o.Enabled; o.Enabled=false
+            end
+        end) end
+    else
+        for e,w in pairs(hidEffects) do pcall(function() if e and e.Parent then e.Enabled=w end end) end; hidEffects={}
+    end
+end
+
+local hidNPCs={}
+local function ForceRemoveNPCs(s)
+    if s then
+        for _,v in pairs(workspace:GetChildren()) do pcall(function()
+            if v:IsA("Model") and v:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(v) then
+                for _,p in pairs(v:GetDescendants()) do
+                    if p:IsA("BasePart") then
+                        if not hidNPCs[p] then hidNPCs[p]={T=p.Transparency,CC=p.CanCollide} end
+                        p.Transparency=1; p.CanCollide=false
+                    end
+                end
+            end
+        end) end
+    else
+        for p,d in pairs(hidNPCs) do pcall(function() if p and p.Parent then p.Transparency=d.T; p.CanCollide=d.CC end end) end; hidNPCs={}
+    end
+end
+
+local origSet={}
+local function ForceLagCleaner(s)
+    if s then pcall(function()
+        origSet.Q=settings().Rendering.QualityLevel; origSet.M=settings().Rendering.MeshPartDetailLevel
+        settings().Rendering.QualityLevel=Enum.QualityLevel.Level01
+        settings().Rendering.MeshPartDetailLevel=Enum.MeshPartDetailLevel.Level01
+        settings().Physics.AllowSleep=true
+    end) else pcall(function()
+        if origSet.Q then settings().Rendering.QualityLevel=origSet.Q end
+        if origSet.M then settings().Rendering.MeshPartDetailLevel=origSet.M end
+    end); origSet={} end
+end
+
+-- ══════════════════════════════════════════════════════
+--  BOOST POPUP
+-- ══════════════════════════════════════════════════════
+local BoostPopup=Instance.new("Frame",ScreenGui); BoostPopup.Name="BoostPopup"
+BoostPopup.BackgroundColor3=Color3.fromRGB(28,29,34); BoostPopup.Size=UDim2.new(0,190,0,0)
+BoostPopup.Visible=false; BoostPopup.ZIndex=200; BoostPopup.ClipsDescendants=true
+Instance.new("UICorner",BoostPopup).CornerRadius=UDim.new(0,10)
+local bpStroke=Instance.new("UIStroke",BoostPopup); bpStroke.Color=C_ACCENT; bpStroke.Thickness=1.2
+local bpList=Instance.new("UIListLayout",BoostPopup); bpList.Padding=UDim.new(0,5); bpList.HorizontalAlignment=Enum.HorizontalAlignment.Center
+local bpPad=Instance.new("UIPadding",BoostPopup)
+bpPad.PaddingTop=UDim.new(0,8); bpPad.PaddingLeft=UDim.new(0,8); bpPad.PaddingRight=UDim.new(0,8); bpPad.PaddingBottom=UDim.new(0,8)
+
+local popupOpen=false
+local function toggleBoostPopup()
+    popupOpen=not popupOpen
+    if popupOpen then
+        local pos=TopBtns["Theme"].AbsolutePosition
+        BoostPopup.Position=UDim2.new(0,pos.X-160,0,pos.Y+26)
+        BoostPopup.Size=UDim2.new(0,190,0,0); BoostPopup.Visible=true
+        TweenService:Create(BoostPopup,TweenInfo.new(0.25,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,190,0,248)}):Play()
+    else
+        TweenService:Create(BoostPopup,TweenInfo.new(0.18,Enum.EasingStyle.Quad),{Size=UDim2.new(0,190,0,0)}):Play()
+        task.delay(0.19,function() BoostPopup.Visible=false end)
+    end
+end
+
+local function makePopupToggle(text,callback)
+    local row=Instance.new("Frame",BoostPopup); row.BackgroundColor3=Color3.fromRGB(38,41,48)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,32)
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,7)
+    local lbl=Instance.new("TextLabel",row); lbl.BackgroundTransparency=1
+    lbl.Position=UDim2.new(0,8,0,0); lbl.Size=UDim2.new(1,-50,1,0); lbl.Font=Enum.Font.GothamSemibold
+    lbl.Text=text; lbl.TextColor3=Color3.fromRGB(190,195,205); lbl.TextSize=10
+    lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.ZIndex=201
+    local pill=Instance.new("Frame",row); pill.BackgroundColor3=Color3.fromRGB(60,65,75); pill.BorderSizePixel=0
+    pill.Position=UDim2.new(1,-42,0.5,-10); pill.Size=UDim2.new(0,36,0,20); pill.ZIndex=201
+    Instance.new("UICorner",pill).CornerRadius=UDim.new(1,0)
+    local knob=Instance.new("Frame",pill); knob.BackgroundColor3=Color3.fromRGB(200,205,215); knob.BorderSizePixel=0
+    knob.Position=UDim2.new(0,2,0.5,-8); knob.Size=UDim2.new(0,16,0,16); knob.ZIndex=202
+    Instance.new("UICorner",knob).CornerRadius=UDim.new(1,0)
+    local state=false
+    local btn=Instance.new("TextButton",row); btn.BackgroundTransparency=1; btn.Size=UDim2.new(1,0,1,0); btn.Text=""; btn.ZIndex=203
+    btn.MouseButton1Click:Connect(function()
+        state=not state
+        TweenService:Create(pill,TweenInfo.new(0.2),{BackgroundColor3=state and Color3.fromRGB(87,242,135) or Color3.fromRGB(60,65,75)}):Play()
+        TweenService:Create(knob,TweenInfo.new(0.2),{Position=state and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)}):Play()
+        callback(state)
+    end)
+end
+
+makePopupToggle("⚡ Booster Ultra",    UltraBooster)
+makePopupToggle("🎨 Remover Efeitos",  ForceRemoveEffects)
+makePopupToggle("👻 Remover NPCs",     ForceRemoveNPCs)
+makePopupToggle("🧹 Limpar Lag Total", ForceLagCleaner)
+
+local rejBtn=Instance.new("TextButton",BoostPopup)
+rejBtn.BackgroundColor3=Color3.fromRGB(200,50,55); rejBtn.BorderSizePixel=0
+rejBtn.Size=UDim2.new(1,0,0,32); rejBtn.Font=Enum.Font.GothamBold
+rejBtn.Text="🔄  REJOIN SERVER"; rejBtn.TextColor3=Color3.fromRGB(255,255,255); rejBtn.TextSize=11; rejBtn.ZIndex=201
+Instance.new("UICorner",rejBtn).CornerRadius=UDim.new(0,7)
+rejBtn.MouseButton1Click:Connect(function()
+    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId,game.JobId,Player)
+end)
+
+-- ══════════════════════════════════════════════════════
+--  BOTÃO FLUTUANTE PD
+-- ══════════════════════════════════════════════════════
+local FloatBtn=Instance.new("Frame",ScreenGui)
+FloatBtn.Name="FloatBtn"; FloatBtn.Size=UDim2.new(0,68,0,68); FloatBtn.Position=UDim2.new(0.05,0,0.08,0)
+FloatBtn.BackgroundColor3=Color3.fromRGB(12,13,20); FloatBtn.BorderSizePixel=0; FloatBtn.Visible=false; FloatBtn.ZIndex=100; FloatBtn.Active=true
+Instance.new("UICorner",FloatBtn).CornerRadius=UDim.new(1,0)
+local FloatRing=Instance.new("UIStroke",FloatBtn); FloatRing.Color=C_ACCENT; FloatRing.Thickness=2.2
+local PDText=Instance.new("TextLabel",FloatBtn); PDText.BackgroundTransparency=1
+PDText.Position=UDim2.new(0,0,0,0); PDText.Size=UDim2.new(1,0,1,0); PDText.Font=Enum.Font.GothamBlack
+PDText.Text="PD"; PDText.TextColor3=Color3.fromRGB(220,225,255); PDText.TextSize=20; PDText.TextTransparency=0.05; PDText.ZIndex=105
+local PDStroke=Instance.new("UIStroke",PDText); PDStroke.Color=C_ACCENT; PDStroke.Thickness=1.5; PDStroke.Transparency=0.3
+local FloatClick=Instance.new("TextButton",FloatBtn); FloatClick.BackgroundTransparency=1
+FloatClick.Size=UDim2.new(1,0,1,0); FloatClick.Text=""; FloatClick.ZIndex=110
+FloatClick.MouseEnter:Connect(function() TweenService:Create(FloatRing,TweenInfo.new(0.2),{Color=Color3.fromRGB(160,170,255),Thickness=3}):Play() end)
+FloatClick.MouseLeave:Connect(function() TweenService:Create(FloatRing,TweenInfo.new(0.2),{Color=C_ACCENT,Thickness=2.2}):Play() end)
+
+local function showFloatBtn()
+    FloatBtn.Size=UDim2.new(0,0,0,0); FloatBtn.Position=UDim2.new(0.05,34,0.08,34); FloatBtn.Visible=true
+    TweenService:Create(FloatBtn,TweenInfo.new(0.35,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,68,0,68),Position=UDim2.new(0.05,0,0.08,0)}):Play()
+end
+
+FloatClick.MouseButton1Click:Connect(function()
+    TweenService:Create(FloatBtn,TweenInfo.new(0.2,Enum.EasingStyle.Back,Enum.EasingDirection.In),{Size=UDim2.new(0,0,0,0),Position=UDim2.new(0.05,34,0.08,34)}):Play()
+    task.delay(0.22,function()
+        FloatBtn.Visible=false; FloatBtn.Size=UDim2.new(0,68,0,68); FloatBtn.Position=UDim2.new(0.05,0,0.08,0)
+        MainFrame.Visible=true; MainFrame.Size=UDim2.new(0,540,0,0)
+        TweenService:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,540,0,370)}):Play()
+        task.delay(0.2,function() SideBar.Visible=true; ContentArea.Visible=true; Divider.Visible=true; Footer.Visible=true end)
+    end)
+end)
+
+-- ══════════════════════════════════════════════════════
+--  TOPBAR BUTTON ACTIONS
+-- ══════════════════════════════════════════════════════
+TopBtns["Theme"].MouseButton1Click:Connect(function() toggleBoostPopup() end)
+
+local isMinimized=false
+TopBtns["Minimize"].MouseButton1Click:Connect(function()
+    isMinimized=not isMinimized
+    if isMinimized then
+        Footer.Visible=false
+        SideBar.Visible=false; ContentArea.Visible=false; Divider.Visible=false
+        TweenService:Create(MainFrame,TweenInfo.new(0.25,Enum.EasingStyle.Quad),{Size=UDim2.new(0,540,0,40)}):Play()
+    else
+        TweenService:Create(MainFrame,TweenInfo.new(0.25,Enum.EasingStyle.Quad),{Size=UDim2.new(0,540,0,370)}):Play()
+        task.delay(0.2,function()
+            SideBar.Visible=true; ContentArea.Visible=true; Divider.Visible=true; Footer.Visible=true
+        end)
+    end
+end)
+
+local isMaximized=false; local normalPos=MainFrame.Position
+TopBtns["Maximize"].MouseButton1Click:Connect(function()
+    isMaximized=not isMaximized
+    if isMaximized then
+        normalPos=MainFrame.Position
+        TweenService:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quad),{Size=UDim2.new(0,760,0,500),Position=UDim2.new(0.5,-380,0.5,-250)}):Play()
+    else
+        TweenService:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quad),{Size=UDim2.new(0,540,0,370),Position=normalPos}):Play()
+    end
+end)
+
+TopBtns["Close"].MouseButton1Click:Connect(function()
+    TweenService:Create(MainFrame,TweenInfo.new(0.2,Enum.EasingStyle.Quad),{Size=UDim2.new(0,540,0,0)}):Play()
+    task.delay(0.22,function()
+        MainFrame.Visible=false; MainFrame.Size=UDim2.new(0,540,0,370)
+        SideBar.Visible=true; ContentArea.Visible=true; Divider.Visible=true; Footer.Visible=true
+        showFloatBtn()
+    end)
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType~=Enum.UserInputType.MouseButton1 then return end
+    if not popupOpen then return end
+    local mp=UserInputService:GetMouseLocation(); local ap,as=BoostPopup.AbsolutePosition,BoostPopup.AbsoluteSize
+    if mp.X<ap.X or mp.X>ap.X+as.X or mp.Y<ap.Y or mp.Y>ap.Y+as.Y then toggleBoostPopup() end
+end)
+
+-- ══════════════════════════════════════════════════════
+--  ABA INFO
+-- ══════════════════════════════════════════════════════
+local function copyToClipboard(text)
+    pcall(function() if setclipboard then setclipboard(text) end end)
+end
+
+local infoCard=Instance.new("Frame",Pages["Info"])
+infoCard.BackgroundColor3=Color3.fromRGB(30,31,34); infoCard.BorderSizePixel=0
+infoCard.Size=UDim2.new(1,0,0,136); infoCard.LayoutOrder=0; infoCard.ZIndex=5
+Instance.new("UICorner",infoCard).CornerRadius=UDim.new(0,10)
+local infoCardStroke=Instance.new("UIStroke",infoCard); infoCardStroke.Color=Color3.fromRGB(55,58,66); infoCardStroke.Thickness=1.2
+
+local infoBanner=Instance.new("Frame",infoCard)
+infoBanner.BackgroundColor3=Color3.fromRGB(72,87,210); infoBanner.BorderSizePixel=0
+infoBanner.Size=UDim2.new(1,0,0,52); infoBanner.ZIndex=5
+Instance.new("UICorner",infoBanner).CornerRadius=UDim.new(0,10)
+local banFix=Instance.new("Frame",infoBanner); banFix.BackgroundColor3=Color3.fromRGB(72,87,210)
+banFix.BorderSizePixel=0; banFix.Position=UDim2.new(0,0,0.5,0); banFix.Size=UDim2.new(1,0,0.5,0); banFix.ZIndex=5
+local bannerTitle=Instance.new("TextLabel",infoBanner)
+bannerTitle.BackgroundTransparency=1; bannerTitle.Position=UDim2.new(0,62,0,0)
+bannerTitle.Size=UDim2.new(1,-70,1,0); bannerTitle.Font=Enum.Font.GothamBlack
+bannerTitle.Text="🌲  PudimHub"; bannerTitle.TextColor3=Color3.fromRGB(255,255,255)
+bannerTitle.TextSize=14; bannerTitle.TextXAlignment=Enum.TextXAlignment.Left; bannerTitle.ZIndex=7
+
+local infoAvatarRing=Instance.new("Frame",infoCard)
+infoAvatarRing.BackgroundColor3=Color3.fromRGB(30,31,34); infoAvatarRing.BorderSizePixel=0
+infoAvatarRing.Position=UDim2.new(0,8,0,30); infoAvatarRing.Size=UDim2.new(0,48,0,48); infoAvatarRing.ZIndex=7
+Instance.new("UICorner",infoAvatarRing).CornerRadius=UDim.new(1,0)
+local infoAvImg=Instance.new("ImageLabel",infoAvatarRing)
+infoAvImg.BackgroundTransparency=1; infoAvImg.Position=UDim2.new(0,2,0,2); infoAvImg.Size=UDim2.new(1,-4,1,-4)
+infoAvImg.Image="https://www.roblox.com/headshot-thumbnail/image?userId="..tostring(Player.UserId).."&width=150&height=150&format=png"
+infoAvImg.ZIndex=8; Instance.new("UICorner",infoAvImg).CornerRadius=UDim.new(1,0)
+
+local infoGreenRing=Instance.new("Frame",infoCard)
+infoGreenRing.BackgroundColor3=Color3.fromRGB(30,31,34); infoGreenRing.BorderSizePixel=0
+infoGreenRing.Position=UDim2.new(0,42,0,64); infoGreenRing.Size=UDim2.new(0,14,0,14); infoGreenRing.ZIndex=9
+Instance.new("UICorner",infoGreenRing).CornerRadius=UDim.new(1,0)
+local infoGreenDot=Instance.new("Frame",infoGreenRing)
+infoGreenDot.BackgroundColor3=Color3.fromRGB(87,242,135); infoGreenDot.BorderSizePixel=0
+infoGreenDot.Position=UDim2.new(0,2,0,2); infoGreenDot.Size=UDim2.new(0,10,0,10); infoGreenDot.ZIndex=10
+Instance.new("UICorner",infoGreenDot).CornerRadius=UDim.new(1,0)
+
+local infoName=Instance.new("TextLabel",infoCard)
+infoName.BackgroundTransparency=1; infoName.Position=UDim2.new(0,64,0,54)
+infoName.Size=UDim2.new(1,-72,0,18); infoName.Font=Enum.Font.GothamBold
+infoName.Text=Player.DisplayName; infoName.TextColor3=Color3.fromRGB(255,255,255)
+infoName.TextSize=13; infoName.TextXAlignment=Enum.TextXAlignment.Left; infoName.ZIndex=7
+local infoTag=Instance.new("TextLabel",infoCard)
+infoTag.BackgroundTransparency=1; infoTag.Position=UDim2.new(0,64,0,72)
+infoTag.Size=UDim2.new(1,-72,0,12); infoTag.Font=Enum.Font.Gotham
+infoTag.Text="@"..Player.Name; infoTag.TextColor3=Color3.fromRGB(140,150,165)
+infoTag.TextSize=10; infoTag.TextXAlignment=Enum.TextXAlignment.Left; infoTag.ZIndex=7
+
+local infoStatus=Instance.new("Frame",infoCard)
+infoStatus.BackgroundColor3=Color3.fromRGB(40,42,48); infoStatus.BorderSizePixel=0
+infoStatus.Position=UDim2.new(0,8,0,90); infoStatus.Size=UDim2.new(1,-16,0,38); infoStatus.ZIndex=6
+Instance.new("UICorner",infoStatus).CornerRadius=UDim.new(0,7)
+local infoStatusLbl=Instance.new("TextLabel",infoStatus)
+infoStatusLbl.BackgroundTransparency=1; infoStatusLbl.Position=UDim2.new(0,8,0,3)
+infoStatusLbl.Size=UDim2.new(1,-16,0,14); infoStatusLbl.Font=Enum.Font.GothamBold
+infoStatusLbl.Text="🎮  Jogando 99 Nights in the Forest"
+infoStatusLbl.TextColor3=Color3.fromRGB(87,242,135); infoStatusLbl.TextSize=10
+infoStatusLbl.TextXAlignment=Enum.TextXAlignment.Left; infoStatusLbl.ZIndex=7
+local infoStatusSub=Instance.new("TextLabel",infoStatus)
+infoStatusSub.BackgroundTransparency=1; infoStatusSub.Position=UDim2.new(0,8,0,18)
+infoStatusSub.Size=UDim2.new(1,-16,0,14); infoStatusSub.Font=Enum.Font.Gotham
+infoStatusSub.Text="ID: "..tostring(game.PlaceId).."  •  Hub v4"
+infoStatusSub.TextColor3=Color3.fromRGB(120,130,145); infoStatusSub.TextSize=9
+infoStatusSub.TextXAlignment=Enum.TextXAlignment.Left; infoStatusSub.ZIndex=7
+
+local infoSep=Instance.new("Frame",Pages["Info"])
+infoSep.BackgroundColor3=Color3.fromRGB(50,54,65); infoSep.BorderSizePixel=0
+infoSep.Size=UDim2.new(1,0,0,1); infoSep.LayoutOrder=1; infoSep.ZIndex=5
+
+local dadosHeader=Instance.new("TextButton",Pages["Info"])
+dadosHeader.BackgroundColor3=Color3.fromRGB(26,28,34); dadosHeader.BorderSizePixel=0
+dadosHeader.Size=UDim2.new(1,0,0,32); dadosHeader.LayoutOrder=2; dadosHeader.Text=""; dadosHeader.ZIndex=5
+Instance.new("UICorner",dadosHeader).CornerRadius=UDim.new(0,8)
+local dadosStroke=Instance.new("UIStroke",dadosHeader); dadosStroke.Color=Color3.fromRGB(55,58,66); dadosStroke.Thickness=1
+
+local dadosTitleLbl=Instance.new("TextLabel",dadosHeader)
+dadosTitleLbl.BackgroundTransparency=1; dadosTitleLbl.Position=UDim2.new(0,12,0,0)
+dadosTitleLbl.Size=UDim2.new(1,-40,1,0); dadosTitleLbl.Font=Enum.Font.GothamBold
+dadosTitleLbl.Text="Dados"; dadosTitleLbl.TextColor3=Color3.fromRGB(180,185,200)
+dadosTitleLbl.TextSize=11; dadosTitleLbl.TextXAlignment=Enum.TextXAlignment.Left; dadosTitleLbl.ZIndex=6
+
+local dadosArrowFrame=Instance.new("Frame",dadosHeader)
+dadosArrowFrame.BackgroundTransparency=1; dadosArrowFrame.Position=UDim2.new(1,-28,0.5,-8)
+dadosArrowFrame.Size=UDim2.new(0,16,0,16); dadosArrowFrame.ZIndex=6
+local dadosArrow=Instance.new("ImageLabel",dadosArrowFrame)
+dadosArrow.BackgroundTransparency=1; dadosArrow.Size=UDim2.new(1,0,1,0)
+dadosArrow.Image="rbxassetid://6034818375"; dadosArrow.ImageColor3=Color3.fromRGB(130,140,160)
+dadosArrow.ScaleType=Enum.ScaleType.Fit; dadosArrow.Rotation=180; dadosArrow.ZIndex=7
+
+local dadosContent=Instance.new("Frame",Pages["Info"])
+dadosContent.BackgroundColor3=Color3.fromRGB(22,24,30); dadosContent.BorderSizePixel=0
+dadosContent.Size=UDim2.new(1,0,0,0); dadosContent.LayoutOrder=3; dadosContent.ZIndex=5
+dadosContent.ClipsDescendants=true
+Instance.new("UICorner",dadosContent).CornerRadius=UDim.new(0,8)
+local dadosStroke2=Instance.new("UIStroke",dadosContent); dadosStroke2.Color=Color3.fromRGB(45,48,58); dadosStroke2.Thickness=1
+
+local dadosPad=Instance.new("UIPadding",dadosContent)
+dadosPad.PaddingTop=UDim.new(0,10); dadosPad.PaddingLeft=UDim.new(0,12)
+dadosPad.PaddingRight=UDim.new(0,12); dadosPad.PaddingBottom=UDim.new(0,12)
+local dadosList=Instance.new("UIListLayout",dadosContent)
+dadosList.Padding=UDim.new(0,8); dadosList.SortOrder=Enum.SortOrder.LayoutOrder
+
+local dadosText=Instance.new("TextLabel",dadosContent)
+dadosText.BackgroundTransparency=1; dadosText.Size=UDim2.new(1,0,0,0)
+dadosText.AutomaticSize=Enum.AutomaticSize.Y; dadosText.Font=Enum.Font.Gotham
+dadosText.Text="Este script foi desenvolvido por apenas 1 pessoa e está sendo desenvolvido por apenas 1 pessoa também. Às vezes pode demorar para atualizar o script, às vezes pode ser rápido e às vezes pode ser bem devagar. Porém, eu sempre irei tentar ir o mais rápido possível, então a demora pode estar relacionada a outros fatores. Só queria avisar isso para quando ele estiver desatualizado e demorar um pouco — aqui dá para saber melhor o motivo da demora, pois 1 pessoa desenvolvendo um script desse tamanho SOZINHO é difícil e demorado, mesmo tendo tempo livre às vezes."
+dadosText.TextColor3=Color3.fromRGB(160,168,185); dadosText.TextSize=9
+dadosText.TextWrapped=true; dadosText.TextXAlignment=Enum.TextXAlignment.Left
+dadosText.TextYAlignment=Enum.TextYAlignment.Top; dadosText.ZIndex=6; dadosText.LayoutOrder=0
+
+local dadosBtnsRow=Instance.new("Frame",dadosContent)
+dadosBtnsRow.BackgroundTransparency=1; dadosBtnsRow.BorderSizePixel=0
+dadosBtnsRow.Size=UDim2.new(1,0,0,30); dadosBtnsRow.LayoutOrder=1; dadosBtnsRow.ZIndex=6
+local dadosBtnsList=Instance.new("UIListLayout",dadosBtnsRow)
+dadosBtnsList.FillDirection=Enum.FillDirection.Horizontal; dadosBtnsList.Padding=UDim.new(0,8)
+dadosBtnsList.SortOrder=Enum.SortOrder.LayoutOrder
+
+local function makeDadosBtn(parent,txt,cor,callback,order)
+    local btn=Instance.new("TextButton",parent)
+    btn.BackgroundColor3=cor; btn.BackgroundTransparency=0.15; btn.BorderSizePixel=0
+    btn.Size=UDim2.new(0,120,0,28); btn.Font=Enum.Font.GothamBold
+    btn.Text=txt; btn.TextColor3=Color3.fromRGB(255,255,255); btn.TextSize=9
+    btn.LayoutOrder=order; btn.ZIndex=7
+    Instance.new("UICorner",btn).CornerRadius=UDim.new(0,7)
+    local bs=Instance.new("UIStroke",btn); bs.Color=cor; bs.Thickness=1; bs.Transparency=0.5
+    btn.MouseEnter:Connect(function() TweenService:Create(btn,TweenInfo.new(0.1),{BackgroundTransparency=0}):Play() end)
+    btn.MouseLeave:Connect(function() TweenService:Create(btn,TweenInfo.new(0.1),{BackgroundTransparency=0.15}):Play() end)
+    btn.MouseButton1Click:Connect(function()
+        callback()
+        local orig=btn.Text; btn.Text="✓ Copiado!"
+        task.delay(1.5,function() btn.Text=orig end)
+    end)
+end
+
+makeDadosBtn(dadosBtnsRow,"🔗 Discord Link",Color3.fromRGB(88,101,242),function()
+    copyToClipboard("Sem link no momento")
+end,0)
+makeDadosBtn(dadosBtnsRow,"📋 Copy ID",Color3.fromRGB(60,160,80),function()
+    copyToClipboard(tostring(game.JobId))
+end,1)
+
+local dadosOpen=false
+local DADOS_H=160
+
+dadosHeader.MouseButton1Click:Connect(function()
+    dadosOpen=not dadosOpen
+    TweenService:Create(dadosArrow,TweenInfo.new(0.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Rotation=dadosOpen and 0 or 180}):Play()
+    TweenService:Create(dadosContent,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(1,0,0,dadosOpen and DADOS_H or 0)}):Play()
+    TweenService:Create(dadosStroke,TweenInfo.new(0.2),{Color=dadosOpen and C_ACCENT or Color3.fromRGB(55,58,66)}):Play()
+end)
+
+-- ══════════════════════════════════════════════════════
+--  ÍCONES ESP (14x14)
+-- ══════════════════════════════════════════════════════
+local function criarIconeEsp(parent, key, cor)
+    local cont = Instance.new("Frame", parent)
+    cont.BackgroundTransparency = 1; cont.BorderSizePixel = 0
+    cont.Size = UDim2.new(0, 14, 0, 14); cont.ZIndex = parent.ZIndex + 2; cont.ClipsDescendants = false
+    local function r(x,y,w,h,radius)
+        local f=Instance.new("Frame",cont); f.BackgroundColor3=cor; f.BorderSizePixel=0
+        f.Position=UDim2.new(0,x,0,y); f.Size=UDim2.new(0,w,0,h); f.ZIndex=cont.ZIndex+1
+        if radius then Instance.new("UICorner",f).CornerRadius=UDim.new(0,radius) end; return f
+    end
+    local function c(cx,cy,rad) return r(cx-rad,cy-rad,rad*2,rad*2,rad*2) end
+    local function dk(f) f.BackgroundColor3=Color3.fromRGB(24,26,32); return f end
+    if key == "Players" then
+        c(7,4,3); r(4,8,6,5,2); r(4,13,2,5,1); r(8,13,2,5,1)
+    elseif key == "Kids" then
+        c(7,3,2); r(5,6,4,3,1); r(2,5,3,2,1); r(9,5,3,2,1); r(5,9,2,4,1); r(7,9,2,4,1)
+    elseif key == "AnimPassivo" then
+        r(3,0,2,5,1); r(9,0,2,5,1); c(7,6,2); c(7,10,4)
+    elseif key == "AnimAgressivo" then
+        r(1,0,4,5,1); r(9,0,4,5,1); c(7,7,5); r(4,11,2,3,0); r(8,11,2,3,0)
+    elseif key == "Monstros" then
+        c(7,5,5); r(3,8,8,5,1); dk(r(4,9,2,2,1)); dk(r(8,9,2,2,1)); dk(r(6,11,2,2,0))
+    elseif key == "Cultistas" then
+        c(7,3,2); r(3,2,8,4,2); r(2,6,10,7,3); dk(r(6,5,2,5,0))
+    elseif key == "Aliens" then
+        c(7,5,5); r(4,1,6,5,3); dk(c(4,6,2)); dk(c(10,6,2)); r(5,10,4,1,0)
+    elseif key == "EspLog" then
+        r(1,4,12,6,2); c(1,7,3); c(13,7,3)
+    elseif key == "EspCombustivel" then
+        r(5,0,4,5,2); r(3,4,8,5,2); r(1,7,12,5,2); dk(r(5,9,4,3,2))
+    elseif key == "EspCarcacas" then
+        c(3,3,2); c(11,3,2); c(3,11,2); c(11,11,2); r(4,5,6,4,0)
+    elseif key == "EspSucata" then
+        r(5,0,4,2,0); r(3,2,8,8,1); dk(c(7,6,3)); r(5,10,4,4,0)
+    elseif key == "EspMateriais" then
+        r(4,0,6,2,0); r(1,2,12,5,0); r(3,7,8,5,0); r(6,12,2,2,0)
+    elseif key == "EspComidas" then
+        c(7,8,5); r(6,2,2,4,1)
+        local leaf=r(8,2,4,3,2); leaf.BackgroundColor3=Color3.fromRGB(60,180,60)
+    elseif key == "EspPeixes" then
+        r(0,5,3,4,1); r(3,3,8,8,3); c(11,7,3); dk(c(12,6,1))
+    elseif key == "EspSementes" then
+        c(7,2,2); r(6,4,2,6,0)
+        local lf=c(3,6,2); local rf=c(11,6,2)
+        lf.BackgroundColor3=Color3.fromRGB(60,200,70); rf.BackgroundColor3=Color3.fromRGB(60,200,70); c(7,11,2)
+    elseif key == "EspFerr" then
+        r(6,0,2,10,1); r(2,2,8,6,2); r(1,3,3,4,1)
+    elseif key == "EspArmas" then
+        r(6,0,2,10,1); r(2,9,10,2,1); r(6,11,2,3,1)
+    elseif key == "EspAmmo" then
+        c(7,3,3); r(5,3,4,7,0); r(4,10,6,3,1)
+    elseif key == "EspCura" then
+        r(5,0,4,14,2); r(0,5,14,4,2)
+    elseif key == "EspChaves" then
+        c(4,4,4); dk(c(4,4,2)); r(7,3,6,2,1); r(11,5,2,2,0); r(9,5,2,2,0)
+    elseif key == "EspBigorna" then
+        r(3,0,8,3,1); r(1,3,12,2,0); r(3,5,8,7,1); r(4,12,6,2,0)
+    elseif key == "EspPocoes" then
+        r(5,0,4,2,0); r(4,2,6,2,0); r(2,4,10,8,3); dk(r(4,6,6,4,2))
+    elseif key == "EspBlueprint" then
+        r(2,0,10,12,2)
+        local l1=r(4,2,6,1,0); local l2=r(4,4,6,1,0); local l3=r(4,6,4,1,0); local l4=r(4,8,5,1,0)
+        l1.BackgroundColor3=Color3.fromRGB(100,150,255); l2.BackgroundColor3=Color3.fromRGB(100,150,255)
+        l3.BackgroundColor3=Color3.fromRGB(100,150,255); l4.BackgroundColor3=Color3.fromRGB(100,150,255)
+        dk(r(8,9,4,3,0))
+    end
+    return cont
+end
+
+-- ══════════════════════════════════════════════════════
+--  ÍCONES BRING (28x28)
+-- ══════════════════════════════════════════════════════
+local function criarIconeBring(parent, key, cor)
+    local cont = Instance.new("Frame", parent)
+    cont.BackgroundTransparency = 1; cont.BorderSizePixel = 0
+    cont.Size = UDim2.new(0, 28, 0, 28); cont.ZIndex = parent.ZIndex + 2; cont.ClipsDescendants = false
+    local function r(x,y,w,h,radius)
+        local f=Instance.new("Frame",cont); f.BackgroundColor3=cor; f.BorderSizePixel=0
+        f.Position=UDim2.new(0,x,0,y); f.Size=UDim2.new(0,w,0,h); f.ZIndex=cont.ZIndex+1
+        if radius then Instance.new("UICorner",f).CornerRadius=UDim.new(0,radius) end; return f
+    end
+    local function c(cx,cy,rad) return r(cx-rad,cy-rad,rad*2,rad*2,rad*2) end
+    local function dk(f) f.BackgroundColor3=Color3.fromRGB(20,22,28); return f end
+    if key == "BLog" then
+        r(1,8,26,12,5)
+        local a1=r(3,10,22,8,4); a1.BackgroundColor3=Color3.fromRGB(130,80,30)
+        local a2=r(7,12,14,4,3); a2.BackgroundColor3=Color3.fromRGB(100,60,20)
+        r(1,8,4,12,2); r(23,8,4,12,2)
+        for i=0,2 do local ln=r(5,10+i*3,18,1,0); ln.BackgroundColor3=Color3.fromRGB(150,90,35); ln.BackgroundTransparency=0.5 end
+    elseif key == "BCombust" then
+        r(10,0,8,10,4); r(5,6,18,14,5); r(3,12,22,8,4)
+        dk(r(9,8,10,10,4))
+        local brasa=r(11,14,6,5,3); brasa.BackgroundColor3=Color3.fromRGB(255,230,100)
+    elseif key == "BCarcacas" then
+        c(6,6,4); c(22,6,4); c(6,22,4); c(22,22,4); r(8,10,12,8,0)
+    elseif key == "BSucata" then
+        r(10,0,8,4,1); r(4,4,20,8,1); r(6,12,16,8,1); r(10,20,8,6,2)
+        dk(r(12,5,4,6,2))
+    elseif key == "BMateriais" then
+        r(10,0,8,4,0); r(4,4,20,10,0); r(6,14,16,8,0); r(12,22,4,4,0)
+        local shine=r(12,5,4,6,2); shine.BackgroundColor3=Color3.fromRGB(255,255,255); shine.BackgroundTransparency=0.5
+    elseif key == "BComidas" then
+        r(12,0,4,5,2)
+        local folha=r(14,1,8,5,2); folha.BackgroundColor3=Color3.fromRGB(60,180,60)
+        c(14,16,11)
+        local brilho=r(8,7,5,5,3); brilho.BackgroundColor3=Color3.fromRGB(255,255,255); brilho.BackgroundTransparency=0.4
+        local base=r(11,24,6,3,2); base.BackgroundColor3=Color3.fromRGB(180,40,40)
+    elseif key == "BPeixes" then
+        r(0,10,6,8,2); r(6,6,16,16,4); c(22,14,6); dk(c(23,12,2))
+    elseif key == "BSementes" then
+        r(12,20,4,8,1)
+        local fl=r(2,10,10,8,4); fl.BackgroundColor3=Color3.fromRGB(60,200,70)
+        local fr=r(16,10,10,8,4); fr.BackgroundColor3=Color3.fromRGB(60,200,70)
+        r(12,8,4,14,2); c(14,6,5); dk(r(12,4,4,4,2))
+    elseif key == "BFerr" then
+        r(12,8,4,20,2); r(4,2,16,14,3)
+        local gume=r(2,4,6,10,2); gume.BackgroundColor3=Color3.fromRGB(220,220,240)
+        r(4,1,12,4,2)
+    elseif key == "BArmas" then
+        r(12,0,4,18,2); r(2,16,24,4,2); r(12,20,4,8,2)
+        local edge=r(12,1,2,17,1); edge.BackgroundColor3=Color3.fromRGB(255,255,255); edge.BackgroundTransparency=0.4
+    elseif key == "BAmmo" then
+        r(14,0,6,3,1); r(12,3,4,3,1); r(10,6,6,2,1); r(13,8,2,14,0)
+        local p1=r(8,22,6,3,1); p1.BackgroundColor3=Color3.fromRGB(255,200,80)
+        local p2=r(14,22,6,3,1); p2.BackgroundColor3=Color3.fromRGB(255,200,80)
+        r(12,25,4,3,1)
+    elseif key == "BCura" then
+        r(10,2,8,24,3); r(2,10,24,8,3); dk(r(11,11,6,6,2))
+    elseif key == "BPelts" then
+        r(4,0,20,4,2); r(1,4,26,16,2); r(3,20,22,4,1)
+        local s1=r(6,2,4,20,1); s1.BackgroundTransparency=0.5
+        local s2=r(18,2,4,20,1); s2.BackgroundTransparency=0.5
+        dk(r(9,6,10,10,2))
+    elseif key == "BChaves" then
+        c(8,8,7); dk(c(8,8,4)); r(13,6,12,4,2); r(21,10,4,4,0); r(17,10,4,4,0)
+    elseif key == "BBigorna" then
+        r(6,0,16,6,2); r(2,6,24,4,0); r(6,10,16,12,2); r(8,22,12,4,1)
+    elseif key == "BPocoes" then
+        r(10,0,8,4,0); r(8,4,12,4,0); r(4,8,20,16,5); dk(r(7,11,14,8,3))
+        local bubble=r(10,13,4,4,5); bubble.BackgroundColor3=Color3.fromRGB(255,255,255); bubble.BackgroundTransparency=0.5
+    elseif key == "BBlueprint" then
+        r(4,0,20,24,2)
+        local l1=r(7,4,14,2,0); l1.BackgroundColor3=Color3.fromRGB(100,160,255)
+        local l2=r(7,8,14,2,0); l2.BackgroundColor3=Color3.fromRGB(100,160,255)
+        local l3=r(7,12,10,2,0); l3.BackgroundColor3=Color3.fromRGB(100,160,255)
+        local l4=r(7,16,12,2,0); l4.BackgroundColor3=Color3.fromRGB(100,160,255)
+        dk(r(18,18,6,6,0))
+    end
+    return cont
+end
+
+-- ════════════════════════════════════════════════════════
+--  SISTEMA ESP v4 — 20 categorias
+-- ════════════════════════════════════════════════════════
+local EspCanvas = Instance.new("Frame", ScreenGui)
+EspCanvas.BackgroundTransparency = 1; EspCanvas.Size = UDim2.new(1,0,1,0); EspCanvas.ZIndex = 1
+
+local ESP_CATS = {
+    {key="Players",      label="👤 Players",            cor=Color3.fromRGB(255,80,80),   tipo="player", alcance=math.huge, desc="Todos os players no servidor"},
+    {key="Kids",         label="👶 Crianças Perdidas",   cor=Color3.fromRGB(100,220,255), tipo="entity", alcance=math.huge, desc="Dino, Kraken, Squid, Koala Kid",
+     nomes={"Dino Kid","Kraken Kid","Squid Kid","Koala Kid","DinoKid","KrakenKid","SquidKid","KoalaKid","Kid","Child","MissingChild"}},
+    {key="AnimPassivo",  label="🐰 Animais Passivos",    cor=Color3.fromRGB(130,255,170), tipo="entity", alcance=500, desc="Bunny, Horse, Kiwi, Turkey",
+     nomes={"Bunny","Horse","Kiwi","Turkey"}},
+    {key="AnimAgressivo",label="🐺 Animais Agressivos",  cor=Color3.fromRGB(255,175,30),  tipo="entity", alcance=600, desc="Wolf, Bear, Polar Bear, Frog (Verde/Azul/Roxo), Scorpion…",
+     nomes={"Wolf","Alpha Wolf","AlphaWolf","Bear","Polar Bear","PolarBear","Arctic Fox","ArcticFox","Frog","Blue Frog","Purple Frog","Green Frog","BlueFrog","PurpleFrog","GreenFrog","Scorpion","Hellephant","Meteor Crab","MeteorCrab","Mammoth"}},
+    {key="Monstros",     label="💀 Monstros",            cor=Color3.fromRGB(255,50,50),   tipo="entity", alcance=math.huge, desc="The Deer, The Owl, The Ram (imortais)",
+     nomes={"The Deer","TheDeer","Deer","The Owl","TheOwl","Owl","The Ram","TheRam","Ram"}},
+    {key="Cultistas",    label="⚔️ Cultistas",           cor=Color3.fromRGB(195,60,200),  tipo="entity", alcance=math.huge, desc="Cultist, Crossbow, Juggernaut, King, Mega Cultist…",
+     nomes={"Cultist","Melee Cultist","MeleeCultist","Crossbow Cultist","CrossbowCultist","Juggernaut Cultist","JuggernautCultist","Juggernaut","Cultist King","CultistKing","Mega Cultist","MegaCultist"}},
+    {key="Aliens",       label="👽 Aliens",              cor=Color3.fromRGB(60,255,200),  tipo="entity", alcance=700, desc="Alien, Elite Alien",
+     nomes={"Alien","Elite Alien","EliteAlien","NormalAlien"}},
+    {key="EspLog",       label="🪵 Log",                 cor=Color3.fromRGB(190,130,60),  tipo="item",   alcance=400, desc="Log — combustível principal", nomes={"Log"}},
+    {key="EspCombustivel",label="🔥 Combustível",        cor=Color3.fromRGB(255,120,30),  tipo="item",   alcance=400, desc="Coal, Biofuel, Fuel Canister, Oil Barrel…",
+     nomes={"Coal","Biofuel","Oil Barrel","OilBarrel","Fuel Canister","FuelCanister","Purple Fur Tuft","PurpleFurTuft","Chair"}},
+    {key="EspCarcacas",  label="🦴 Carcaças",            cor=Color3.fromRGB(180,100,50),  tipo="item",   alcance=350, desc="Wolf/Bear/PolarBear/Mammoth/Hellephant/Frog Corpse…",
+     nomes={"Wolf Corpse","WolfCorpse","Alpha Wolf Corpse","AlphaWolfCorpse","Bear Corpse","BearCorpse","Polar Bear Corpse","PolarBearCorpse","Arctic Fox Corpse","ArcticFoxCorpse","Mammoth Corpse","MammothCorpse","Hellephant Corpse","HellephantCorpse","Frog Corpse","FrogCorpse","Cultist Corpse","CultistCorpse","Crossbow Cultist Corpse","CrossbowCultistCorpse","Juggernaut Cultist Corpse","JuggernautCultistCorpse","Cultist King Corpse","CultistKingCorpse","Alien Corpse","AlienCorpse","Elite Alien Corpse","EliteAlienCorpse"}},
+    {key="EspSucata",    label="🔩 Sucata",              cor=Color3.fromRGB(155,210,255), tipo="item",   alcance=400, desc="Bolt, Sheet Metal, UFO Junk, Tyre…",
+     nomes={"Bolt","Sheet Metal","SheetMetal","UFO Junk","UFOJunk","UFO Component","UFOComponent","UFO Scrap","UFOScrap","Broken Fan","BrokenFan","Old Radio","OldRadio","Broken Radio","BrokenRadio","Broken Microwave","BrokenMicrowave","Tyre","Metal Chair","MetalChair","Old Car Engine","OldCarEngine","Washing Machine","WashingMachine","Cultist Experiment","CultistExperiment","Cultist Prototype","CultistPrototype"}},
+    {key="EspMateriais", label="💎 Materiais",           cor=Color3.fromRGB(220,175,255), tipo="item",   alcance=400, desc="Cultist Gem, Forest Gem, Mossy Coin, Obsidiron…",
+     nomes={"Cultist Gem","CultistGem","Forest Gem","ForestGem","Forest Gem Fragment","ForestGemFragment","Mossy Coin","MossyCoin","Flower","Sapling","Sacrifice Totem","SacrificeTotem","Meteor Shard","MeteorShard","Gold Shard","GoldShard","Raw Obsidiron Ore","RawObsidironOre","Obsidiron Ingot","ObsidironIngot","Scalding Obsidiron Ingot","ScaldingObsidironIngot","Raw Obsidiron Ore Shard"}},
+    {key="EspComidas",   label="🍖 Comidas",             cor=Color3.fromRGB(255,115,165), tipo="item",   alcance=350, desc="Carrot, Corn, Berry, Steak, Ribs, Stew, Candy…",
+     nomes={"Carrot","Corn","Pumpkin","Berry","Apple","Chili","Cake","Morsel","Cooked Morsel","CookedMorsel","Steak","Cooked Steak","CookedSteak","Ribs","Cooked Ribs","CookedRibs","Stew","Hearty Stew","HeartyStew","Meat? Sandwich","MeatSandwich","Seafood Chowder","SeafoodChowder","Steak Dinner","SteakDinner","Pumpkin Soup","PumpkinSoup","BBQ Ribs","BBQRibs","Carrot Cake","CarrotCake","Jar o' Jelly","JarOJelly","Candy Apple","CandyApple","Candy Corn","CandyCorn","Pumpkin Pie","PumpkinPie","Cotton Candy","CottonCandy","Turkey Leg","TurkeyLeg","Cooked Turkey Leg","CookedTurkeyLeg","Stuffing","Sweet Potato","SweetPotato","Berry Juice","BerryJuice","Casserole","Corn on the Cob","CornontheCob","Stuffing Bowl","StuffingBowl","Roast Turkey","RoastTurkey","Stuffed Peppers","StuffedPeppers","Sweet Potato Pie","SweetPotatoPie","Spicy Swordfish","SpicySwordfish","Hearty Thanksgiving Meal"}},
+    {key="EspPeixes",    label="🐟 Peixes",              cor=Color3.fromRGB(80,180,255),  tipo="item",   alcance=400, desc="Mackerel, Salmon, Clownfish, Shark, Lava Eel…",
+     nomes={"Mackerel","Cooked Mackerel","CookedMackerel","Salmon","Cooked Salmon","CookedSalmon","Clownfish","Cooked Clownfish","CookedClownfish","Jellyfish","Char","Cooked Char","CookedChar","Eel","Cooked Eel","CookedEel","Swordfish","Cooked Swordfish","CookedSwordfish","Shark","Cooked Shark","CookedShark","Lava Eel","LavaEel","Cooked Lava Eel","CookedLavaEel","Lionfish","Cooked Lionfish","CookedLionfish"}},
+    {key="EspSementes",  label="🌱 Sementes",            cor=Color3.fromRGB(135,245,115), tipo="item",   alcance=350, desc="Chili, Berry, Flower, Firefly, Dripleaf…",
+     nomes={"Chili Seeds","ChiliSeeds","Flower Seeds","FlowerSeeds","Berry Seeds","BerrySeeds","Firefly Seeds","FireflySeeds","Dripleaf Seeds","DripleafSeeds","Moonflower Seeds","MoonflowerSeeds","Stareweed Seeds","StareweedSeeds","Cavevine Seeds","CavevineSeeds","Mandrake Seeds","MandrakeSeeds"}},
+    {key="EspFerr",      label="🪓 Ferramentas & Sacos", cor=Color3.fromRGB(255,200,55),  tipo="item",   alcance=500, desc="Axes, Sacks, Rods, Flutes, Armaduras…",
+     nomes={"Old Sack","OldSack","Good Sack","GoodSack","Infernal Sack","InfernalSack","Giant Sack","GiantSack","Old Axe","OldAxe","Good Axe","GoodAxe","Ice Axe","IceAxe","Strong Axe","StrongAxe","Chainsaw","Old Rod","OldRod","Good Rod","GoodRod","Strong Rod","StrongRod","Old Taming Flute","OldFlute","Good Taming Flute","GoodFlute","Strong Taming Flute","StrongFlute","Old Flashlight","OldFlashlight","Strong Flashlight","StrongFlashlight","Axe Trim Kit","AxeTrimKit","Armor Trim Kit","ArmorTrimKit","Hammer","Paint Brush","PaintBrush","Watering Can","WateringCan","Cultist Staff","CultistStaff","Leather Body","LeatherBody","Alien Armour","AlienArmour","Frog Boots","FrogBoots","Poison Armour","PoisonArmour"}},
+    {key="EspArmas",     label="⚔️ Armas",              cor=Color3.fromRGB(255,70,70),   tipo="item",   alcance=500, desc="Spear, Crossbow, Ice Sword, Revolver, Rifle…",
+     nomes={"Spear","Morningstar","Katana","Laser Sword","LaserSword","Ice Sword","IceSword","Trident","Poison Spear","PoisonSpear","Infernal Sword","InfernalSword","Obsidiron Hammer","ObsidironHammer","Scythe","Crossbow","Infernal Crossbow","InfernalCrossbow","Bouncing Blade","BouncingBlade","Vampire Scythe","VampireScythe","Revolver","Rifle","Tactical Shotgun","TacticalShotgun","Ray Gun","RayGun","Laser Cannon","LaserCannon","Flamethrower","Snowball","Frozen Shuriken","FrozenShuriken","Kunai","Witch Potion","WitchPotion","Wildfire","Blowpipe","Air Rifle","AirRifle"}},
+    {key="EspAmmo",      label="🔫 Munição",             cor=Color3.fromRGB(255,155,60),  tipo="item",   alcance=400, desc="Revolver Ammo, Rifle Ammo, Shotgun Ammo",
+     nomes={"Revolver Ammo","RevolverAmmo","Rifle Ammo","RifleAmmo","Shotgun Ammo","ShotgunAmmo"}},
+    {key="EspCura",      label="💊 Cura & Pelts",        cor=Color3.fromRGB(120,255,200), tipo="item",   alcance=450, desc="Bandage, Medkit, Wolf Pelt, Bear Pelt…",
+     nomes={"Bandage","Medkit","Bunny Foot","BunnyFoot","Wolf Pelt","WolfPelt","Alpha Wolf Pelt","AlphaWolfPelt","Bear Pelt","BearPelt","Arctic Fox Pelt","ArcticFoxPelt","Polar Bear Pelt","PolarBearPelt","Mammoth Tusk","MammothTusk","Scorpion Shell","ScorpionShell","Cultist King Antler","CultistKingAntler"}},
+    {key="EspChaves",    label="🗝️ Chaves",              cor=Color3.fromRGB(255,230,80),  tipo="item",   alcance=math.huge, desc="Red, Blue, Yellow, Grey, Frog Key",
+     nomes={"Red Key","RedKey","Blue Key","BlueKey","Yellow Key","YellowKey","Grey Key","GreyKey","Frog Key","FrogKey"}},
+    {key="EspBigorna",   label="⚙️ Partes de Bigorna",   cor=Color3.fromRGB(200,160,255), tipo="item",   alcance=math.huge, desc="Anvil Front/Back/Base + Meteor Anvil",
+     nomes={"Anvil Front","AnvilFront","Anvil Back","AnvilBack","Anvil Base","AnvilBase","Meteor Anvil Front","MeteorAnvilFront","Meteor Anvil Back","MeteorAnvilBack","Meteor Anvil Base","MeteorAnvilBase"}},
+    {key="EspPocoes",    label="🧪 Poções",              cor=Color3.fromRGB(195,100,255), tipo="item",   alcance=400, desc="Dripleaf, Moonflower Bulb, Stareweed Petal…",
+     nomes={"Dripleaf","Moonflower Bulb","MoonflowerBulb","Stareweed Petal","StareweedPetal","Cave Vine Flower","CaveVineFlower","Mandrake"}},
+    {key="EspBlueprint", label="📋 Blueprints",          cor=Color3.fromRGB(130,190,255), tipo="item",   alcance=500, desc="Crafting, Defense, Furniture, Obsidiron Chest…",
+     nomes={"Crafting Blueprint","CraftingBlueprint","Defense Blueprint","DefenseBlueprint","Furniture Blueprint","FurnitureBlueprint","Obsidiron Chest Blueprint","ObsidironChestBlueprint","Halloween Blueprint","HalloweenBlueprint"}},
+}
+
+local espAtivo={}
+for _,c in ipairs(ESP_CATS) do espAtivo[c.key]=false end
+local espLookup={}
+for _,c in ipairs(ESP_CATS) do
+    if c.nomes then local s={}; for _,n in ipairs(c.nomes) do s[n:lower()]=true end; espLookup[c.key]=s end
+end
+
+local POOL_SIZE=120; local labelPool={}; local activeList={}
+local function newLabel()
+    local f=Instance.new("Frame",EspCanvas); f.BackgroundTransparency=1; f.BorderSizePixel=0
+    f.Size=UDim2.new(0,210,0,30); f.Visible=false; f.ZIndex=10
+    local bg=Instance.new("Frame",f); bg.BackgroundColor3=Color3.fromRGB(6,8,14)
+    bg.BackgroundTransparency=0.3; bg.BorderSizePixel=0; bg.Size=UDim2.new(1,0,1,0); bg.ZIndex=10
+    Instance.new("UICorner",bg).CornerRadius=UDim.new(0,5)
+    local n=Instance.new("TextLabel",f); n.Name="NL"; n.BackgroundTransparency=1
+    n.Position=UDim2.new(0,6,0,2); n.Size=UDim2.new(1,-8,0,14); n.Font=Enum.Font.GothamBold
+    n.TextSize=11; n.TextXAlignment=Enum.TextXAlignment.Left; n.TextStrokeTransparency=0.1
+    n.TextStrokeColor3=Color3.new(0,0,0); n.TextTruncate=Enum.TextTruncate.AtEnd; n.ZIndex=12
+    local d=Instance.new("TextLabel",f); d.Name="DL"; d.BackgroundTransparency=1
+    d.Position=UDim2.new(0,6,0,16); d.Size=UDim2.new(1,-8,0,11); d.Font=Enum.Font.Gotham
+    d.TextSize=9; d.TextColor3=Color3.fromRGB(170,185,210); d.TextXAlignment=Enum.TextXAlignment.Left
+    d.TextStrokeTransparency=0.2; d.TextStrokeColor3=Color3.new(0,0,0); d.ZIndex=12
+    return f
+end
+for i=1,POOL_SIZE do table.insert(labelPool,newLabel()) end
+
+local function showLabel(cor,nome,dist,sx,sy)
+    local f=table.remove(labelPool); if not f then return end
+    f.Position=UDim2.new(0,sx-105,0,sy-15); f.Visible=true
+    local nl=f:FindFirstChild("NL"); local dl=f:FindFirstChild("DL")
+    if nl then nl.Text=nome; nl.TextColor3=cor end
+    if dl then dl.Text=string.format("%.0f m",dist) end
+    table.insert(activeList,f)
+end
+local function releaseAll()
+    for _,f in ipairs(activeList) do f.Visible=false; table.insert(labelPool,f) end; activeList={}
+end
+
+local entityCache={}; local itemCache={}; local cacheBuilding=false; local lastCache=0; local CACHE_INTER=5
+local function isAlive(model)
+    local hum=model:FindFirstChildWhichIsA("Humanoid"); if not hum then return false end
+    if hum.Health<=0 or hum.MaxHealth<=0 then return false end
+    local hrp=model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
+    if not hrp then return false end
+    local pos=hrp.Position; if pos.Y<-400 or pos.Magnitude>6000 then return false end
+    return true
+end
+local function anyEspActive(tipo)
+    for _,c in ipairs(ESP_CATS) do if espAtivo[c.key] and c.tipo==tipo then return true end end; return false
+end
+local function buildCache()
+    if cacheBuilding then return end; local now=tick(); if now-lastCache<CACHE_INTER then return end
+    lastCache=now; cacheBuilding=true
+    task.spawn(function()
+        local newEnt={}; local newItem={}
+        local doEnt=anyEspActive("entity"); local doItem=anyEspActive("item")
+        if not doEnt and not doItem then entityCache=newEnt; itemCache=newItem; cacheBuilding=false; return end
+        local ok,descs=pcall(function() return workspace:GetDescendants() end)
+        if not ok then cacheBuilding=false; return end
+        local pchars={}; for _,pl in ipairs(PlayersService:GetPlayers()) do if pl.Character then pchars[pl.Character]=true end end
+        local batch=0
+        for _,obj in ipairs(descs) do
+            batch+=1; if batch%100==0 then task.wait() end
+            if not obj or not obj.Parent then continue end
+            local nl=obj.Name:lower()
+            if doEnt and obj:IsA("Model") then
+                if not pchars[obj] and isAlive(obj) then
+                    for _,c in ipairs(ESP_CATS) do
+                        if espAtivo[c.key] and c.tipo=="entity" then
+                            local lk=espLookup[c.key]
+                            if lk and lk[nl] then
+                                local hrp=obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                                if hrp then table.insert(newEnt,{key=c.key,cor=c.cor,nome=obj.Name,alcance=c.alcance,obj=obj,hrp=hrp}) end
+                                break
+                            end
+                        end
+                    end
+                end
+            elseif doItem and obj:IsA("BasePart") and not obj.Anchored then
+                if not pchars[obj] then
+                    local isNPC=false; local p=obj.Parent
+                    for _=1,3 do if p and p:IsA("Model") and p:FindFirstChildWhichIsA("Humanoid") then isNPC=true; break end; p=p and p.Parent end
+                    if not isNPC then
+                        for _,c in ipairs(ESP_CATS) do
+                            if espAtivo[c.key] and c.tipo=="item" then
+                                local lk=espLookup[c.key]
+                                if lk and lk[nl] then table.insert(newItem,{key=c.key,cor=c.cor,nome=obj.Name,alcance=c.alcance,obj=obj}); break end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        entityCache=newEnt; itemCache=newItem; cacheBuilding=false
+    end)
+end
+
+local dtAcc=0; local RENDER_I=1/20
+RunService.Heartbeat:Connect(function(dt)
+    dtAcc+=dt; if dtAcc<RENDER_I then return end; dtAcc=0
+    releaseAll()
+    local qualquer=false; for _,c in ipairs(ESP_CATS) do if espAtivo[c.key] then qualquer=true; break end end
+    if not qualquer then return end
+    pcall(buildCache)
+    local charPos=Vector3.zero
+    pcall(function() local ch=Player.Character; if ch and ch:FindFirstChild("HumanoidRootPart") then charPos=ch.HumanoidRootPart.Position end end)
+    local vp=Cam.ViewportSize; local seen={}
+    if espAtivo["Players"] then
+        for _,pl in ipairs(PlayersService:GetPlayers()) do
+            if pl~=Player and pl.Character then
+                pcall(function()
+                    local hrp=pl.Character:FindFirstChild("HumanoidRootPart"); if not hrp then return end
+                    local hum=pl.Character:FindFirstChildWhichIsA("Humanoid"); if not hum or hum.Health<=0 then return end
+                    local dist=(hrp.Position-charPos).Magnitude
+                    local sp,vis=Cam:WorldToViewportPoint(hrp.Position+Vector3.new(0,3,0))
+                    if not vis or sp.X<-60 or sp.X>vp.X+60 or sp.Y<-40 or sp.Y>vp.Y+40 then return end
+                    local cell=math.floor(sp.X/12)..","..math.floor(sp.Y/12)
+                    if seen[cell] then return end; seen[cell]=true
+                    showLabel(Color3.fromRGB(255,80,80),pl.DisplayName,dist,sp.X,sp.Y)
+                end)
+            end
+        end
+    end
+    for _,e in ipairs(entityCache) do
+        pcall(function()
+            if not espAtivo[e.key] or not e.obj or not e.obj.Parent then return end
+            local hum=e.obj:FindFirstChildWhichIsA("Humanoid"); if not hum or hum.Health<=0 then return end
+            local pos=e.hrp.Position; local dist=(pos-charPos).Magnitude; if dist>e.alcance then return end
+            local sp,vis=Cam:WorldToViewportPoint(pos+Vector3.new(0,2.5,0))
+            if not vis or sp.X<-60 or sp.X>vp.X+60 or sp.Y<-40 or sp.Y>vp.Y+40 then return end
+            local cell=math.floor(sp.X/12)..","..math.floor(sp.Y/12)
+            if seen[cell] then return end; seen[cell]=true
+            showLabel(e.cor,e.nome,dist,sp.X,sp.Y)
+        end)
+    end
+    for _,e in ipairs(itemCache) do
+        pcall(function()
+            if not espAtivo[e.key] or not e.obj or not e.obj.Parent then return end
+            if e.obj.Anchored then return end
+            local pos=e.obj.Position; local dist=(pos-charPos).Magnitude; if dist>e.alcance then return end
+            local sp,vis=Cam:WorldToViewportPoint(pos+Vector3.new(0,0.8,0))
+            if not vis or sp.X<-60 or sp.X>vp.X+60 or sp.Y<-40 or sp.Y>vp.Y+40 then return end
+            local cell=math.floor(sp.X/10)..","..math.floor(sp.Y/10)
+            if seen[cell] then return end; seen[cell]=true
+            showLabel(e.cor,e.nome,dist,sp.X,sp.Y)
+        end)
+    end
+end)
+
+-- UI da aba ESP
+local espTabLO=0
+local function espLO() espTabLO+=1; return espTabLO end
+local function makeEspSection(titulo,cor)
+    local hdr=Instance.new("Frame",Pages["Esp"]); hdr.BackgroundColor3=Color3.fromRGB(20,22,30)
+    hdr.BackgroundTransparency=0.3; hdr.BorderSizePixel=0; hdr.Size=UDim2.new(1,0,0,22); hdr.LayoutOrder=espLO(); hdr.ZIndex=4
+    Instance.new("UICorner",hdr).CornerRadius=UDim.new(0,6)
+    local bar=Instance.new("Frame",hdr); bar.BackgroundColor3=cor; bar.BorderSizePixel=0
+    bar.Position=UDim2.new(0,0,0,0); bar.Size=UDim2.new(0,3,1,0); bar.ZIndex=5
+    Instance.new("UICorner",bar).CornerRadius=UDim.new(0,3)
+    local lbl=Instance.new("TextLabel",hdr); lbl.BackgroundTransparency=1; lbl.Position=UDim2.new(0,10,0,0)
+    lbl.Size=UDim2.new(1,-14,1,0); lbl.Font=Enum.Font.GothamBlack; lbl.Text=titulo
+    lbl.TextColor3=cor; lbl.TextSize=9; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.ZIndex=5
+end
+
+local function makeEspRow(cat)
+    local row=Instance.new("Frame",Pages["Esp"]); row.BackgroundColor3=Color3.fromRGB(30,32,38)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,54); row.LayoutOrder=espLO(); row.ZIndex=5
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,8)
+    local rowStroke=Instance.new("UIStroke",row); rowStroke.Color=Color3.fromRGB(45,48,58); rowStroke.Thickness=1
+    local iconContainer=Instance.new("Frame",row); iconContainer.BackgroundColor3=Color3.fromRGB(20,22,30)
+    iconContainer.BackgroundTransparency=0.3; iconContainer.BorderSizePixel=0
+    iconContainer.Position=UDim2.new(0,8,0.5,-16); iconContainer.Size=UDim2.new(0,32,0,32); iconContainer.ZIndex=6
+    Instance.new("UICorner",iconContainer).CornerRadius=UDim.new(0,7)
+    local miniIcon=criarIconeEsp(iconContainer,cat.key,cat.cor)
+    miniIcon.Position=UDim2.new(0,9,0,9); miniIcon.Size=UDim2.new(0,14,0,14)
+    local labelNome=Instance.new("TextLabel",row); labelNome.BackgroundTransparency=1
+    labelNome.Position=UDim2.new(0,50,0,8); labelNome.Size=UDim2.new(1,-110,0,16)
+    labelNome.Font=Enum.Font.GothamBold; labelNome.Text=cat.label; labelNome.TextColor3=Color3.fromRGB(220,225,240)
+    labelNome.TextSize=11; labelNome.TextXAlignment=Enum.TextXAlignment.Left; labelNome.ZIndex=6
+    local labelDesc=Instance.new("TextLabel",row); labelDesc.BackgroundTransparency=1
+    labelDesc.Position=UDim2.new(0,50,0,26); labelDesc.Size=UDim2.new(1,-110,0,20)
+    labelDesc.Font=Enum.Font.Gotham; labelDesc.Text=cat.desc or ""; labelDesc.TextColor3=Color3.fromRGB(90,100,120)
+    labelDesc.TextSize=9; labelDesc.TextXAlignment=Enum.TextXAlignment.Left; labelDesc.TextWrapped=true; labelDesc.ZIndex=6
+    local pill=Instance.new("Frame",row); pill.BackgroundColor3=Color3.fromRGB(45,50,62); pill.BorderSizePixel=0
+    pill.Position=UDim2.new(1,-52,0.5,-11); pill.Size=UDim2.new(0,42,0,22); pill.ZIndex=7
+    Instance.new("UICorner",pill).CornerRadius=UDim.new(1,0)
+    local knob=Instance.new("Frame",pill); knob.BackgroundColor3=Color3.fromRGB(160,170,185); knob.BorderSizePixel=0
+    knob.Position=UDim2.new(0,2,0.5,-9); knob.Size=UDim2.new(0,18,0,18); knob.ZIndex=8
+    Instance.new("UICorner",knob).CornerRadius=UDim.new(1,0)
+    local estado=false
+    local btn=Instance.new("TextButton",row); btn.BackgroundTransparency=1; btn.Size=UDim2.new(1,0,1,0); btn.Text=""; btn.ZIndex=9
+    btn.MouseEnter:Connect(function() TweenService:Create(row,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(34,37,45)}):Play() end)
+    btn.MouseLeave:Connect(function() TweenService:Create(row,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(30,32,38)}):Play() end)
+    btn.MouseButton1Click:Connect(function()
+        estado=not estado; espAtivo[cat.key]=estado; lastCache=0
+        TweenService:Create(pill,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{BackgroundColor3=estado and cat.cor or Color3.fromRGB(45,50,62)}):Play()
+        TweenService:Create(knob,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+            Position=estado and UDim2.new(1,-20,0.5,-9) or UDim2.new(0,2,0.5,-9),
+            BackgroundColor3=estado and Color3.fromRGB(255,255,255) or Color3.fromRGB(160,170,185),
+        }):Play()
+        TweenService:Create(rowStroke,TweenInfo.new(0.2),{Color=estado and cat.cor or Color3.fromRGB(45,48,58)}):Play()
+    end)
+end
+
+local espCatMap={}; for _,c in ipairs(ESP_CATS) do espCatMap[c.key]=c end
+local espGroupOrder={
+    {"ESP — Entidades",              Color3.fromRGB(88,101,242),  {"Players","Kids","AnimPassivo","AnimAgressivo","Monstros","Cultistas","Aliens"}},
+    {"ESP — Recursos & Combustível", Color3.fromRGB(255,130,40),  {"EspLog","EspCombustivel","EspCarcacas","EspSucata","EspMateriais"}},
+    {"ESP — Comida & Natureza",      Color3.fromRGB(255,120,170), {"EspComidas","EspPeixes","EspSementes","EspPocoes"}},
+    {"ESP — Equipamentos",           Color3.fromRGB(255,200,55),  {"EspFerr","EspArmas","EspAmmo","EspCura","EspChaves","EspBigorna","EspBlueprint"}},
+}
+for _,grp in ipairs(espGroupOrder) do
+    local titulo,cor,keys=grp[1],grp[2],grp[3]
+    makeEspSection(titulo,cor)
+    for _,k in ipairs(keys) do if espCatMap[k] then makeEspRow(espCatMap[k]) end end
+end
+
+-- ════════════════════════════════════════════════════════
+--  SISTEMA BRING v4
+-- ════════════════════════════════════════════════════════
+local BRING_CATS = {
+    {key="BLog",      label="🪵 Bring Log",         cor=Color3.fromRGB(190,130,60),  desc="Só pega: Log", nomes={"Log"}},
+    {key="BCombust",  label="🔥 Bring Combustível", cor=Color3.fromRGB(255,120,30),  desc="Coal, Biofuel, Fuel Canister, Oil Barrel…",
+     nomes={"Coal","Biofuel","Oil Barrel","OilBarrel","Fuel Canister","FuelCanister","Purple Fur Tuft","PurpleFurTuft","Chair"}},
+    {key="BCarcacas", label="🦴 Bring Carcaças",    cor=Color3.fromRGB(180,100,50),  desc="Wolf, Bear, PolarBear, Hellephant, Frog, Alien Corpse…",
+     nomes={"Wolf Corpse","WolfCorpse","Alpha Wolf Corpse","AlphaWolfCorpse","Bear Corpse","BearCorpse","Polar Bear Corpse","PolarBearCorpse","Arctic Fox Corpse","ArcticFoxCorpse","Mammoth Corpse","MammothCorpse","Hellephant Corpse","HellephantCorpse","Frog Corpse","FrogCorpse","Cultist Corpse","CultistCorpse","Crossbow Cultist Corpse","CrossbowCultistCorpse","Juggernaut Cultist Corpse","JuggernautCultistCorpse","Cultist King Corpse","CultistKingCorpse","Alien Corpse","AlienCorpse","Elite Alien Corpse","EliteAlienCorpse"}},
+    {key="BSucata",   label="🔩 Bring Sucata",      cor=Color3.fromRGB(155,210,255), desc="Bolt, Sheet Metal, UFO Junk, Tyre…",
+     nomes={"Bolt","Sheet Metal","SheetMetal","UFO Junk","UFOJunk","UFO Component","UFOComponent","UFO Scrap","UFOScrap","Broken Fan","BrokenFan","Old Radio","OldRadio","Broken Radio","BrokenRadio","Broken Microwave","BrokenMicrowave","Tyre","Metal Chair","MetalChair","Old Car Engine","OldCarEngine","Washing Machine","WashingMachine","Cultist Experiment","CultistExperiment","Cultist Prototype","CultistPrototype"}},
+    {key="BMateriais",label="💎 Bring Materiais",   cor=Color3.fromRGB(220,175,255), desc="Cultist Gem, Forest Gem, Mossy Coin…",
+     nomes={"Cultist Gem","CultistGem","Forest Gem","ForestGem","Forest Gem Fragment","ForestGemFragment","Mossy Coin","MossyCoin","Flower","Sapling","Sacrifice Totem","SacrificeTotem","Meteor Shard","MeteorShard","Gold Shard","GoldShard","Raw Obsidiron Ore","RawObsidironOre","Obsidiron Ingot","ObsidironIngot","Scalding Obsidiron Ingot"}},
+    {key="BComidas",  label="🍖 Bring Comidas",     cor=Color3.fromRGB(255,115,165), desc="Carrot, Corn, Steak, Ribs, Stew, Candy…",
+     nomes={"Carrot","Corn","Pumpkin","Berry","Apple","Chili","Cake","Morsel","Cooked Morsel","CookedMorsel","Steak","Cooked Steak","CookedSteak","Ribs","Cooked Ribs","CookedRibs","Stew","Hearty Stew","HeartyStew","Meat? Sandwich","Seafood Chowder","Steak Dinner","Pumpkin Soup","BBQ Ribs","Carrot Cake","Jar o' Jelly","Candy Apple","Candy Corn","Pumpkin Pie","Cotton Candy","Turkey Leg","Cooked Turkey Leg","Stuffing","Sweet Potato","Berry Juice","Casserole","Corn on the Cob","Stuffing Bowl","Roast Turkey","Stuffed Peppers","Sweet Potato Pie","Spicy Swordfish","Hearty Thanksgiving Meal"}},
+    {key="BPeixes",   label="🐟 Bring Peixes",      cor=Color3.fromRGB(80,180,255),  desc="Mackerel, Salmon, Clownfish, Shark, Lava Eel…",
+     nomes={"Mackerel","Cooked Mackerel","CookedMackerel","Salmon","Cooked Salmon","CookedSalmon","Clownfish","Cooked Clownfish","CookedClownfish","Jellyfish","Char","Cooked Char","CookedChar","Eel","Cooked Eel","CookedEel","Swordfish","Cooked Swordfish","CookedSwordfish","Shark","Cooked Shark","CookedShark","Lava Eel","LavaEel","Cooked Lava Eel","CookedLavaEel","Lionfish","Cooked Lionfish","CookedLionfish"}},
+    {key="BSementes", label="🌱 Bring Sementes",    cor=Color3.fromRGB(135,245,115), desc="Chili, Berry, Flower, Dripleaf, Moonflower…",
+     nomes={"Chili Seeds","ChiliSeeds","Flower Seeds","FlowerSeeds","Berry Seeds","BerrySeeds","Firefly Seeds","FireflySeeds","Dripleaf Seeds","DripleafSeeds","Moonflower Seeds","MoonflowerSeeds","Stareweed Seeds","StareweedSeeds","Cavevine Seeds","CavevineSeeds","Mandrake Seeds","MandrakeSeeds"}},
+    {key="BFerr",     label="🪓 Bring Ferramentas", cor=Color3.fromRGB(255,200,55),  desc="Sacks, Axes, Rods, Flutes, Armaduras…",
+     nomes={"Old Sack","OldSack","Good Sack","GoodSack","Infernal Sack","InfernalSack","Giant Sack","GiantSack","Old Axe","OldAxe","Good Axe","GoodAxe","Ice Axe","IceAxe","Strong Axe","StrongAxe","Chainsaw","Old Rod","OldRod","Good Rod","GoodRod","Strong Rod","StrongRod","Old Taming Flute","OldFlute","Good Taming Flute","GoodFlute","Strong Taming Flute","StrongFlute","Old Flashlight","OldFlashlight","Strong Flashlight","StrongFlashlight","Axe Trim Kit","AxeTrimKit","Armor Trim Kit","ArmorTrimKit","Hammer","Paint Brush","PaintBrush","Watering Can","WateringCan","Leather Body","LeatherBody","Alien Armour","AlienArmour","Frog Boots","FrogBoots","Poison Armour","PoisonArmour"}},
+    {key="BArmas",    label="⚔️ Bring Armas",       cor=Color3.fromRGB(255,70,70),   desc="Spear, Ice Sword, Crossbow, Revolver, Rifle…",
+     nomes={"Spear","Morningstar","Katana","Laser Sword","LaserSword","Ice Sword","IceSword","Trident","Poison Spear","PoisonSpear","Infernal Sword","InfernalSword","Obsidiron Hammer","ObsidironHammer","Scythe","Crossbow","Infernal Crossbow","InfernalCrossbow","Bouncing Blade","BouncingBlade","Vampire Scythe","VampireScythe","Revolver","Rifle","Tactical Shotgun","TacticalShotgun","Ray Gun","RayGun","Laser Cannon","LaserCannon","Flamethrower","Snowball","Frozen Shuriken","FrozenShuriken","Kunai","Witch Potion","WitchPotion","Wildfire","Blowpipe","Air Rifle","AirRifle"}},
+    {key="BAmmo",     label="🔫 Bring Munição",     cor=Color3.fromRGB(255,155,60),  desc="Revolver Ammo, Rifle Ammo, Shotgun Ammo",
+     nomes={"Revolver Ammo","RevolverAmmo","Rifle Ammo","RifleAmmo","Shotgun Ammo","ShotgunAmmo"}},
+    {key="BCura",     label="💊 Bring Cura",        cor=Color3.fromRGB(100,255,180), desc="Bandage, Medkit", nomes={"Bandage","Medkit"}},
+    {key="BPelts",    label="🦺 Bring Pelts",       cor=Color3.fromRGB(210,170,120), desc="Bunny Foot, Wolf Pelt, Bear Pelt, Arctic Fox…",
+     nomes={"Bunny Foot","BunnyFoot","Wolf Pelt","WolfPelt","Alpha Wolf Pelt","AlphaWolfPelt","Bear Pelt","BearPelt","Arctic Fox Pelt","ArcticFoxPelt","Polar Bear Pelt","PolarBearPelt","Mammoth Tusk","MammothTusk","Scorpion Shell","ScorpionShell","Cultist King Antler","CultistKingAntler"}},
+    {key="BChaves",   label="🗝️ Bring Chaves",      cor=Color3.fromRGB(255,230,80),  desc="Red, Blue, Yellow, Grey, Frog Key",
+     nomes={"Red Key","RedKey","Blue Key","BlueKey","Yellow Key","YellowKey","Grey Key","GreyKey","Frog Key","FrogKey"}},
+    {key="BBigorna",  label="⚙️ Bring Bigorna",     cor=Color3.fromRGB(200,160,255), desc="Anvil Front/Back/Base + Meteor Anvil Parts",
+     nomes={"Anvil Front","AnvilFront","Anvil Back","AnvilBack","Anvil Base","AnvilBase","Meteor Anvil Front","MeteorAnvilFront","Meteor Anvil Back","MeteorAnvilBack","Meteor Anvil Base","MeteorAnvilBase"}},
+    {key="BPocoes",   label="🧪 Bring Poções",      cor=Color3.fromRGB(195,100,255), desc="Dripleaf, Moonflower Bulb, Stareweed, Mandrake",
+     nomes={"Dripleaf","Moonflower Bulb","MoonflowerBulb","Stareweed Petal","StareweedPetal","Cave Vine Flower","CaveVineFlower","Mandrake"}},
+    {key="BBlueprint",label="📋 Bring Blueprints",  cor=Color3.fromRGB(130,190,255), desc="Crafting, Defense, Furniture, Obsidiron Chest…",
+     nomes={"Crafting Blueprint","CraftingBlueprint","Defense Blueprint","DefenseBlueprint","Furniture Blueprint","FurnitureBlueprint","Obsidiron Chest Blueprint","ObsidironChestBlueprint","Halloween Blueprint","HalloweenBlueprint"}},
+}
+
+local bringLookup={}
+for _,c in ipairs(BRING_CATS) do
+    local s={}; for _,n in ipairs(c.nomes) do s[n:lower()]=true end; bringLookup[c.key]=s
+end
+
+local function executarBring(key)
+    local char=Player.Character; if not char then return 0 end
+    local hrp=char:FindFirstChild("HumanoidRootPart"); if not hrp then return 0 end
+    local lookup=bringLookup[key]; if not lookup then return 0 end
+    local cf=hrp.CFrame; local count=0; local trazidos={}; local batch=0
+    local pchars={}; for _,pl in ipairs(PlayersService:GetPlayers()) do if pl.Character then pchars[pl.Character]=true end end
+    local ok,descs=pcall(function() return workspace:GetDescendants() end); if not ok then return 0 end
+    for _,obj in ipairs(descs) do
+        batch+=1
+        if batch%100==0 then
+            task.wait(); char=Player.Character; if not char then break end
+            hrp=char:FindFirstChild("HumanoidRootPart"); if not hrp then break end; cf=hrp.CFrame
+        end
+        pcall(function()
+            if not obj or not obj.Parent or not obj:IsA("BasePart") then return end
+            if obj.Anchored then return end
+            for pc in pairs(pchars) do if pc==obj or pc:IsAncestorOf(obj) then return end end
+            local p=obj.Parent
+            for _=1,3 do if p and p:IsA("Model") and p:FindFirstChildWhichIsA("Humanoid") then return end; p=p and p.Parent end
+            if not lookup[obj.Name:lower()] then return end
+            local sz=obj.Size; if sz.X>14 or sz.Y>14 or sz.Z>14 then return end
+            local spread=Vector3.new(math.random(-4,4)+math.random()*0.5,0.5,math.random(-4,4)+math.random()*0.5)
+            local target=cf.Position+spread
+            for _,s in ipairs(obj:GetChildren()) do if s:IsA("Script") or s:IsA("LocalScript") then pcall(function() s.Disabled=true end) end end
+            obj.CFrame=CFrame.new(target); obj.Velocity=Vector3.zero; obj.CanCollide=true
+            count+=1; table.insert(trazidos,{obj=obj,pos=target})
+        end)
+    end
+    if #trazidos>0 then
+        task.spawn(function()
+            for _=1,8 do
+                task.wait(1)
+                for _,e in ipairs(trazidos) do
+                    pcall(function()
+                        if e.obj and e.obj.Parent and e.obj:IsA("BasePart") then
+                            if (e.obj.Position-e.pos).Magnitude>20 then e.obj.CFrame=CFrame.new(e.pos); e.obj.Velocity=Vector3.zero end
+                        end
+                    end)
+                end
+            end
+        end)
+    end
+    return count
+end
+
+-- UI da aba BRING
+local bringTabLO=0
+local function bringLO() bringTabLO+=1; return bringTabLO end
+local function makeBringSection(titulo,cor)
+    local hdr=Instance.new("Frame",Pages["Bring"]); hdr.BackgroundColor3=Color3.fromRGB(20,22,30)
+    hdr.BackgroundTransparency=0.3; hdr.BorderSizePixel=0; hdr.Size=UDim2.new(1,0,0,22); hdr.LayoutOrder=bringLO(); hdr.ZIndex=4
+    Instance.new("UICorner",hdr).CornerRadius=UDim.new(0,6)
+    local bar=Instance.new("Frame",hdr); bar.BackgroundColor3=cor; bar.BorderSizePixel=0
+    bar.Position=UDim2.new(0,0,0,0); bar.Size=UDim2.new(0,3,1,0); bar.ZIndex=5
+    Instance.new("UICorner",bar).CornerRadius=UDim.new(0,3)
+    local lbl=Instance.new("TextLabel",hdr); lbl.BackgroundTransparency=1; lbl.Position=UDim2.new(0,10,0,0)
+    lbl.Size=UDim2.new(1,-14,1,0); lbl.Font=Enum.Font.GothamBlack; lbl.Text=titulo
+    lbl.TextColor3=cor; lbl.TextSize=9; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.ZIndex=5
+end
+
+local function makeBringRow(bcat)
+    local row=Instance.new("Frame",Pages["Bring"]); row.BackgroundColor3=Color3.fromRGB(28,30,36)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,60); row.LayoutOrder=bringLO(); row.ZIndex=5
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,9)
+    local rowStroke=Instance.new("UIStroke",row); rowStroke.Color=Color3.fromRGB(42,46,56); rowStroke.Thickness=1
+    local gradBg=Instance.new("Frame",row); gradBg.BackgroundColor3=bcat.cor; gradBg.BackgroundTransparency=0.9
+    gradBg.BorderSizePixel=0; gradBg.Size=UDim2.new(1,0,1,0); gradBg.ZIndex=5
+    Instance.new("UICorner",gradBg).CornerRadius=UDim.new(0,9)
+    local iconBox=Instance.new("Frame",row); iconBox.BackgroundColor3=bcat.cor; iconBox.BackgroundTransparency=0.78
+    iconBox.BorderSizePixel=0; iconBox.Position=UDim2.new(0,8,0.5,-18); iconBox.Size=UDim2.new(0,36,0,36); iconBox.ZIndex=7
+    Instance.new("UICorner",iconBox).CornerRadius=UDim.new(0,8)
+    local icon=criarIconeBring(iconBox,bcat.key,bcat.cor); icon.Position=UDim2.new(0,4,0,4); icon.Size=UDim2.new(0,28,0,28)
+    local barLeft=Instance.new("Frame",row); barLeft.BackgroundColor3=bcat.cor; barLeft.BorderSizePixel=0
+    barLeft.Position=UDim2.new(0,0,0.15,0); barLeft.Size=UDim2.new(0,3,0.7,0); barLeft.ZIndex=8
+    Instance.new("UICorner",barLeft).CornerRadius=UDim.new(0,2)
+    local labelNome=Instance.new("TextLabel",row); labelNome.BackgroundTransparency=1
+    labelNome.Position=UDim2.new(0,54,0,8); labelNome.Size=UDim2.new(1,-160,0,18)
+    labelNome.Font=Enum.Font.GothamBold; labelNome.Text=bcat.label; labelNome.TextColor3=Color3.fromRGB(225,230,245)
+    labelNome.TextSize=11; labelNome.TextXAlignment=Enum.TextXAlignment.Left; labelNome.ZIndex=7
+    local labelDesc=Instance.new("TextLabel",row); labelDesc.BackgroundTransparency=1
+    labelDesc.Position=UDim2.new(0,54,0,28); labelDesc.Size=UDim2.new(1,-160,0,24)
+    labelDesc.Font=Enum.Font.Gotham; labelDesc.Text=bcat.desc or ""; labelDesc.TextColor3=Color3.fromRGB(90,100,120)
+    labelDesc.TextSize=9; labelDesc.TextXAlignment=Enum.TextXAlignment.Left; labelDesc.TextWrapped=true; labelDesc.ZIndex=7
+    local feedbackLbl=Instance.new("TextLabel",row); feedbackLbl.BackgroundTransparency=1
+    feedbackLbl.Position=UDim2.new(1,-82,0.5,16); feedbackLbl.Size=UDim2.new(0,74,0,12)
+    feedbackLbl.Font=Enum.Font.Gotham; feedbackLbl.Text=""; feedbackLbl.TextColor3=bcat.cor
+    feedbackLbl.TextSize=8; feedbackLbl.TextXAlignment=Enum.TextXAlignment.Center; feedbackLbl.ZIndex=8
+    local btnBring=Instance.new("TextButton",row); btnBring.BackgroundColor3=bcat.cor; btnBring.BackgroundTransparency=0.15
+    btnBring.BorderSizePixel=0; btnBring.Position=UDim2.new(1,-82,0.5,-14); btnBring.Size=UDim2.new(0,74,0,28)
+    btnBring.Font=Enum.Font.GothamBold; btnBring.Text="▼ BRING"; btnBring.TextColor3=Color3.fromRGB(255,255,255)
+    btnBring.TextSize=10; btnBring.ZIndex=9
+    Instance.new("UICorner",btnBring).CornerRadius=UDim.new(0,7)
+    local btnStroke=Instance.new("UIStroke",btnBring); btnStroke.Color=bcat.cor; btnStroke.Thickness=1.2; btnStroke.Transparency=0.5
+    btnBring.MouseEnter:Connect(function() TweenService:Create(btnBring,TweenInfo.new(0.12),{BackgroundTransparency=0,Size=UDim2.new(0,74,0,30),Position=UDim2.new(1,-82,0.5,-15)}):Play() end)
+    btnBring.MouseLeave:Connect(function() TweenService:Create(btnBring,TweenInfo.new(0.12),{BackgroundTransparency=0.15,Size=UDim2.new(0,74,0,28),Position=UDim2.new(1,-82,0.5,-14)}):Play() end)
+    local running=false
+    btnBring.MouseButton1Click:Connect(function()
+        if running then return end; running=true
+        btnBring.Text="⏳..."; TweenService:Create(btnBring,TweenInfo.new(0.08),{BackgroundTransparency=0.4}):Play()
+        task.spawn(function()
+            local count=executarBring(bcat.key) or 0; task.wait(0.3)
+            btnBring.Text="▼ BRING"; TweenService:Create(btnBring,TweenInfo.new(0.15),{BackgroundTransparency=0.15}):Play()
+            if count>0 then
+                feedbackLbl.Text="✓ "..count.." item(s)"; feedbackLbl.TextColor3=bcat.cor; feedbackLbl.TextTransparency=0
+                task.delay(3,function() TweenService:Create(feedbackLbl,TweenInfo.new(0.5),{TextTransparency=1}):Play(); task.wait(0.6); feedbackLbl.Text=""; feedbackLbl.TextTransparency=0 end)
+            else
+                feedbackLbl.Text="✗ Nenhum item"; feedbackLbl.TextColor3=Color3.fromRGB(200,80,80); feedbackLbl.TextTransparency=0
+                task.delay(2.5,function() TweenService:Create(feedbackLbl,TweenInfo.new(0.4),{TextTransparency=1}):Play(); task.wait(0.5); feedbackLbl.Text=""; feedbackLbl.TextTransparency=0; feedbackLbl.TextColor3=bcat.cor end)
+            end
+            TweenService:Create(rowStroke,TweenInfo.new(0.2),{Color=bcat.cor}):Play()
+            task.delay(1.5,function() TweenService:Create(rowStroke,TweenInfo.new(0.4),{Color=Color3.fromRGB(42,46,56)}):Play() end)
+            task.wait(1); running=false
+        end)
+    end)
+end
+
+local bringCatMap={}; for _,c in ipairs(BRING_CATS) do bringCatMap[c.key]=c end
+local bringGroupOrder={
+    {"BRING — Combustível & Recursos", Color3.fromRGB(255,130,40), {"BLog","BCombust","BCarcacas","BSucata","BMateriais"}},
+    {"BRING — Comida & Natureza",      Color3.fromRGB(255,120,170),{"BComidas","BPeixes","BSementes","BPocoes"}},
+    {"BRING — Equipamentos",           Color3.fromRGB(255,200,55), {"BFerr","BArmas","BAmmo","BCura","BPelts"}},
+    {"BRING — Especiais",              Color3.fromRGB(255,230,80), {"BChaves","BBigorna","BBlueprint"}},
+}
+for _,grp in ipairs(bringGroupOrder) do
+    local titulo,cor,keys=grp[1],grp[2],grp[3]
+    makeBringSection(titulo,cor)
+    for _,k in ipairs(keys) do if bringCatMap[k] then makeBringRow(bringCatMap[k]) end end
+end
+
+-- ══════════════════════════════════════════════════════
+--  PLAYER TAB — Speed, Jump, Fly, Noclip, TpClick, BauANC
+-- ══════════════════════════════════════════════════════
+local playerSpeed = 30
+local playerJump  = 80
+local flyEnabled  = false
+local flySpeed    = 40
+local flyBodyVel, flyBodyGyro, flyConn
+local noclipEnabled = false
+local tpClickEnabled = false
+local tpClickConn
+local bauANCEnabled  = false
+local bauANCConn
+
+local function applySpeed(v)
+    pcall(function()
+        local ch=Player.Character; if not ch then return end
+        local hum=ch:FindFirstChildWhichIsA("Humanoid"); if not hum then return end
+        hum.WalkSpeed = v
+    end)
+end
+local function applyJump(v)
+    pcall(function()
+        local ch=Player.Character; if not ch then return end
+        local hum=ch:FindFirstChildWhichIsA("Humanoid"); if not hum then return end
+        hum.UseJumpPower = true; hum.JumpPower = v
+    end)
+end
+Player.CharacterAdded:Connect(function()
+    task.wait(1)
+    applySpeed(playerSpeed); applyJump(playerJump)
+end)
+
+local function setFly(state)
+    flyEnabled = state
+    if state then
+        local ch=Player.Character; if not ch then return end
+        local hrp=ch:FindFirstChild("HumanoidRootPart"); if not hrp then return end
+        if flyBodyVel then flyBodyVel:Destroy() end
+        if flyBodyGyro then flyBodyGyro:Destroy() end
+        flyBodyVel=Instance.new("BodyVelocity",hrp)
+        flyBodyVel.MaxForce=Vector3.new(1e6,1e6,1e6); flyBodyVel.Velocity=Vector3.zero
+        flyBodyGyro=Instance.new("BodyGyro",hrp)
+        flyBodyGyro.MaxTorque=Vector3.new(1e6,1e6,1e6); flyBodyGyro.CFrame=hrp.CFrame
+        if flyConn then flyConn:Disconnect() end
+        flyConn=RunService.Heartbeat:Connect(function()
+            if not flyEnabled then return end
+            local c2=Player.Character; if not c2 then return end
+            local h2=c2:FindFirstChild("HumanoidRootPart"); if not h2 then return end
+            if not flyBodyVel or not flyBodyVel.Parent then return end
+            local cam=workspace.CurrentCamera; local dir=Vector3.zero
+            local UIS=UserInputService
+            if UIS:IsKeyDown(Enum.KeyCode.W) then dir=dir+cam.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then dir=dir-cam.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then dir=dir-cam.CFrame.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then dir=dir+cam.CFrame.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.Space) then dir=dir+Vector3.new(0,1,0) end
+            if UIS:IsKeyDown(Enum.KeyCode.LeftControl) or UIS:IsKeyDown(Enum.KeyCode.LeftShift) then dir=dir-Vector3.new(0,1,0) end
+            flyBodyVel.Velocity=dir.Magnitude>0 and dir.Unit*flySpeed or Vector3.zero
+            flyBodyGyro.CFrame=cam.CFrame
+        end)
+    else
+        if flyConn then flyConn:Disconnect(); flyConn=nil end
+        pcall(function() if flyBodyVel then flyBodyVel:Destroy(); flyBodyVel=nil end end)
+        pcall(function() if flyBodyGyro then flyBodyGyro:Destroy(); flyBodyGyro=nil end end)
+    end
+end
+
+local noclipConn2
+local NOCLIP_VOID_Y = -100
+local function setNoclip(state)
+    noclipEnabled = state
+    if state then
+        if noclipConn2 then noclipConn2:Disconnect() end
+        noclipConn2 = RunService.Stepped:Connect(function()
+            local ch = Player.Character; if not ch then return end
+            local hrp = ch:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local py = hrp.Position.Y
+                if py < NOCLIP_VOID_Y then
+                    hrp.CFrame = CFrame.new(hrp.Position.X, NOCLIP_VOID_Y+10, hrp.Position.Z)
+                    hrp.Velocity = Vector3.zero
+                end
+            end
+            for _, part in ipairs(ch:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
+            if hrp then hrp.CanCollide = false end
+        end)
+    else
+        if noclipConn2 then noclipConn2:Disconnect(); noclipConn2=nil end
+        pcall(function()
+            local ch=Player.Character; if not ch then return end
+            for _, part in ipairs(ch:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = true end
+            end
+        end)
+    end
+end
+
+local function setTpClick(state)
+    tpClickEnabled=state
+    if state then
+        if tpClickConn then tpClickConn:Disconnect() end
+        tpClickConn=UserInputService.InputBegan:Connect(function(input,gpe)
+            if not tpClickEnabled or gpe then return end
+            if input.UserInputType~=Enum.UserInputType.MouseButton1 then return end
+            local ch=Player.Character; if not ch then return end
+            local hrp=ch:FindFirstChild("HumanoidRootPart"); if not hrp then return end
+            local mp=UserInputService:GetMouseLocation()
+            local ray=workspace:Raycast(Cam.CFrame.Position,Cam:ScreenPointToRay(mp.X,mp.Y).Direction*2000)
+            if ray then
+                local safeY=math.max(ray.Position.Y+3,-90)
+                hrp.CFrame=CFrame.new(ray.Position.X,safeY,ray.Position.Z)
+            end
+        end)
+    else
+        if tpClickConn then tpClickConn:Disconnect(); tpClickConn=nil end
+    end
+end
+
+local function setBauANC(state)
+    bauANCEnabled=state
+    if state then
+        if bauANCConn then bauANCConn:Disconnect() end
+        bauANCConn=workspace.DescendantAdded:Connect(function(obj)
+            if not bauANCEnabled then return end
+            task.defer(function()
+                if not obj or not obj.Parent then return end
+                if obj:IsA("Animator") then
+                    for _,tr in ipairs(obj:GetPlayingAnimationTracks()) do
+                        pcall(function() tr:AdjustSpeed(9999) end)
+                    end
+                end
+            end)
+        end)
+    else
+        if bauANCConn then bauANCConn:Disconnect(); bauANCConn=nil end
+    end
+end
+
+-- UI Player
+local function makePlSec2(titulo, cor)
+    local hdr=Instance.new("Frame",Pages["Player"]); hdr.BackgroundColor3=Color3.fromRGB(20,22,30)
+    hdr.BackgroundTransparency=0.3; hdr.BorderSizePixel=0; hdr.Size=UDim2.new(1,0,0,22)
+    hdr.LayoutOrder=#Pages["Player"]:GetChildren()+10; hdr.ZIndex=4
+    Instance.new("UICorner",hdr).CornerRadius=UDim.new(0,6)
+    local bar=Instance.new("Frame",hdr); bar.BackgroundColor3=cor; bar.BorderSizePixel=0
+    bar.Size=UDim2.new(0,3,1,0); bar.ZIndex=5; Instance.new("UICorner",bar).CornerRadius=UDim.new(0,3)
+    local lbl=Instance.new("TextLabel",hdr); lbl.BackgroundTransparency=1; lbl.Position=UDim2.new(0,10,0,0)
+    lbl.Size=UDim2.new(1,-14,1,0); lbl.Font=Enum.Font.GothamBlack; lbl.Text=titulo
+    lbl.TextColor3=cor; lbl.TextSize=9; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.ZIndex=5
+end
+
+local plLO = 0
+local function plNextLO() plLO+=1; return plLO end
+
+local function makePlToggle(lbl_txt, desc_txt, cor, onToggle)
+    local row=Instance.new("Frame",Pages["Player"]); row.BackgroundColor3=Color3.fromRGB(28,30,38)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,56); row.LayoutOrder=plNextLO(); row.ZIndex=5
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,9)
+    local rowS=Instance.new("UIStroke",row); rowS.Color=Color3.fromRGB(42,46,58); rowS.Thickness=1
+    local tl=Instance.new("TextLabel",row); tl.BackgroundTransparency=1
+    tl.Position=UDim2.new(0,14,0,8); tl.Size=UDim2.new(1,-80,0,18); tl.Font=Enum.Font.GothamBold
+    tl.Text=lbl_txt; tl.TextColor3=Color3.fromRGB(220,225,240); tl.TextSize=12; tl.TextXAlignment=Enum.TextXAlignment.Left; tl.ZIndex=7
+    local td=Instance.new("TextLabel",row); td.BackgroundTransparency=1
+    td.Position=UDim2.new(0,14,0,28); td.Size=UDim2.new(1,-80,0,22); td.Font=Enum.Font.Gotham
+    td.Text=desc_txt; td.TextColor3=Color3.fromRGB(90,100,120); td.TextSize=9
+    td.TextXAlignment=Enum.TextXAlignment.Left; td.TextWrapped=true; td.ZIndex=7
+    local pill=Instance.new("Frame",row); pill.BackgroundColor3=Color3.fromRGB(45,50,62); pill.BorderSizePixel=0
+    pill.Position=UDim2.new(1,-56,0.5,-13); pill.Size=UDim2.new(0,48,0,26); pill.ZIndex=9
+    Instance.new("UICorner",pill).CornerRadius=UDim.new(1,0)
+    local knob=Instance.new("Frame",pill); knob.BackgroundColor3=Color3.fromRGB(160,170,185); knob.BorderSizePixel=0
+    knob.Position=UDim2.new(0,2,0.5,-11); knob.Size=UDim2.new(0,22,0,22); knob.ZIndex=10
+    Instance.new("UICorner",knob).CornerRadius=UDim.new(1,0)
+    local estado=false
+    local btn=Instance.new("TextButton",row); btn.BackgroundTransparency=1; btn.Size=UDim2.new(1,0,1,0); btn.Text=""; btn.ZIndex=11
+    btn.MouseButton1Click:Connect(function()
+        estado=not estado
+        TweenService:Create(pill,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{BackgroundColor3=estado and cor or Color3.fromRGB(45,50,62)}):Play()
+        TweenService:Create(knob,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+            Position=estado and UDim2.new(1,-24,0.5,-11) or UDim2.new(0,2,0.5,-11),
+            BackgroundColor3=estado and Color3.fromRGB(255,255,255) or Color3.fromRGB(160,170,185)
+        }):Play()
+        TweenService:Create(rowS,TweenInfo.new(0.2),{Color=estado and cor or Color3.fromRGB(42,46,58)}):Play()
+        onToggle(estado)
+    end)
+end
+
+local function makePlSlider(lbl_txt, desc_txt, cor, minV, maxV, step, initVal, onChange)
+    local row=Instance.new("Frame",Pages["Player"]); row.BackgroundColor3=Color3.fromRGB(28,30,38)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,72); row.LayoutOrder=plNextLO(); row.ZIndex=5
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,9)
+    local rowS=Instance.new("UIStroke",row); rowS.Color=Color3.fromRGB(42,46,58); rowS.Thickness=1
+    local tl=Instance.new("TextLabel",row); tl.BackgroundTransparency=1
+    tl.Position=UDim2.new(0,14,0,8); tl.Size=UDim2.new(1,-20,0,16); tl.Font=Enum.Font.GothamBold
+    tl.Text=lbl_txt; tl.TextColor3=Color3.fromRGB(220,225,240); tl.TextSize=12; tl.TextXAlignment=Enum.TextXAlignment.Left; tl.ZIndex=7
+    local td=Instance.new("TextLabel",row); td.BackgroundTransparency=1
+    td.Position=UDim2.new(0,14,0,26); td.Size=UDim2.new(1,-20,0,14); td.Font=Enum.Font.Gotham
+    td.Text=desc_txt; td.TextColor3=Color3.fromRGB(90,100,120); td.TextSize=9; td.TextXAlignment=Enum.TextXAlignment.Left; td.ZIndex=7
+    local ctrl=Instance.new("Frame",row); ctrl.BackgroundColor3=Color3.fromRGB(16,18,26); ctrl.BackgroundTransparency=0.2
+    ctrl.BorderSizePixel=0; ctrl.Position=UDim2.new(0,14,0,44); ctrl.Size=UDim2.new(1,-28,0,22); ctrl.ZIndex=8
+    Instance.new("UICorner",ctrl).CornerRadius=UDim.new(0,6)
+    local valLbl=Instance.new("TextLabel",ctrl); valLbl.BackgroundTransparency=1
+    valLbl.Position=UDim2.new(0.5,-25,0,0); valLbl.Size=UDim2.new(0,50,1,0); valLbl.Font=Enum.Font.GothamBold
+    valLbl.Text=tostring(initVal); valLbl.TextColor3=cor; valLbl.TextSize=12; valLbl.ZIndex=9
+    local curV={initVal}
+    local function upd(v) v=math.clamp(v,minV,maxV); curV[1]=v; valLbl.Text=tostring(v); onChange(v) end
+    local btns={{"-"..tostring(step*5),-step*5},{"-"..tostring(step),-step},{"+"..tostring(step),step},{"+"..tostring(step*5),step*5}}
+    for i,bd in ipairs(btns) do
+        local b=Instance.new("TextButton",ctrl); b.BackgroundColor3=cor; b.BackgroundTransparency=0.35
+        b.BorderSizePixel=0; b.Size=UDim2.new(0,34,1,0)
+        b.Position=i<=2 and UDim2.new(0,(i-1)*35,0,0) or UDim2.new(1,-(4-i+1)*35,0,0)
+        b.Font=Enum.Font.GothamBold; b.Text=bd[1]; b.TextColor3=Color3.fromRGB(255,255,255); b.TextSize=8; b.ZIndex=9
+        Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
+        local delta=bd[2]; b.MouseButton1Click:Connect(function() upd(curV[1]+delta) end)
+    end
+end
+
+makePlSec2("⚡ VELOCIDADE & PULO", Color3.fromRGB(255,200,50))
+makePlSlider("⚡ Speed", "Velocidade de caminhada (padrão:16)", Color3.fromRGB(255,180,30), 1, 200, 5, 30, function(v) playerSpeed=v; applySpeed(v) end)
+makePlSlider("🦘 Jump Power", "Altura do pulo (padrão:50)", Color3.fromRGB(100,220,255), 10, 400, 10, 80, function(v) playerJump=v; applyJump(v) end)
+makePlSec2("✈️ VOO & NOCLIP", Color3.fromRGB(100,200,255))
+makePlToggle("✈️ Fly", "W/A/S/D mover • Espaço=subir • Ctrl=descer", Color3.fromRGB(80,180,255), function(s) setFly(s) end)
+makePlToggle("👻 Noclip", "Atravessa paredes • Anti-void Y=-100", Color3.fromRGB(140,255,140), function(s) setNoclip(s) end)
+makePlSec2("🔧 UTILIDADES", Color3.fromRGB(255,210,80))
+makePlToggle("⚡ TP Click", "Clique em qualquer lugar para teleportar", Color3.fromRGB(255,220,60), function(s) setTpClick(s) end)
+makePlToggle("📦 Baú ANC", "Baús abrem instantaneamente", Color3.fromRGB(210,160,80), function(s) setBauANC(s) end)
+
+-- ══════════════════════════════════════════════════════
+--  AIMBOT
+-- ══════════════════════════════════════════════════════
+local ANIMAL_NAMES = {
+    "wolf","alpha wolf","alphawolf","bear","polar bear","polarbear","arctic fox","arcticfox",
+    "frog","blue frog","purple frog","green frog","bluefrog","purplefrog","greenfrog",
+    "scorpion","hellephant","meteor crab","meteorcrab","mammoth",
+    "bunny","horse","kiwi","turkey","alien","elite alien","elitealien"
+}
+local ANIMAL_SET = {}
+for _, n in ipairs(ANIMAL_NAMES) do ANIMAL_SET[n] = true end
+
+local function findNearestAnimalHrp()
+    local ch = Player.Character; if not ch then return nil end
+    local hrp = ch:FindFirstChild("HumanoidRootPart"); if not hrp then return nil end
+    local myPos = hrp.Position
+    local best, bestDist = nil, math.huge
+    local pchars={}; for _,pl in ipairs(PlayersService:GetPlayers()) do if pl.Character then pchars[pl.Character]=true end endend end
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        pcall(function()
+            if not obj:IsA("Model") then return end
+            if pchars[obj] then return end
+            local hum = obj:FindFirstChildWhichIsA("Humanoid"); if not hum or hum.Health<=0 then return end
+            if not ANIMAL_SET[obj.Name:lower()] then return end
+            local anHrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+            if not anHrp then return end
+            local d = (anHrp.Position - myPos).Magnitude
+            if d < bestDist then bestDist=d; best=anHrp end
+        end)
+    end
+    return best
+end
+
+local aimbotEnabled = false
+local aimbotAutoEnabled = false
+local aimbotAutoRunning = false
+
+workspace.DescendantAdded:Connect(function(obj)
+    if not aimbotEnabled then return end
+    task.defer(function()
+        if not obj or not obj.Parent or not obj:IsA("BasePart") then return end
+        local speed = obj.AssemblyLinearVelocity.Magnitude
+        if speed < 10 then return end
+        local par = obj.Parent
+        for _ = 1, 3 do
+            if par and par:IsA("Model") and par:FindFirstChildWhichIsA("Humanoid") then
+                local isPlayer = false
+                for _, pl in ipairs(PlayersService:GetPlayers()) do if pl.Character==par then isPlayer=true; break end end
+                if not isPlayer then return end
+            end
+            par = par and par.Parent
+        end
+        local anHrp = findNearestAnimalHrp()
+        if not anHrp then return end
+        local steps = 0
+        local conn; conn = RunService.Heartbeat:Connect(function()
+            steps+=1
+            if not aimbotEnabled or not obj or not obj.Parent or steps>120 then conn:Disconnect(); return end
+            if not anHrp or not anHrp.Parent then conn:Disconnect(); return end
+            local dir = (anHrp.Position - obj.Position)
+            if dir.Magnitude < 3 then conn:Disconnect(); return end
+            obj.AssemblyLinearVelocity = dir.Unit * math.max(speed, 80)
+        end)
+    end)
+end)
+
+local function startAimbotAuto()
+    if aimbotAutoRunning then return end; aimbotAutoRunning = true
+    task.spawn(function()
+        while aimbotAutoEnabled do
+            task.wait(0.15)
+            pcall(function()
+                local anHrp = findNearestAnimalHrp()
+                if not anHrp then return end
+                local ch = Player.Character; if not ch then return end
+                local myHrp = ch:FindFirstChild("HumanoidRootPart"); if not myHrp then return end
+                local dir = (anHrp.Position - myHrp.Position).Unit
+                myHrp.CFrame = CFrame.new(myHrp.Position) * CFrame.Angles(0, math.atan2(dir.X, dir.Z) + math.pi, 0)
+                pcall(function()
+                    local sp = Cam:WorldToScreenPoint(anHrp.Position)
+                    local vim = game:GetService("VirtualInputManager")
+                    vim:SendMouseButtonEvent(sp.X, sp.Y, 0, true, game, 0)
+                    task.wait(0.05)
+                    vim:SendMouseButtonEvent(sp.X, sp.Y, 0, false, game, 0)
+                end)
+            end)
+        end
+        aimbotAutoRunning = false
+    end)
+end
+
+-- UI Avançado Funções
+local avLO2 = 0
+local function avNextLO() avLO2+=1; return avLO2 end
+
+local function makeAvSec2(titulo, cor)
+    local hdr=Instance.new("Frame",Pages["AvancadoFuncoes"]); hdr.BackgroundColor3=Color3.fromRGB(20,22,30)
+    hdr.BackgroundTransparency=0.3; hdr.BorderSizePixel=0; hdr.Size=UDim2.new(1,0,0,22); hdr.LayoutOrder=avNextLO(); hdr.ZIndex=4
+    Instance.new("UICorner",hdr).CornerRadius=UDim.new(0,6)
+    local bar=Instance.new("Frame",hdr); bar.BackgroundColor3=cor; bar.BorderSizePixel=0
+    bar.Size=UDim2.new(0,3,1,0); bar.ZIndex=5; Instance.new("UICorner",bar).CornerRadius=UDim.new(0,3)
+    local lbl=Instance.new("TextLabel",hdr); lbl.BackgroundTransparency=1; lbl.Position=UDim2.new(0,10,0,0)
+    lbl.Size=UDim2.new(1,-14,1,0); lbl.Font=Enum.Font.GothamBlack; lbl.Text=titulo
+    lbl.TextColor3=cor; lbl.TextSize=9; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.ZIndex=5
+end
+
+local function makeAvToggle2(lbl_txt, desc_txt, cor, onToggle)
+    local row=Instance.new("Frame",Pages["AvancadoFuncoes"]); row.BackgroundColor3=Color3.fromRGB(28,30,38)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,60); row.LayoutOrder=avNextLO(); row.ZIndex=5
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,9)
+    local rowS=Instance.new("UIStroke",row); rowS.Color=Color3.fromRGB(42,46,58); rowS.Thickness=1
+    local tl=Instance.new("TextLabel",row); tl.BackgroundTransparency=1
+    tl.Position=UDim2.new(0,14,0,8); tl.Size=UDim2.new(1,-80,0,18); tl.Font=Enum.Font.GothamBold
+    tl.Text=lbl_txt; tl.TextColor3=Color3.fromRGB(220,225,240); tl.TextSize=12; tl.TextXAlignment=Enum.TextXAlignment.Left; tl.ZIndex=7
+    local td=Instance.new("TextLabel",row); td.BackgroundTransparency=1
+    td.Position=UDim2.new(0,14,0,28); td.Size=UDim2.new(1,-80,0,26); td.Font=Enum.Font.Gotham
+    td.Text=desc_txt; td.TextColor3=Color3.fromRGB(90,100,120); td.TextSize=9
+    td.TextXAlignment=Enum.TextXAlignment.Left; td.TextWrapped=true; td.ZIndex=7
+    local pill=Instance.new("Frame",row); pill.BackgroundColor3=Color3.fromRGB(45,50,62); pill.BorderSizePixel=0
+    pill.Position=UDim2.new(1,-56,0.5,-13); pill.Size=UDim2.new(0,48,0,26); pill.ZIndex=9
+    Instance.new("UICorner",pill).CornerRadius=UDim.new(1,0)
+    local knob=Instance.new("Frame",pill); knob.BackgroundColor3=Color3.fromRGB(160,170,185); knob.BorderSizePixel=0
+    knob.Position=UDim2.new(0,2,0.5,-11); knob.Size=UDim2.new(0,22,0,22); knob.ZIndex=10
+    Instance.new("UICorner",knob).CornerRadius=UDim.new(1,0)
+    local estado=false
+    local btn=Instance.new("TextButton",row); btn.BackgroundTransparency=1; btn.Size=UDim2.new(1,0,1,0); btn.Text=""; btn.ZIndex=11
+    btn.MouseButton1Click:Connect(function()
+        estado=not estado
+        TweenService:Create(pill,TweenInfo.new(0.22,Enum.EasingStyle.Quad),{BackgroundColor3=estado and cor or Color3.fromRGB(45,50,62)}):Play()
+        TweenService:Create(knob,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+            Position=estado and UDim2.new(1,-24,0.5,-11) or UDim2.new(0,2,0.5,-11),
+            BackgroundColor3=estado and Color3.fromRGB(255,255,255) or Color3.fromRGB(160,170,185)
+        }):Play()
+        TweenService:Create(rowS,TweenInfo.new(0.2),{Color=estado and cor or Color3.fromRGB(42,46,58)}):Play()
+        onToggle(estado)
+    end)
+end
+
+makeAvSec2("🎯 COMBATE AUTOMÁTICO", Color3.fromRGB(255,80,80))
+makeAvToggle2("🎯 Aimbot (Teleguiado)", "Projéteis se movem automaticamente para o animal mais próximo.", Color3.fromRGB(255,80,80), function(s) aimbotEnabled = s end)
+makeAvToggle2("🤖 Aimbot AUTO", "Com arma ranged equipada: atira sozinho nos animais próximos.", Color3.fromRGB(255,140,40), function(s) aimbotAutoEnabled = s; if s then startAimbotAuto() end end)
+
+-- ══════════════════════════════════════════════════════
+--  INSERÇÃO DO SISTEMA DE IDIOMAS ABAIXO
+-- ══════════════════════════════════════════════════════
+
+-- ══════════════════════════════════════════════════════════════════
+--  SISTEMA DE IDIOMAS — PUDIM HUB v4.5
+--  Colar ANTES de: selectTab("Info")
+--  Substitui a linha do Footer e adiciona o bloco inteiro abaixo
+-- ══════════════════════════════════════════════════════════════════
+
+-- ──────────────────────────────────────────────────────────────────
+--  EXPANDIR FOOTER para acomodar botão de idiomas
+-- ──────────────────────────────────────────────────────────────────
+Footer.Size     = UDim2.new(0, 175, 0, 62)
+Footer.Position = UDim2.new(0, 0, 1, -62)
+SideBar.Size    = UDim2.new(0, 175, 1, -102)  -- 40 topbar + 62 footer
+
+-- Reposicionar elementos existentes do footer
+AvatarBg.Position  = UDim2.new(0, 8,  0.35, -12)
+OnlineDot.Position = UDim2.new(0, 24, 0.35, 3)
+FName.Position     = UDim2.new(0, 40, 0, 4)
+FTag.Position      = UDim2.new(0, 40, 0, 19)
+
+-- ──────────────────────────────────────────────────────────────────
+--  BOTÃO "IDIOMAS" no footer
+-- ──────────────────────────────────────────────────────────────────
+local IdiomasBtnFrame = Instance.new("Frame", Footer)
+IdiomasBtnFrame.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+IdiomasBtnFrame.BackgroundTransparency = 0.15
+IdiomasBtnFrame.BorderSizePixel = 0
+IdiomasBtnFrame.Position = UDim2.new(0, 8, 1, -26)
+IdiomasBtnFrame.Size = UDim2.new(1, -16, 0, 20)
+IdiomasBtnFrame.ZIndex = 6
+Instance.new("UICorner", IdiomasBtnFrame).CornerRadius = UDim.new(0, 6)
+local IdiomasBtnStroke = Instance.new("UIStroke", IdiomasBtnFrame)
+IdiomasBtnStroke.Color = Color3.fromRGB(88, 101, 242); IdiomasBtnStroke.Thickness = 1; IdiomasBtnStroke.Transparency = 0.5
+
+local IdiGlobe = Instance.new("TextLabel", IdiomasBtnFrame)
+IdiGlobe.BackgroundTransparency = 1
+IdiGlobe.Position = UDim2.new(0, 6, 0, 0); IdiGlobe.Size = UDim2.new(0, 16, 1, 0)
+IdiGlobe.Font = Enum.Font.Gotham; IdiGlobe.Text = "🌐"
+IdiGlobe.TextColor3 = Color3.fromRGB(255,255,255); IdiGlobe.TextSize = 11; IdiGlobe.ZIndex = 7
+
+local IdiText = Instance.new("TextLabel", IdiomasBtnFrame)
+IdiText.BackgroundTransparency = 1
+IdiText.Position = UDim2.new(0, 22, 0, 0); IdiText.Size = UDim2.new(1, -28, 1, 0)
+IdiText.Font = Enum.Font.GothamBold; IdiText.Text = "Idiomas"
+IdiText.TextColor3 = Color3.fromRGB(255,255,255); IdiText.TextSize = 10
+IdiText.TextXAlignment = Enum.TextXAlignment.Left; IdiText.ZIndex = 7
+
+local IdiomasClickBtn = Instance.new("TextButton", IdiomasBtnFrame)
+IdiomasClickBtn.BackgroundTransparency = 1; IdiomasClickBtn.Size = UDim2.new(1,0,1,0)
+IdiomasClickBtn.Text = ""; IdiomasClickBtn.ZIndex = 8
+
+IdiomasClickBtn.MouseEnter:Connect(function()
+    TweenService:Create(IdiomasBtnFrame, TweenInfo.new(0.15), {BackgroundTransparency=0}):Play()
+end)
+IdiomasClickBtn.MouseLeave:Connect(function()
+    TweenService:Create(IdiomasBtnFrame, TweenInfo.new(0.15), {BackgroundTransparency=0.15}):Play()
+end)
+
+-- ──────────────────────────────────────────────────────────────────
+--  25 IDIOMAS MAIS FALADOS DO MUNDO
+-- ──────────────────────────────────────────────────────────────────
+local currentLang = "pt"
+
+local LANG_LIST = {
+    { code="zh",  name="普通话",         sub="Mandarim",     flag="🇨🇳", country="China"           },
+    { code="es",  name="Español",        sub="Espanhol",     flag="🇪🇸", country="España"          },
+    { code="en",  name="English",        sub="Inglês",       flag="🇺🇸", country="United States"   },
+    { code="hi",  name="हिन्दी",         sub="Hindi",        flag="🇮🇳", country="India"           },
+    { code="bn",  name="বাংলা",          sub="Bengali",      flag="🇧🇩", country="Bangladesh"      },
+    { code="pt",  name="Português",      sub="Português",    flag="🇧🇷", country="Brasil"          },
+    { code="ru",  name="Русский",        sub="Russo",        flag="🇷🇺", country="Россия"          },
+    { code="ja",  name="日本語",          sub="Japonês",      flag="🇯🇵", country="日本"            },
+    { code="pa",  name="ਪੰਜਾਬੀ",         sub="Punjabi",      flag="🇵🇰", country="Pakistan"        },
+    { code="mr",  name="मराठी",          sub="Marathi",      flag="🇮🇳", country="India"           },
+    { code="te",  name="తెలుగు",         sub="Telugu",       flag="🇮🇳", country="India"           },
+    { code="tr",  name="Türkçe",         sub="Turco",        flag="🇹🇷", country="Türkiye"         },
+    { code="ta",  name="தமிழ்",          sub="Tâmil",        flag="🇮🇳", country="India"           },
+    { code="ko",  name="한국어",          sub="Coreano",      flag="🇰🇷", country="대한민국"         },
+    { code="fr",  name="Français",       sub="Francês",      flag="🇫🇷", country="France"          },
+    { code="de",  name="Deutsch",        sub="Alemão",       flag="🇩🇪", country="Deutschland"     },
+    { code="vi",  name="Tiếng Việt",     sub="Vietnamita",   flag="🇻🇳", country="Việt Nam"        },
+    { code="ur",  name="اردو",           sub="Urdu",         flag="🇵🇰", country="Pakistan"        },
+    { code="yue", name="粵語",            sub="Cantonês",     flag="🇭🇰", country="Hong Kong"       },
+    { code="it",  name="Italiano",       sub="Italiano",     flag="🇮🇹", country="Italia"          },
+    { code="fa",  name="فارسی",          sub="Persa",        flag="🇮🇷", country="ایران"           },
+    { code="ms",  name="Bahasa Melayu",  sub="Malaio",       flag="🇲🇾", country="Malaysia"        },
+    { code="ar",  name="العربية",        sub="Árabe",        flag="🇸🇦", country="السعودية"        },
+    { code="id",  name="Indonesia",      sub="Indonésio",    flag="🇮🇩", country="Indonesia"       },
+    { code="tl",  name="Filipino",       sub="Filipino",     flag="🇵🇭", country="Pilipinas"       },
+}
+
+-- ──────────────────────────────────────────────────────────────────
+--  DICIONÁRIO DE TRADUÇÕES
+-- ──────────────────────────────────────────────────────────────────
+local T = {
+    pt = {
+        tab_Info="Info", tab_Status="Status", tab_Farm="Farm",
+        tab_Esp="ESP", tab_Bring="Bring", tab_AvancadoFarm="Avançado Farm",
+        tab_Player="Player", tab_Configuracoes="Configurações", tab_AvancadoFuncoes="Avançado Funções",
+        grp_GERAL="GERAL", grp_COMBATE="COMBATE", grp_EXTRA="EXTRA",
+        idiomas_btn="Idiomas", idiomas_title="🌐  Selecionar Idioma",
+        playing="🎮  Jogando 99 Nights in the Forest",
+        dados_label="Dados",
+        rejoin="🔄  REJOIN SERVER",
+        boost_ultra="⚡ Booster Ultra", boost_fx="🎨 Remover Efeitos",
+        boost_npc="👻 Remover NPCs", boost_lag="🧹 Limpar Lag Total",
+        sec_vel="⚡ VELOCIDADE & PULO", sec_voo="✈️ VOO & NOCLIP", sec_util="🔧 UTILIDADES",
+        sec_combat="🎯 COMBATE AUTOMÁTICO",
+        speed_label="⚡ Speed", speed_desc="Velocidade de caminhada (padrão: 16)",
+        jump_label="🦘 Jump Power", jump_desc="Altura do pulo (padrão: 50)",
+        fly_label="✈️ Fly", fly_desc="W/A/S/D mover  •  Espaço=subir  •  Ctrl=descer",
+        noclip_label="👻 Noclip", noclip_desc="Atravessa paredes  •  Anti-void Y=-100",
+        tpclick_label="⚡ TP Click", tpclick_desc="Clique em qualquer lugar para teleportar",
+        bau_label="📦 Baú ANC", bau_desc="Baús abrem instantaneamente",
+        aimbot_label="🎯 Aimbot (Teleguiado)", aimbot_desc="Projéteis se movem para o animal mais próximo",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Com arma ranged equipada: atira sozinho nos animais",
+        sec_esp_ent="ESP — Entidades", sec_esp_rec="ESP — Recursos & Combustível",
+        sec_esp_com="ESP — Comida & Natureza", sec_esp_eqp="ESP — Equipamentos",
+        sec_br_comb="BRING — Combustível & Recursos", sec_br_com="BRING — Comida & Natureza",
+        sec_br_eqp="BRING — Equipamentos", sec_br_esp="BRING — Especiais",
+    },
+    en = {
+        tab_Info="Info", tab_Status="Status", tab_Farm="Farm",
+        tab_Esp="ESP", tab_Bring="Bring", tab_AvancadoFarm="Advanced Farm",
+        tab_Player="Player", tab_Configuracoes="Settings", tab_AvancadoFuncoes="Advanced Functions",
+        grp_GERAL="GENERAL", grp_COMBATE="COMBAT", grp_EXTRA="EXTRA",
+        idiomas_btn="Language", idiomas_title="🌐  Select Language",
+        playing="🎮  Playing 99 Nights in the Forest",
+        dados_label="Info",
+        rejoin="🔄  REJOIN SERVER",
+        boost_ultra="⚡ Ultra Booster", boost_fx="🎨 Remove Effects",
+        boost_npc="👻 Remove NPCs", boost_lag="🧹 Clear All Lag",
+        sec_vel="⚡ SPEED & JUMP", sec_voo="✈️ FLY & NOCLIP", sec_util="🔧 UTILITIES",
+        sec_combat="🎯 AUTO COMBAT",
+        speed_label="⚡ Speed", speed_desc="Walking speed (default: 16)",
+        jump_label="🦘 Jump Power", jump_desc="Jump height (default: 50)",
+        fly_label="✈️ Fly", fly_desc="W/A/S/D move  •  Space=up  •  Ctrl=down",
+        noclip_label="👻 Noclip", noclip_desc="Walk through walls  •  Anti-void Y=-100",
+        tpclick_label="⚡ TP Click", tpclick_desc="Click anywhere to teleport",
+        bau_label="📦 Chest ANC", bau_desc="Chests open instantly",
+        aimbot_label="🎯 Aimbot (Homing)", aimbot_desc="Projectiles move toward the nearest animal",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="With ranged weapon: auto-shoots animals",
+        sec_esp_ent="ESP — Entities", sec_esp_rec="ESP — Resources & Fuel",
+        sec_esp_com="ESP — Food & Nature", sec_esp_eqp="ESP — Equipment",
+        sec_br_comb="BRING — Fuel & Resources", sec_br_com="BRING — Food & Nature",
+        sec_br_eqp="BRING — Equipment", sec_br_esp="BRING — Specials",
+    },
+    zh = {
+        tab_Info="信息", tab_Status="状态", tab_Farm="农场",
+        tab_Esp="透视", tab_Bring="拉取", tab_AvancadoFarm="高级农场",
+        tab_Player="玩家", tab_Configuracoes="设置", tab_AvancadoFuncoes="高级功能",
+        grp_GERAL="常规", grp_COMBATE="战斗", grp_EXTRA="额外",
+        idiomas_btn="语言", idiomas_title="🌐  选择语言",
+        playing="🎮  正在玩 99 Nights in the Forest",
+        dados_label="数据",
+        rejoin="🔄  重新加入服务器",
+        boost_ultra="⚡ 超级加速", boost_fx="🎨 移除特效",
+        boost_npc="👻 移除NPC", boost_lag="🧹 清除延迟",
+        sec_vel="⚡ 速度和跳跃", sec_voo="✈️ 飞行和穿墙", sec_util="🔧 工具",
+        sec_combat="🎯 自动战斗",
+        speed_label="⚡ 速度", speed_desc="行走速度（默认：16）",
+        jump_label="🦘 跳跃力", jump_desc="跳跃高度（默认：50）",
+        fly_label="✈️ 飞行", fly_desc="W/A/S/D移动  •  空格=上升  •  Ctrl=下降",
+        noclip_label="👻 穿墙", noclip_desc="穿过墙壁  •  防坠落 Y=-100",
+        tpclick_label="⚡ 点击传送", tpclick_desc="点击任意位置传送",
+        bau_label="📦 箱子加速", bau_desc="箱子瞬间打开",
+        aimbot_label="🎯 自动瞄准", aimbot_desc="投射物自动追踪最近的动物",
+        aimbotauto_label="🤖 自动射击", aimbotauto_desc="远程武器自动射击动物",
+        sec_esp_ent="透视 — 实体", sec_esp_rec="透视 — 资源和燃料",
+        sec_esp_com="透视 — 食物和自然", sec_esp_eqp="透视 — 装备",
+        sec_br_comb="拉取 — 燃料和资源", sec_br_com="拉取 — 食物和自然",
+        sec_br_eqp="拉取 — 装备", sec_br_esp="拉取 — 特殊",
+    },
+    es = {
+        tab_Info="Info", tab_Status="Estado", tab_Farm="Granja",
+        tab_Esp="ESP", tab_Bring="Traer", tab_AvancadoFarm="Granja Avanzada",
+        tab_Player="Jugador", tab_Configuracoes="Configuración", tab_AvancadoFuncoes="Funciones Avanzadas",
+        grp_GERAL="GENERAL", grp_COMBATE="COMBATE", grp_EXTRA="EXTRA",
+        idiomas_btn="Idioma", idiomas_title="🌐  Seleccionar Idioma",
+        playing="🎮  Jugando 99 Nights in the Forest",
+        dados_label="Datos",
+        rejoin="🔄  REJOIN SERVER",
+        boost_ultra="⚡ Booster Ultra", boost_fx="🎨 Quitar Efectos",
+        boost_npc="👻 Quitar NPCs", boost_lag="🧹 Limpiar Lag",
+        sec_vel="⚡ VELOCIDAD & SALTO", sec_voo="✈️ VUELO & NOCLIP", sec_util="🔧 UTILIDADES",
+        sec_combat="🎯 COMBATE AUTOMÁTICO",
+        speed_label="⚡ Velocidad", speed_desc="Velocidad de caminar (defecto: 16)",
+        jump_label="🦘 Salto", jump_desc="Altura de salto (defecto: 50)",
+        fly_label="✈️ Volar", fly_desc="W/A/S/D mover  •  Espacio=subir  •  Ctrl=bajar",
+        noclip_label="👻 Noclip", noclip_desc="Atraviesa paredes  •  Anti-vacío Y=-100",
+        tpclick_label="⚡ TP Clic", tpclick_desc="Haz clic en cualquier lugar para teletransportarte",
+        bau_label="📦 Cofre RÁP", bau_desc="Los cofres se abren instantáneamente",
+        aimbot_label="🎯 Aimbot (Guiado)", aimbot_desc="Proyectiles se mueven al animal más cercano",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Con arma ranged: dispara solo a animales",
+        sec_esp_ent="ESP — Entidades", sec_esp_rec="ESP — Recursos & Combustible",
+        sec_esp_com="ESP — Comida & Naturaleza", sec_esp_eqp="ESP — Equipamiento",
+        sec_br_comb="BRING — Combustible & Recursos", sec_br_com="BRING — Comida & Naturaleza",
+        sec_br_eqp="BRING — Equipamiento", sec_br_esp="BRING — Especiales",
+    },
+    hi = {
+        tab_Info="जानकारी", tab_Status="स्थिति", tab_Farm="फ़ार्म",
+        tab_Esp="ESP", tab_Bring="लाना", tab_AvancadoFarm="उन्नत फ़ार्म",
+        tab_Player="खिलाड़ी", tab_Configuracoes="सेटिंग्स", tab_AvancadoFuncoes="उन्नत फ़ंक्शन",
+        grp_GERAL="सामान्य", grp_COMBATE="युद्ध", grp_EXTRA="अतिरिक्त",
+        idiomas_btn="भाषा", idiomas_title="🌐  भाषा चुनें",
+        playing="🎮  खेल रहे हैं 99 Nights in the Forest",
+        dados_label="डेटा",
+        rejoin="🔄  सर्वर पुनः जॉइन",
+        boost_ultra="⚡ अल्ट्रा बूस्टर", boost_fx="🎨 प्रभाव हटाएं",
+        boost_npc="👻 NPC हटाएं", boost_lag="🧹 लैग साफ़ करें",
+        sec_vel="⚡ गति और कूद", sec_voo="✈️ उड़ान और नोक्लिप", sec_util="🔧 सरंजाम",
+        sec_combat="🎯 स्वचालित युद्ध",
+        speed_label="⚡ गति", speed_desc="चलने की गति (डिफ़ॉल्ट: 16)",
+        jump_label="🦘 कूद शक्ति", jump_desc="कूद की ऊंचाई (डिफ़ॉल्ट: 50)",
+        fly_label="✈️ उड़ना", fly_desc="W/A/S/D चलें  •  Space=ऊपर  •  Ctrl=नीचे",
+        noclip_label="👻 नोक्लिप", noclip_desc="दीवारों से गुज़रें  •  Anti-void Y=-100",
+        tpclick_label="⚡ क्लिक टेलीपोर्ट", tpclick_desc="कहीं भी क्लिक करके टेलीपोर्ट करें",
+        bau_label="📦 तुरंत बक्सा", bau_desc="बक्से तुरंत खुलते हैं",
+        aimbot_label="🎯 ऑटो निशाना", aimbot_desc="गोलियाँ निकटतम जानवर की ओर जाती हैं",
+        aimbotauto_label="🤖 ऑटो शूट", aimbotauto_desc="रेंज्ड हथियार से अपने आप गोली चलाता है",
+        sec_esp_ent="ESP — प्राणी", sec_esp_rec="ESP — संसाधन और ईंधन",
+        sec_esp_com="ESP — भोजन और प्रकृति", sec_esp_eqp="ESP — उपकरण",
+        sec_br_comb="BRING — ईंधन और संसाधन", sec_br_com="BRING — भोजन और प्रकृति",
+        sec_br_eqp="BRING — उपकरण", sec_br_esp="BRING — विशेष",
+    },
+    bn = {
+        tab_Info="তথ্য", tab_Status="অবস্থা", tab_Farm="ফার্ম",
+        tab_Esp="ESP", tab_Bring="আনা", tab_AvancadoFarm="উন্নত ফার্ম",
+        tab_Player="খেলোয়াড়", tab_Configuracoes="সেটিংস", tab_AvancadoFuncoes="উন্নত কার্যাবলী",
+        grp_GERAL="সাধারণ", grp_COMBATE="যুদ্ধ", grp_EXTRA="অতিরিক্ত",
+        idiomas_btn="ভাষা", idiomas_title="🌐  ভাষা নির্বাচন করুন",
+        playing="🎮  খেলছেন 99 Nights in the Forest",
+        dados_label="তথ্য",
+        rejoin="🔄  সার্ভারে পুনরায় যোগ দিন",
+        boost_ultra="⚡ আল্ট্রা বুস্টার", boost_fx="🎨 ইফেক্ট সরান",
+        boost_npc="👻 NPC সরান", boost_lag="🧹 ল্যাগ পরিষ্কার",
+        sec_vel="⚡ গতি ও লাফ", sec_voo="✈️ উড়ান ও নোক্লিপ", sec_util="🔧 সরঞ্জাম",
+        sec_combat="🎯 স্বয়ংক্রিয় যুদ্ধ",
+        speed_label="⚡ গতি", speed_desc="হাঁটার গতি (ডিফল্ট: 16)",
+        jump_label="🦘 লাফের শক্তি", jump_desc="লাফের উচ্চতা (ডিফল্ট: 50)",
+        fly_label="✈️ উড়া", fly_desc="W/A/S/D চলুন  •  Space=উপরে  •  Ctrl=নিচে",
+        noclip_label="👻 নোক্লিপ", noclip_desc="দেয়াল ভেদ করুন  •  Y=-100",
+        tpclick_label="⚡ ক্লিক টেলিপোর্ট", tpclick_desc="যেকোনো জায়গায় ক্লিক করে যান",
+        bau_label="📦 তাৎক্ষণিক বাক্স", bau_desc="বাক্স তাৎক্ষণিক খোলে",
+        aimbot_label="🎯 অটো এইম", aimbot_desc="বুলেট নিকটতম প্রাণীর দিকে যায়",
+        aimbotauto_label="🤖 অটো শুট", aimbotauto_desc="রেঞ্জড অস্ত্র দিয়ে স্বয়ংক্রিয়ভাবে গুলি",
+        sec_esp_ent="ESP — সত্তা", sec_esp_rec="ESP — সম্পদ ও জ্বালানি",
+        sec_esp_com="ESP — খাদ্য ও প্রকৃতি", sec_esp_eqp="ESP — সরঞ্জাম",
+        sec_br_comb="BRING — জ্বালানি ও সম্পদ", sec_br_com="BRING — খাদ্য ও প্রকৃতি",
+        sec_br_eqp="BRING — সরঞ্জাম", sec_br_esp="BRING — বিশেষ",
+    },
+    ru = {
+        tab_Info="Инфо", tab_Status="Статус", tab_Farm="Фарм",
+        tab_Esp="ESP", tab_Bring="Притянуть", tab_AvancadoFarm="Продвинутый Фарм",
+        tab_Player="Игрок", tab_Configuracoes="Настройки", tab_AvancadoFuncoes="Продвинутые Функции",
+        grp_GERAL="ОБЩЕЕ", grp_COMBATE="БОЙ", grp_EXTRA="ДОПОЛНИТЕЛЬНО",
+        idiomas_btn="Язык", idiomas_title="🌐  Выбрать Язык",
+        playing="🎮  Играет в 99 Nights in the Forest",
+        dados_label="Данные",
+        rejoin="🔄  ПЕРЕПОДКЛЮЧИТЬСЯ",
+        boost_ultra="⚡ Ультра Ускоритель", boost_fx="🎨 Убрать Эффекты",
+        boost_npc="👻 Убрать NPC", boost_lag="🧹 Очистить Лаг",
+        sec_vel="⚡ СКОРОСТЬ & ПРЫЖОК", sec_voo="✈️ ПОЛЁТ & НОКЛИП", sec_util="🔧 УТИЛИТЫ",
+        sec_combat="🎯 АВТО БОЙ",
+        speed_label="⚡ Скорость", speed_desc="Скорость ходьбы (по умолч.: 16)",
+        jump_label="🦘 Прыжок", jump_desc="Высота прыжка (по умолч.: 50)",
+        fly_label="✈️ Полёт", fly_desc="W/A/S/D движение  •  Пробел=вверх  •  Ctrl=вниз",
+        noclip_label="👻 Ноклип", noclip_desc="Сквозь стены  •  Anti-void Y=-100",
+        tpclick_label="⚡ ТП Клик", tpclick_desc="Нажмите в любом месте для телепортации",
+        bau_label="📦 Быстрый Сундук", bau_desc="Сундуки открываются мгновенно",
+        aimbot_label="🎯 Аймбот (Наводящий)", aimbot_desc="Снаряды летят к ближайшему животному",
+        aimbotauto_label="🤖 Аймбот АВТО", aimbotauto_desc="С дальнобойным: автоматически стреляет",
+        sec_esp_ent="ESP — Сущности", sec_esp_rec="ESP — Ресурсы и Топливо",
+        sec_esp_com="ESP — Еда и Природа", sec_esp_eqp="ESP — Снаряжение",
+        sec_br_comb="BRING — Топливо и Ресурсы", sec_br_com="BRING — Еда и Природа",
+        sec_br_eqp="BRING — Снаряжение", sec_br_esp="BRING — Особые",
+    },
+    ja = {
+        tab_Info="情報", tab_Status="ステータス", tab_Farm="ファーム",
+        tab_Esp="ESP", tab_Bring="引き寄せ", tab_AvancadoFarm="上級ファーム",
+        tab_Player="プレイヤー", tab_Configuracoes="設定", tab_AvancadoFuncoes="上級機能",
+        grp_GERAL="一般", grp_COMBATE="戦闘", grp_EXTRA="追加",
+        idiomas_btn="言語", idiomas_title="🌐  言語を選択",
+        playing="🎮  99 Nights in the Forest でプレイ中",
+        dados_label="データ",
+        rejoin="🔄  サーバー再参加",
+        boost_ultra="⚡ ウルトラブースター", boost_fx="🎨 エフェクト削除",
+        boost_npc="👻 NPC削除", boost_lag="🧹 ラグ解消",
+        sec_vel="⚡ 速度 & ジャンプ", sec_voo="✈️ 飛行 & ノークリップ", sec_util="🔧 ユーティリティ",
+        sec_combat="🎯 自動戦闘",
+        speed_label="⚡ 速度", speed_desc="移動速度（デフォルト：16）",
+        jump_label="🦘 ジャンプ力", jump_desc="ジャンプの高さ（デフォルト：50）",
+        fly_label="✈️ 飛行", fly_desc="W/A/S/D 移動  •  スペース=上昇  •  Ctrl=下降",
+        noclip_label="👻 ノークリップ", noclip_desc="壁を通り抜ける  •  Y=-100",
+        tpclick_label="⚡ クリックTP", tpclick_desc="どこでもクリックでテレポート",
+        bau_label="📦 即時チェスト", bau_desc="チェストが即座に開く",
+        aimbot_label="🎯 エイムボット", aimbot_desc="弾丸が最寄りの動物に向かう",
+        aimbotauto_label="🤖 自動射撃", aimbotauto_desc="遠距離武器で自動的に射撃",
+        sec_esp_ent="ESP — 生き物", sec_esp_rec="ESP — 資源と燃料",
+        sec_esp_com="ESP — 食べ物と自然", sec_esp_eqp="ESP — 装備",
+        sec_br_comb="BRING — 燃料と資源", sec_br_com="BRING — 食べ物と自然",
+        sec_br_eqp="BRING — 装備", sec_br_esp="BRING — 特殊",
+    },
+    pa = {
+        tab_Info="ਜਾਣਕਾਰੀ", tab_Status="ਸਥਿਤੀ", tab_Farm="ਖੇਤ",
+        tab_Esp="ESP", tab_Bring="ਲਿਆਓ", tab_AvancadoFarm="ਉੱਨਤ ਖੇਤ",
+        tab_Player="ਖਿਡਾਰੀ", tab_Configuracoes="ਸੈਟਿੰਗਾਂ", tab_AvancadoFuncoes="ਉੱਨਤ ਕਾਰਜ",
+        grp_GERAL="ਆਮ", grp_COMBATE="ਯੁੱਧ", grp_EXTRA="ਵਾਧੂ",
+        idiomas_btn="ਭਾਸ਼ਾ", idiomas_title="🌐  ਭਾਸ਼ਾ ਚੁਣੋ",
+        playing="🎮  99 Nights in the Forest ਖੇਡ ਰਿਹਾ ਹੈ",
+        dados_label="ਡੇਟਾ",
+        rejoin="🔄  ਦੁਬਾਰਾ ਜੁੜੋ",
+        boost_ultra="⚡ ਅਲਟਰਾ ਬੂਸਟਰ", boost_fx="🎨 ਪ੍ਰਭਾਵ ਹਟਾਓ",
+        boost_npc="👻 NPC ਹਟਾਓ", boost_lag="🧹 ਲੈਗ ਸਾਫ਼ ਕਰੋ",
+        sec_vel="⚡ ਰਫ਼ਤਾਰ ਅਤੇ ਛਾਲ", sec_voo="✈️ ਉਡਾਣ ਅਤੇ ਨੋਕਲਿਪ", sec_util="🔧 ਔਜ਼ਾਰ",
+        sec_combat="🎯 ਆਟੋਮੈਟਿਕ ਯੁੱਧ",
+        speed_label="⚡ ਰਫ਼ਤਾਰ", speed_desc="ਤੁਰਨ ਦੀ ਰਫ਼ਤਾਰ (ਡਿਫੌਲਟ: 16)",
+        jump_label="🦘 ਛਾਲ ਸ਼ਕਤੀ", jump_desc="ਛਾਲ ਦੀ ਉਚਾਈ (ਡਿਫੌਲਟ: 50)",
+        fly_label="✈️ ਉੱਡਣਾ", fly_desc="W/A/S/D ਹਿੱਲਣਾ  •  Space=ਉੱਪਰ  •  Ctrl=ਹੇਠਾਂ",
+        noclip_label="👻 ਨੋਕਲਿਪ", noclip_desc="ਕੰਧਾਂ ਵਿੱਚੋਂ ਲੰਘੋ  •  Y=-100",
+        tpclick_label="⚡ ਕਲਿੱਕ ਟੈਲੀਪੋਰਟ", tpclick_desc="ਕਿਤੇ ਵੀ ਕਲਿੱਕ ਕਰੋ ਟੈਲੀਪੋਰਟ ਲਈ",
+        bau_label="📦 ਤੁਰੰਤ ਬਕਸਾ", bau_desc="ਬਕਸੇ ਤੁਰੰਤ ਖੁੱਲ੍ਹਦੇ ਹਨ",
+        aimbot_label="🎯 ਆਟੋ ਨਿਸ਼ਾਨਾ", aimbot_desc="ਗੋਲੀਆਂ ਨੇੜੇ ਦੇ ਜਾਨਵਰ ਵੱਲ ਜਾਂਦੀਆਂ ਹਨ",
+        aimbotauto_label="🤖 ਆਟੋ ਸ਼ੂਟ", aimbotauto_desc="ਰੇਂਜਡ ਹਥਿਆਰ ਨਾਲ ਆਪਣੇ ਆਪ ਗੋਲੀ ਚਲਾਉਂਦਾ ਹੈ",
+        sec_esp_ent="ESP — ਜੀਵ", sec_esp_rec="ESP — ਸਰੋਤ ਅਤੇ ਈਂਧਨ",
+        sec_esp_com="ESP — ਭੋਜਨ ਅਤੇ ਕੁਦਰਤ", sec_esp_eqp="ESP — ਸਾਜ਼ੋ ਸਾਮਾਨ",
+        sec_br_comb="BRING — ਈਂਧਨ ਅਤੇ ਸਰੋਤ", sec_br_com="BRING — ਭੋਜਨ ਅਤੇ ਕੁਦਰਤ",
+        sec_br_eqp="BRING — ਸਾਜ਼ੋ ਸਾਮਾਨ", sec_br_esp="BRING — ਵਿਸ਼ੇਸ਼",
+    },
+    mr = {
+        tab_Info="माहिती", tab_Status="स्थिती", tab_Farm="शेत",
+        tab_Esp="ESP", tab_Bring="आणणे", tab_AvancadoFarm="प्रगत शेत",
+        tab_Player="खेळाडू", tab_Configuracoes="सेटिंग्ज", tab_AvancadoFuncoes="प्रगत कार्ये",
+        grp_GERAL="सामान्य", grp_COMBATE="युद्ध", grp_EXTRA="अतिरिक्त",
+        idiomas_btn="भाषा", idiomas_title="🌐  भाषा निवडा",
+        playing="🎮  खेळत आहे 99 Nights in the Forest",
+        dados_label="डेटा",
+        rejoin="🔄  पुन्हा जॉइन करा",
+        boost_ultra="⚡ अल्ट्रा बूस्टर", boost_fx="🎨 प्रभाव काढा",
+        boost_npc="👻 NPC काढा", boost_lag="🧹 लॅग साफ करा",
+        sec_vel="⚡ वेग आणि उडी", sec_voo="✈️ उड्डाण आणि नोक्लिप", sec_util="🔧 साधने",
+        sec_combat="🎯 स्वयंचलित युद्ध",
+        speed_label="⚡ वेग", speed_desc="चालण्याचा वेग (डीफॉल्ट: 16)",
+        jump_label="🦘 उडी शक्ती", jump_desc="उडीची उंची (डीफॉल्ट: 50)",
+        fly_label="✈️ उडणे", fly_desc="W/A/S/D हलवा  •  Space=वर  •  Ctrl=खाली",
+        noclip_label="👻 नोक्लिप", noclip_desc="भिंतींमधून जा  •  Y=-100",
+        tpclick_label="⚡ क्लिक टेलिपोर्ट", tpclick_desc="कुठेही क्लिक करा टेलिपोर्टसाठी",
+        bau_label="📦 तात्काळ बॉक्स", bau_desc="बॉक्स तात्काळ उघडतात",
+        aimbot_label="🎯 ऑटो लक्ष्य", aimbot_desc="गोळ्या जवळच्या प्राण्याकडे जातात",
+        aimbotauto_label="🤖 ऑटो शूट", aimbotauto_desc="रेंज्ड शस्त्राने स्वयंचलितपणे गोळी झाडतो",
+        sec_esp_ent="ESP — सत्ता", sec_esp_rec="ESP — साधनसंपत्ती आणि इंधन",
+        sec_esp_com="ESP — अन्न आणि निसर्ग", sec_esp_eqp="ESP — उपकरणे",
+        sec_br_comb="BRING — इंधन आणि साधनसंपत्ती", sec_br_com="BRING — अन्न आणि निसर्ग",
+        sec_br_eqp="BRING — उपकरणे", sec_br_esp="BRING — विशेष",
+    },
+    te = {
+        tab_Info="సమాచారం", tab_Status="స్థితి", tab_Farm="వ్యవసాయం",
+        tab_Esp="ESP", tab_Bring="తీసుకురండి", tab_AvancadoFarm="అధునాతన వ్యవసాయం",
+        tab_Player="ఆటగాడు", tab_Configuracoes="సెట్టింగులు", tab_AvancadoFuncoes="అధునాతన విధులు",
+        grp_GERAL="సాధారణ", grp_COMBATE="యుద్ధం", grp_EXTRA="అదనపు",
+        idiomas_btn="భాష", idiomas_title="🌐  భాష ఎంచుకోండి",
+        playing="🎮  99 Nights in the Forest ఆడుతున్నారు",
+        dados_label="డేటా",
+        rejoin="🔄  మళ్ళీ చేరండి",
+        boost_ultra="⚡ అల్ట్రా బూస్టర్", boost_fx="🎨 ఎఫెక్ట్స్ తొలగించు",
+        boost_npc="👻 NPC తొలగించు", boost_lag="🧹 లాగ్ శుభ్రపరచు",
+        sec_vel="⚡ వేగం & దూకు", sec_voo="✈️ ఎగురు & నోక్లిప్", sec_util="🔧 సాధనాలు",
+        sec_combat="🎯 స్వయంచాలక యుద్ధం",
+        speed_label="⚡ వేగం", speed_desc="నడక వేగం (డిఫాల్ట్: 16)",
+        jump_label="🦘 దూకు శక్తి", jump_desc="దూకు ఎత్తు (డిఫాల్ట్: 50)",
+        fly_label="✈️ ఎగురు", fly_desc="W/A/S/D కదలిక  •  Space=పైకి  •  Ctrl=కిందికి",
+        noclip_label="👻 నోక్లిప్", noclip_desc="గోడల గుండా వెళ్ళండి  •  Y=-100",
+        tpclick_label="⚡ క్లిక్ టెలిపోర్ట్", tpclick_desc="ఎక్కడైనా క్లిక్ చేయండి",
+        bau_label="📦 తక్షణ సందూకు", bau_desc="సందూకులు వెంటనే తెరుచుకుంటాయి",
+        aimbot_label="🎯 ఆటో ఎయిమ్", aimbot_desc="ప్రొజెక్టైల్స్ దగ్గరి జంతువు వైపు",
+        aimbotauto_label="🤖 ఆటో షూట్", aimbotauto_desc="రేంజ్డ్ ఆయుధంతో స్వయంచాలకంగా కాల్చుతుంది",
+        sec_esp_ent="ESP — జీవులు", sec_esp_rec="ESP — వనరులు & ఇంధనం",
+        sec_esp_com="ESP — ఆహారం & ప్రకృతి", sec_esp_eqp="ESP — పరికరాలు",
+        sec_br_comb="BRING — ఇంధనం & వనరులు", sec_br_com="BRING — ఆహారం & ప్రకృతి",
+        sec_br_eqp="BRING — పరికరాలు", sec_br_esp="BRING — ప్రత్యేక",
+    },
+    tr = {
+        tab_Info="Bilgi", tab_Status="Durum", tab_Farm="Çiftlik",
+        tab_Esp="ESP", tab_Bring="Çek", tab_AvancadoFarm="Gelişmiş Çiftlik",
+        tab_Player="Oyuncu", tab_Configuracoes="Ayarlar", tab_AvancadoFuncoes="Gelişmiş Fonksiyonlar",
+        grp_GERAL="GENEL", grp_COMBATE="SAVAŞ", grp_EXTRA="EKSTRA",
+        idiomas_btn="Dil", idiomas_title="🌐  Dil Seçin",
+        playing="🎮  99 Nights in the Forest oynuyor",
+        dados_label="Veri",
+        rejoin="🔄  SUNUCUYA YENİDEN KAT",
+        boost_ultra="⚡ Ultra Güçlendirici", boost_fx="🎨 Efektleri Kaldır",
+        boost_npc="👻 NPC Kaldır", boost_lag="🧹 Lag Temizle",
+        sec_vel="⚡ HIZ & ZIPLAMAK", sec_voo="✈️ UÇUŞ & NOCLIP", sec_util="🔧 ARAÇLAR",
+        sec_combat="🎯 OTOMATİK SAVAŞ",
+        speed_label="⚡ Hız", speed_desc="Yürüme hızı (varsayılan: 16)",
+        jump_label="🦘 Zıplama Gücü", jump_desc="Zıplama yüksekliği (varsayılan: 50)",
+        fly_label="✈️ Uçmak", fly_desc="W/A/S/D hareket  •  Boşluk=yukarı  •  Ctrl=aşağı",
+        noclip_label="👻 Noclip", noclip_desc="Duvarlardan geç  •  Anti-void Y=-100",
+        tpclick_label="⚡ Tık Işınlanma", tpclick_desc="Herhangi bir yere tıklayarak ışınlan",
+        bau_label="📦 Anlık Sandık", bau_desc="Sandıklar anında açılır",
+        aimbot_label="🎯 Aimbot (Güdümlü)", aimbot_desc="Mermiler en yakın hayvana gider",
+        aimbotauto_label="🤖 Aimbot OTO", aimbotauto_desc="Menzilli silahla otomatik ateş eder",
+        sec_esp_ent="ESP — Varlıklar", sec_esp_rec="ESP — Kaynaklar & Yakıt",
+        sec_esp_com="ESP — Yiyecek & Doğa", sec_esp_eqp="ESP — Ekipman",
+        sec_br_comb="BRING — Yakıt & Kaynaklar", sec_br_com="BRING — Yiyecek & Doğa",
+        sec_br_eqp="BRING — Ekipman", sec_br_esp="BRING — Özel",
+    },
+    ta = {
+        tab_Info="தகவல்", tab_Status="நிலை", tab_Farm="பண்ணை",
+        tab_Esp="ESP", tab_Bring="கொண்டுவா", tab_AvancadoFarm="மேம்பட்ட பண்ணை",
+        tab_Player="வீரர்", tab_Configuracoes="அமைப்புகள்", tab_AvancadoFuncoes="மேம்பட்ட செயல்பாடுகள்",
+        grp_GERAL="பொதுவான", grp_COMBATE="போர்", grp_EXTRA="கூடுதல்",
+        idiomas_btn="மொழி", idiomas_title="🌐  மொழியைத் தேர்ந்தெடுக்கவும்",
+        playing="🎮  99 Nights in the Forest விளையாடுகிறார்",
+        dados_label="தரவு",
+        rejoin="🔄  மீண்டும் சேரவும்",
+        boost_ultra="⚡ அல்ட்ரா பூஸ்டர்", boost_fx="🎨 விளைவுகளை அகற்று",
+        boost_npc="👻 NPC அகற்று", boost_lag="🧹 தாமதத்தை அகற்று",
+        sec_vel="⚡ வேகம் & தாவல்", sec_voo="✈️ பறத்தல் & நோக்லிப்", sec_util="🔧 கருவிகள்",
+        sec_combat="🎯 தானியங்கி போர்",
+        speed_label="⚡ வேகம்", speed_desc="நடைப் பயண வேகம் (இயல்புநிலை: 16)",
+        jump_label="🦘 தாவல் சக்தி", jump_desc="தாவல் உயரம் (இயல்புநிலை: 50)",
+        fly_label="✈️ பறக்க", fly_desc="W/A/S/D நகர்வு  •  Space=மேலே  •  Ctrl=கீழே",
+        noclip_label="👻 நோக்லிப்", noclip_desc="சுவர்களை ஊடுருவு  •  Y=-100",
+        tpclick_label="⚡ கிளிக் டெலிபோர்ட்", tpclick_desc="எங்கும் கிளிக் செய்து இடம்பெயரவும்",
+        bau_label="📦 உடனடி பெட்டி", bau_desc="பெட்டிகள் உடனடியாக திறக்கின்றன",
+        aimbot_label="🎯 தானியங்கி இலக்கு", aimbot_desc="ஆயுதங்கள் அருகிலுள்ள விலங்கை நோக்கி செல்கின்றன",
+        aimbotauto_label="🤖 தானியங்கி சுடுதல்", aimbotauto_desc="தொலைதூர ஆயுதத்துடன் தானாக சுடுகிறது",
+        sec_esp_ent="ESP — உயிரினங்கள்", sec_esp_rec="ESP — வளங்கள் & எரிபொருள்",
+        sec_esp_com="ESP — உணவு & இயற்கை", sec_esp_eqp="ESP — உபகரணங்கள்",
+        sec_br_comb="BRING — எரிபொருள் & வளங்கள்", sec_br_com="BRING — உணவு & இயற்கை",
+        sec_br_eqp="BRING — உபகரணங்கள்", sec_br_esp="BRING — சிறப்பு",
+    },
+    ko = {
+        tab_Info="정보", tab_Status="상태", tab_Farm="농장",
+        tab_Esp="ESP", tab_Bring="가져오기", tab_AvancadoFarm="고급 농장",
+        tab_Player="플레이어", tab_Configuracoes="설정", tab_AvancadoFuncoes="고급 기능",
+        grp_GERAL="일반", grp_COMBATE="전투", grp_EXTRA="추가",
+        idiomas_btn="언어", idiomas_title="🌐  언어 선택",
+        playing="🎮  99 Nights in the Forest 플레이 중",
+        dados_label="데이터",
+        rejoin="🔄  서버 재접속",
+        boost_ultra="⚡ 울트라 부스터", boost_fx="🎨 효과 제거",
+        boost_npc="👻 NPC 제거", boost_lag="🧹 렉 제거",
+        sec_vel="⚡ 속도 & 점프", sec_voo="✈️ 비행 & 노클립", sec_util="🔧 유틸리티",
+        sec_combat="🎯 자동 전투",
+        speed_label="⚡ 속도", speed_desc="이동 속도 (기본값: 16)",
+        jump_label="🦘 점프력", jump_desc="점프 높이 (기본값: 50)",
+        fly_label="✈️ 비행", fly_desc="W/A/S/D 이동  •  스페이스=위  •  Ctrl=아래",
+        noclip_label="👻 노클립", noclip_desc="벽 통과  •  Anti-void Y=-100",
+        tpclick_label="⚡ 클릭 텔레포트", tpclick_desc="어디든 클릭하여 순간이동",
+        bau_label="📦 즉시 상자", bau_desc="상자가 즉시 열립니다",
+        aimbot_label="🎯 에임봇 (유도)", aimbot_desc="발사체가 가장 가까운 동물로 이동",
+        aimbotauto_label="🤖 에임봇 자동", aimbotauto_desc="원거리 무기로 자동 사격",
+        sec_esp_ent="ESP — 개체", sec_esp_rec="ESP — 자원 & 연료",
+        sec_esp_com="ESP — 음식 & 자연", sec_esp_eqp="ESP — 장비",
+        sec_br_comb="BRING — 연료 & 자원", sec_br_com="BRING — 음식 & 자연",
+        sec_br_eqp="BRING — 장비", sec_br_esp="BRING — 특수",
+    },
+    fr = {
+        tab_Info="Info", tab_Status="Statut", tab_Farm="Ferme",
+        tab_Esp="ESP", tab_Bring="Attirer", tab_AvancadoFarm="Ferme Avancée",
+        tab_Player="Joueur", tab_Configuracoes="Paramètres", tab_AvancadoFuncoes="Fonctions Avancées",
+        grp_GERAL="GÉNÉRAL", grp_COMBATE="COMBAT", grp_EXTRA="EXTRA",
+        idiomas_btn="Langue", idiomas_title="🌐  Choisir la Langue",
+        playing="🎮  Joue à 99 Nights in the Forest",
+        dados_label="Données",
+        rejoin="🔄  REJOINDRE SERVEUR",
+        boost_ultra="⚡ Booster Ultra", boost_fx="🎨 Retirer Effets",
+        boost_npc="👻 Retirer NPCs", boost_lag="🧹 Nettoyer Lag",
+        sec_vel="⚡ VITESSE & SAUT", sec_voo="✈️ VOL & NOCLIP", sec_util="🔧 UTILITAIRES",
+        sec_combat="🎯 COMBAT AUTOMATIQUE",
+        speed_label="⚡ Vitesse", speed_desc="Vitesse de marche (défaut: 16)",
+        jump_label="🦘 Saut", jump_desc="Hauteur de saut (défaut: 50)",
+        fly_label="✈️ Voler", fly_desc="W/A/S/D bouger  •  Espace=monter  •  Ctrl=descendre",
+        noclip_label="👻 Noclip", noclip_desc="Traverser les murs  •  Anti-vide Y=-100",
+        tpclick_label="⚡ TP Clic", tpclick_desc="Cliquez n'importe où pour vous téléporter",
+        bau_label="📦 Coffre Rapide", bau_desc="Les coffres s'ouvrent instantanément",
+        aimbot_label="🎯 Aimbot (Guidé)", aimbot_desc="Les projectiles vont vers l'animal le plus proche",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Avec arme à distance: tire automatiquement",
+        sec_esp_ent="ESP — Entités", sec_esp_rec="ESP — Ressources & Carburant",
+        sec_esp_com="ESP — Nourriture & Nature", sec_esp_eqp="ESP — Équipement",
+        sec_br_comb="BRING — Carburant & Ressources", sec_br_com="BRING — Nourriture & Nature",
+        sec_br_eqp="BRING — Équipement", sec_br_esp="BRING — Spéciaux",
+    },
+    de = {
+        tab_Info="Info", tab_Status="Status", tab_Farm="Farm",
+        tab_Esp="ESP", tab_Bring="Holen", tab_AvancadoFarm="Erweiterte Farm",
+        tab_Player="Spieler", tab_Configuracoes="Einstellungen", tab_AvancadoFuncoes="Erweiterte Funktionen",
+        grp_GERAL="ALLGEMEIN", grp_COMBATE="KAMPF", grp_EXTRA="EXTRA",
+        idiomas_btn="Sprache", idiomas_title="🌐  Sprache Wählen",
+        playing="🎮  Spielt 99 Nights in the Forest",
+        dados_label="Daten",
+        rejoin="🔄  SERVER BEITRETEN",
+        boost_ultra="⚡ Ultra Booster", boost_fx="🎨 Effekte Entfernen",
+        boost_npc="👻 NPCs Entfernen", boost_lag="🧹 Lag Bereinigen",
+        sec_vel="⚡ GESCHWINDIGKEIT & SPRUNG", sec_voo="✈️ FLIEGEN & NOCLIP", sec_util="🔧 WERKZEUGE",
+        sec_combat="🎯 AUTOMATISCHER KAMPF",
+        speed_label="⚡ Geschwindigkeit", speed_desc="Gehgeschwindigkeit (Standard: 16)",
+        jump_label="🦘 Sprungkraft", jump_desc="Sprunghöhe (Standard: 50)",
+        fly_label="✈️ Fliegen", fly_desc="W/A/S/D bewegen  •  Leertaste=hoch  •  Ctrl=runter",
+        noclip_label="👻 Noclip", noclip_desc="Durch Wände gehen  •  Anti-Void Y=-100",
+        tpclick_label="⚡ TP Klick", tpclick_desc="Klicke überall zum Teleportieren",
+        bau_label="📦 Sofort-Truhe", bau_desc="Truhen öffnen sofort",
+        aimbot_label="🎯 Aimbot (Zielsuche)", aimbot_desc="Projektile bewegen sich zum nächsten Tier",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Mit Fernkampfwaffe: schießt automatisch",
+        sec_esp_ent="ESP — Entitäten", sec_esp_rec="ESP — Ressourcen & Treibstoff",
+        sec_esp_com="ESP — Essen & Natur", sec_esp_eqp="ESP — Ausrüstung",
+        sec_br_comb="BRING — Treibstoff & Ressourcen", sec_br_com="BRING — Essen & Natur",
+        sec_br_eqp="BRING — Ausrüstung", sec_br_esp="BRING — Besondere",
+    },
+    vi = {
+        tab_Info="Thông tin", tab_Status="Trạng thái", tab_Farm="Trang trại",
+        tab_Esp="ESP", tab_Bring="Kéo về", tab_AvancadoFarm="Trang trại nâng cao",
+        tab_Player="Người chơi", tab_Configuracoes="Cài đặt", tab_AvancadoFuncoes="Chức năng nâng cao",
+        grp_GERAL="CHUNG", grp_COMBATE="CHIẾN ĐẤU", grp_EXTRA="THÊM",
+        idiomas_btn="Ngôn ngữ", idiomas_title="🌐  Chọn Ngôn ngữ",
+        playing="🎮  Đang chơi 99 Nights in the Forest",
+        dados_label="Dữ liệu",
+        rejoin="🔄  VÀO LẠI SERVER",
+        boost_ultra="⚡ Tăng tốc Ultra", boost_fx="🎨 Xóa Hiệu ứng",
+        boost_npc="👻 Xóa NPC", boost_lag="🧹 Dọn Lag",
+        sec_vel="⚡ TỐC ĐỘ & NHẢY", sec_voo="✈️ BAY & NOCLIP", sec_util="🔧 TIỆN ÍCH",
+        sec_combat="🎯 CHIẾN ĐẤU TỰ ĐỘNG",
+        speed_label="⚡ Tốc độ", speed_desc="Tốc độ đi bộ (mặc định: 16)",
+        jump_label="🦘 Sức nhảy", jump_desc="Chiều cao nhảy (mặc định: 50)",
+        fly_label="✈️ Bay", fly_desc="W/A/S/D di chuyển  •  Space=lên  •  Ctrl=xuống",
+        noclip_label="👻 Noclip", noclip_desc="Xuyên tường  •  Anti-void Y=-100",
+        tpclick_label="⚡ TP Nhấp", tpclick_desc="Nhấp vào bất cứ đâu để dịch chuyển",
+        bau_label="📦 Rương Tức thì", bau_desc="Rương mở ngay lập tức",
+        aimbot_label="🎯 Aimbot (Dẫn đường)", aimbot_desc="Đạn di chuyển đến động vật gần nhất",
+        aimbotauto_label="🤖 Aimbot TỰ ĐỘNG", aimbotauto_desc="Với vũ khí tầm xa: tự động bắn",
+        sec_esp_ent="ESP — Thực thể", sec_esp_rec="ESP — Tài nguyên & Nhiên liệu",
+        sec_esp_com="ESP — Thức ăn & Thiên nhiên", sec_esp_eqp="ESP — Thiết bị",
+        sec_br_comb="BRING — Nhiên liệu & Tài nguyên", sec_br_com="BRING — Thức ăn & Thiên nhiên",
+        sec_br_eqp="BRING — Thiết bị", sec_br_esp="BRING — Đặc biệt",
+    },
+    ur = {
+        tab_Info="معلومات", tab_Status="حالت", tab_Farm="فارم",
+        tab_Esp="ESP", tab_Bring="لانا", tab_AvancadoFarm="ایڈوانسڈ فارم",
+        tab_Player="کھلاڑی", tab_Configuracoes="ترتیبات", tab_AvancadoFuncoes="ایڈوانسڈ فنکشن",
+        grp_GERAL="عمومی", grp_COMBATE="جنگ", grp_EXTRA="اضافی",
+        idiomas_btn="زبان", idiomas_title="🌐  زبان منتخب کریں",
+        playing="🎮  کھیل رہے ہیں 99 Nights in the Forest",
+        dados_label="ڈیٹا",
+        rejoin="🔄  دوبارہ جوائن کریں",
+        boost_ultra="⚡ الٹرا بوسٹر", boost_fx="🎨 اثرات ہٹائیں",
+        boost_npc="👻 NPC ہٹائیں", boost_lag="🧹 لیگ صاف کریں",
+        sec_vel="⚡ رفتار اور چھلانگ", sec_voo="✈️ اڑان اور نوکلپ", sec_util="🔧 ٹولز",
+        sec_combat="🎯 خودکار جنگ",
+        speed_label="⚡ رفتار", speed_desc="چلنے کی رفتار (پہلے سے طے: 16)",
+        jump_label="🦘 چھلانگ", jump_desc="چھلانگ کی اونچائی (پہلے سے طے: 50)",
+        fly_label="✈️ اڑنا", fly_desc="W/A/S/D چلیں  •  Space=اوپر  •  Ctrl=نیچے",
+        noclip_label="👻 نوکلپ", noclip_desc="دیواروں سے گزریں  •  Y=-100",
+        tpclick_label="⚡ کلک ٹیلی پورٹ", tpclick_desc="کہیں بھی کلک کریں ٹیلی پورٹ کے لیے",
+        bau_label="📦 فوری صندوق", bau_desc="صندوق فوری کھلتے ہیں",
+        aimbot_label="🎯 آٹو نشانہ", aimbot_desc="گولے قریبی جانور کی طرف جاتے ہیں",
+        aimbotauto_label="🤖 آٹو شوٹ", aimbotauto_desc="رینجڈ ہتھیار سے خودبخود گولی چلاتا ہے",
+        sec_esp_ent="ESP — جاندار", sec_esp_rec="ESP — وسائل اور ایندھن",
+        sec_esp_com="ESP — خوراک اور فطرت", sec_esp_eqp="ESP — سازوسامان",
+        sec_br_comb="BRING — ایندھن اور وسائل", sec_br_com="BRING — خوراک اور فطرت",
+        sec_br_eqp="BRING — سازوسامان", sec_br_esp="BRING — خاص",
+    },
+    yue = {
+        tab_Info="資料", tab_Status="狀態", tab_Farm="農場",
+        tab_Esp="透視", tab_Bring="拉取", tab_AvancadoFarm="高級農場",
+        tab_Player="玩家", tab_Configuracoes="設定", tab_AvancadoFuncoes="高級功能",
+        grp_GERAL="一般", grp_COMBATE="戰鬥", grp_EXTRA="額外",
+        idiomas_btn="語言", idiomas_title="🌐  揀語言",
+        playing="🎮  緊玩 99 Nights in the Forest",
+        dados_label="數據",
+        rejoin="🔄  重新加入",
+        boost_ultra="⚡ 超級加速", boost_fx="🎨 移除特效",
+        boost_npc="👻 移除NPC", boost_lag="🧹 清除延遲",
+        sec_vel="⚡ 速度同跳躍", sec_voo="✈️ 飛行同穿牆", sec_util="🔧 工具",
+        sec_combat="🎯 自動戰鬥",
+        speed_label="⚡ 速度", speed_desc="行路速度（預設：16）",
+        jump_label="🦘 跳躍力", jump_desc="跳躍高度（預設：50）",
+        fly_label="✈️ 飛行", fly_desc="W/A/S/D移動  •  空格升高  •  Ctrl下降",
+        noclip_label="👻 穿牆", noclip_desc="穿過牆壁  •  Y=-100",
+        tpclick_label="⚡ 點擊傳送", tpclick_desc="點擊任何地方傳送",
+        bau_label="📦 即時寶箱", bau_desc="寶箱即刻打開",
+        aimbot_label="🎯 自動瞄準", aimbot_desc="彈丸自動追蹤最近嘅動物",
+        aimbotauto_label="🤖 自動射擊", aimbotauto_desc="用遠程武器自動射擊動物",
+        sec_esp_ent="透視 — 實體", sec_esp_rec="透視 — 資源同燃料",
+        sec_esp_com="透視 — 食物同自然", sec_esp_eqp="透視 — 裝備",
+        sec_br_comb="拉取 — 燃料同資源", sec_br_com="拉取 — 食物同自然",
+        sec_br_eqp="拉取 — 裝備", sec_br_esp="拉取 — 特殊",
+    },
+    it = {
+        tab_Info="Info", tab_Status="Stato", tab_Farm="Fattoria",
+        tab_Esp="ESP", tab_Bring="Attira", tab_AvancadoFarm="Fattoria Avanzata",
+        tab_Player="Giocatore", tab_Configuracoes="Impostazioni", tab_AvancadoFuncoes="Funzioni Avanzate",
+        grp_GERAL="GENERALE", grp_COMBATE="COMBATTIMENTO", grp_EXTRA="EXTRA",
+        idiomas_btn="Lingua", idiomas_title="🌐  Seleziona Lingua",
+        playing="🎮  Gioca a 99 Nights in the Forest",
+        dados_label="Dati",
+        rejoin="🔄  RICONNETTI SERVER",
+        boost_ultra="⚡ Booster Ultra", boost_fx="🎨 Rimuovi Effetti",
+        boost_npc="👻 Rimuovi NPC", boost_lag="🧹 Pulisci Lag",
+        sec_vel="⚡ VELOCITÀ & SALTO", sec_voo="✈️ VOLO & NOCLIP", sec_util="🔧 UTILITÀ",
+        sec_combat="🎯 COMBATTIMENTO AUTOMATICO",
+        speed_label="⚡ Velocità", speed_desc="Velocità di camminata (default: 16)",
+        jump_label="🦘 Forza salto", jump_desc="Altezza salto (default: 50)",
+        fly_label="✈️ Volare", fly_desc="W/A/S/D muoversi  •  Spazio=su  •  Ctrl=giù",
+        noclip_label="👻 Noclip", noclip_desc="Attraversa i muri  •  Anti-void Y=-100",
+        tpclick_label="⚡ TP Clic", tpclick_desc="Clicca ovunque per teletrasportarti",
+        bau_label="📦 Cassa Istantanea", bau_desc="Le casse si aprono istantaneamente",
+        aimbot_label="🎯 Aimbot (Cercante)", aimbot_desc="I proiettili vanno verso l'animale più vicino",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Con arma a distanza: spara automaticamente",
+        sec_esp_ent="ESP — Entità", sec_esp_rec="ESP — Risorse & Carburante",
+        sec_esp_com="ESP — Cibo & Natura", sec_esp_eqp="ESP — Equipaggiamento",
+        sec_br_comb="BRING — Carburante & Risorse", sec_br_com="BRING — Cibo & Natura",
+        sec_br_eqp="BRING — Equipaggiamento", sec_br_esp="BRING — Speciali",
+    },
+    fa = {
+        tab_Info="اطلاعات", tab_Status="وضعیت", tab_Farm="مزرعه",
+        tab_Esp="ESP", tab_Bring="آوردن", tab_AvancadoFarm="مزرعه پیشرفته",
+        tab_Player="بازیکن", tab_Configuracoes="تنظیمات", tab_AvancadoFuncoes="عملکردهای پیشرفته",
+        grp_GERAL="عمومی", grp_COMBATE="جنگ", grp_EXTRA="اضافی",
+        idiomas_btn="زبان", idiomas_title="🌐  زبان را انتخاب کنید",
+        playing="🎮  در حال بازی 99 Nights in the Forest",
+        dados_label="داده",
+        rejoin="🔄  اتصال مجدد",
+        boost_ultra="⚡ بوستر فوق‌العاده", boost_fx="🎨 حذف افکت‌ها",
+        boost_npc="👻 حذف NPC", boost_lag="🧹 پاک‌سازی لگ",
+        sec_vel="⚡ سرعت و پرش", sec_voo="✈️ پرواز و نوکلیپ", sec_util="🔧 ابزارها",
+        sec_combat="🎯 جنگ خودکار",
+        speed_label="⚡ سرعت", speed_desc="سرعت راه رفتن (پیش‌فرض: 16)",
+        jump_label="🦘 قدرت پرش", jump_desc="ارتفاع پرش (پیش‌فرض: 50)",
+        fly_label="✈️ پرواز", fly_desc="W/A/S/D حرکت  •  Space=بالا  •  Ctrl=پایین",
+        noclip_label="👻 نوکلیپ", noclip_desc="از دیوارها عبور کن  •  Y=-100",
+        tpclick_label="⚡ تله‌پورت کلیک", tpclick_desc="هر کجا کلیک کنید تله‌پورت شوید",
+        bau_label="📦 صندوق فوری", bau_desc="صندوق‌ها فوری باز می‌شوند",
+        aimbot_label="🎯 ایم‌بات (هدایت‌شونده)", aimbot_desc="گلوله‌ها به سمت نزدیک‌ترین حیوان",
+        aimbotauto_label="🤖 ایم‌بات اتو", aimbotauto_desc="با سلاح دوربرد: به طور خودکار شلیک",
+        sec_esp_ent="ESP — موجودات", sec_esp_rec="ESP — منابع و سوخت",
+        sec_esp_com="ESP — غذا و طبیعت", sec_esp_eqp="ESP — تجهیزات",
+        sec_br_comb="BRING — سوخت و منابع", sec_br_com="BRING — غذا و طبیعت",
+        sec_br_eqp="BRING — تجهیزات", sec_br_esp="BRING — ویژه",
+    },
+    ms = {
+        tab_Info="Maklumat", tab_Status="Status", tab_Farm="Ladang",
+        tab_Esp="ESP", tab_Bring="Tarik", tab_AvancadoFarm="Ladang Lanjutan",
+        tab_Player="Pemain", tab_Configuracoes="Tetapan", tab_AvancadoFuncoes="Fungsi Lanjutan",
+        grp_GERAL="UMUM", grp_COMBATE="TEMPUR", grp_EXTRA="TAMBAHAN",
+        idiomas_btn="Bahasa", idiomas_title="🌐  Pilih Bahasa",
+        playing="🎮  Bermain 99 Nights in the Forest",
+        dados_label="Data",
+        rejoin="🔄  SERTAI SEMULA",
+        boost_ultra="⚡ Booster Ultra", boost_fx="🎨 Buang Kesan",
+        boost_npc="👻 Buang NPC", boost_lag="🧹 Bersihkan Lag",
+        sec_vel="⚡ KELAJUAN & LOMPAT", sec_voo="✈️ TERBANG & NOCLIP", sec_util="🔧 UTILITI",
+        sec_combat="🎯 TEMPUR AUTOMATIK",
+        speed_label="⚡ Kelajuan", speed_desc="Kelajuan berjalan (lalai: 16)",
+        jump_label="🦘 Kuasa Lompat", jump_desc="Ketinggian lompatan (lalai: 50)",
+        fly_label="✈️ Terbang", fly_desc="W/A/S/D bergerak  •  Space=naik  •  Ctrl=turun",
+        noclip_label="👻 Noclip", noclip_desc="Tembus dinding  •  Anti-void Y=-100",
+        tpclick_label="⚡ TP Klik", tpclick_desc="Klik di mana-mana untuk teleport",
+        bau_label="📦 Peti Segera", bau_desc="Peti dibuka serta-merta",
+        aimbot_label="🎯 Aimbot (Pencari)", aimbot_desc="Peluru bergerak ke haiwan terdekat",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Dengan senjata jarak jauh: menembak otomatis",
+        sec_esp_ent="ESP — Entiti", sec_esp_rec="ESP — Sumber & Bahan Api",
+        sec_esp_com="ESP — Makanan & Alam", sec_esp_eqp="ESP — Peralatan",
+        sec_br_comb="BRING — Bahan Api & Sumber", sec_br_com="BRING — Makanan & Alam",
+        sec_br_eqp="BRING — Peralatan", sec_br_esp="BRING — Khas",
+    },
+    ar = {
+        tab_Info="معلومات", tab_Status="الحالة", tab_Farm="زراعة",
+        tab_Esp="ESP", tab_Bring="إحضار", tab_AvancadoFarm="زراعة متقدمة",
+        tab_Player="اللاعب", tab_Configuracoes="الإعدادات", tab_AvancadoFuncoes="وظائف متقدمة",
+        grp_GERAL="عام", grp_COMBATE="قتال", grp_EXTRA="إضافي",
+        idiomas_btn="اللغة", idiomas_title="🌐  اختر اللغة",
+        playing="🎮  تلعب 99 Nights in the Forest",
+        dados_label="بيانات",
+        rejoin="🔄  إعادة الانضمام",
+        boost_ultra="⚡ مُعزز فائق", boost_fx="🎨 إزالة التأثيرات",
+        boost_npc="👻 إزالة NPC", boost_lag="🧹 تنظيف التأخر",
+        sec_vel="⚡ السرعة والقفز", sec_voo="✈️ الطيران ونوكليب", sec_util="🔧 الأدوات",
+        sec_combat="🎯 قتال تلقائي",
+        speed_label="⚡ السرعة", speed_desc="سرعة المشي (الافتراضي: 16)",
+        jump_label="🦘 قوة القفز", jump_desc="ارتفاع القفز (الافتراضي: 50)",
+        fly_label="✈️ الطيران", fly_desc="W/A/S/D تحرك  •  Space=أعلى  •  Ctrl=أسفل",
+        noclip_label="👻 نوكليب", noclip_desc="تمر عبر الجدران  •  Y=-100",
+        tpclick_label="⚡ نقر للنقل", tpclick_desc="انقر في أي مكان للانتقال الفوري",
+        bau_label="📦 صندوق سريع", bau_desc="الصناديق تفتح فوراً",
+        aimbot_label="🎯 تصويب تلقائي", aimbot_desc="المقذوفات تتجه للحيوان الأقرب",
+        aimbotauto_label="🤖 إطلاق تلقائي", aimbotauto_desc="إطلاق تلقائي على الحيوانات",
+        sec_esp_ent="ESP — كائنات", sec_esp_rec="ESP — موارد ووقود",
+        sec_esp_com="ESP — طعام وطبيعة", sec_esp_eqp="ESP — معدات",
+        sec_br_comb="BRING — وقود وموارد", sec_br_com="BRING — طعام وطبيعة",
+        sec_br_eqp="BRING — معدات", sec_br_esp="BRING — خاص",
+    },
+    id = {
+        tab_Info="Info", tab_Status="Status", tab_Farm="Farm",
+        tab_Esp="ESP", tab_Bring="Tarik", tab_AvancadoFarm="Farm Lanjutan",
+        tab_Player="Pemain", tab_Configuracoes="Pengaturan", tab_AvancadoFuncoes="Fungsi Lanjutan",
+        grp_GERAL="UMUM", grp_COMBATE="TEMPUR", grp_EXTRA="EKSTRA",
+        idiomas_btn="Bahasa", idiomas_title="🌐  Pilih Bahasa",
+        playing="🎮  Bermain 99 Nights in the Forest",
+        dados_label="Data",
+        rejoin="🔄  JOIN ULANG",
+        boost_ultra="⚡ Booster Ultra", boost_fx="🎨 Hapus Efek",
+        boost_npc="👻 Hapus NPC", boost_lag="🧹 Bersihkan Lag",
+        sec_vel="⚡ KECEPATAN & LOMPAT", sec_voo="✈️ TERBANG & NOCLIP", sec_util="🔧 UTILITAS",
+        sec_combat="🎯 TEMPUR OTOMATIS",
+        speed_label="⚡ Kecepatan", speed_desc="Kecepatan berjalan (default: 16)",
+        jump_label="🦘 Lompatan", jump_desc="Tinggi lompatan (default: 50)",
+        fly_label="✈️ Terbang", fly_desc="W/A/S/D bergerak  •  Space=naik  •  Ctrl=turun",
+        noclip_label="👻 Noclip", noclip_desc="Tembus dinding  •  Anti-void Y=-100",
+        tpclick_label="⚡ TP Klik", tpclick_desc="Klik di mana saja untuk teleport",
+        bau_label="📦 Peti Instan", bau_desc="Peti terbuka seketika",
+        aimbot_label="🎯 Aimbot (Pencari)", aimbot_desc="Proyektil bergerak ke hewan terdekat",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Dengan senjata jarak jauh: menembak otomatis",
+        sec_esp_ent="ESP — Entitas", sec_esp_rec="ESP — Sumber Daya & Bahan Bakar",
+        sec_esp_com="ESP — Makanan & Alam", sec_esp_eqp="ESP — Peralatan",
+        sec_br_comb="BRING — Bahan Bakar & Sumber Daya", sec_br_com="BRING — Makanan & Alam",
+        sec_br_eqp="BRING — Peralatan", sec_br_esp="BRING — Khusus",
+    },
+    tl = {
+        tab_Info="Impormasyon", tab_Status="Katayuan", tab_Farm="Bukid",
+        tab_Esp="ESP", tab_Bring="Kunin", tab_AvancadoFarm="Abanseng Bukid",
+        tab_Player="Manlalaro", tab_Configuracoes="Mga Setting", tab_AvancadoFuncoes="Mga Abanseng Gawain",
+        grp_GERAL="PANGKALAHATAN", grp_COMBATE="LABANAN", grp_EXTRA="KARAGDAGAN",
+        idiomas_btn="Wika", idiomas_title="🌐  Pumili ng Wika",
+        playing="🎮  Naglalaro ng 99 Nights in the Forest",
+        dados_label="Data",
+        rejoin="🔄  SUMALI ULIT",
+        boost_ultra="⚡ Ultra Booster", boost_fx="🎨 Alisin ang Epekto",
+        boost_npc="👻 Alisin ang NPC", boost_lag="🧹 Linisin ang Lag",
+        sec_vel="⚡ BILIS & TALON", sec_voo="✈️ LIPAD & NOCLIP", sec_util="🔧 MGA KAGAMITAN",
+        sec_combat="🎯 AWTOMATIKONG LABANAN",
+        speed_label="⚡ Bilis", speed_desc="Bilis ng paglalakad (default: 16)",
+        jump_label="🦘 Lakas ng Talon", jump_desc="Taas ng talon (default: 50)",
+        fly_label="✈️ Lipad", fly_desc="W/A/S/D galaw  •  Space=pataas  •  Ctrl=pababa",
+        noclip_label="👻 Noclip", noclip_desc="Tumagos sa mga dingding  •  Y=-100",
+        tpclick_label="⚡ TP Click", tpclick_desc="Mag-click kahit saan para mag-teleport",
+        bau_label="📦 Agarang Kahon", bau_desc="Mga kahon agad na bumubukas",
+        aimbot_label="🎯 Aimbot (Tagahanda)", aimbot_desc="Mga proyektil pumupunta sa pinakamalapit na hayop",
+        aimbotauto_label="🤖 Aimbot AUTO", aimbotauto_desc="Sa ranged na sandata: awtomatikong nagpapaputok",
+        sec_esp_ent="ESP — Mga Entity", sec_esp_rec="ESP — Mga Mapagkukunan & Gasolina",
+        sec_esp_com="ESP — Pagkain & Kalikasan", sec_esp_eqp="ESP — Kagamitan",
+        sec_br_comb="BRING — Gasolina & Mapagkukunan", sec_br_com="BRING — Pagkain & Kalikasan",
+        sec_br_eqp="BRING — Kagamitan", sec_br_esp="BRING — Espesyal",
+    },
+}
+
+-- ──────────────────────────────────────────────────────────────────
+--  MAPA DE TEXTO ORIGINAL → CHAVE DE TRADUÇÃO (para busca dinâmica)
+-- ──────────────────────────────────────────────────────────────────
+local TEXT_TO_KEY = {}
+local function buildTextMap(tbl)
+    for k, v in pairs(tbl) do TEXT_TO_KEY[v] = k end
+end
+buildTextMap(T["pt"])  -- mapa baseado no português original
+
+-- ──────────────────────────────────────────────────────────────────
+--  REGISTRO DE ELEMENTOS TRADUZÍVEIS
+-- ──────────────────────────────────────────────────────────────────
+local TRANS_ELEMENTS = {}  -- { {instance, transKey, isButton} }
+
+local function reg(inst, key)
+    if inst and key then table.insert(TRANS_ELEMENTS, {inst, key}) end
+end
+
+-- Registrar elementos diretos conhecidos
+reg(TitleLabel,      "title")   -- nota: "title" está nas abas, deixamos estático
+reg(infoStatusLbl,   "playing")
+reg(dadosTitleLbl,   "dados_label")
+reg(rejBtn,          "rejoin")
+reg(IdiText,         "idiomas_btn")
+
+-- Registrar labels das abas
+for _, entry in ipairs(allTabs) do
+    reg(entry.label, "tab_" .. entry.key)
+end
+
+-- Buscar e registrar elementos no SideBar (grupos) e BoostPopup
+local function scanAndRegister(root)
+    local descendants = root:GetDescendants()
+    for _, child in ipairs(descendants) do
+        if child:IsA("TextLabel") or child:IsA("TextButton") then
+            local key = TEXT_TO_KEY[child.Text]
+            if key then reg(child, key) end
+        end
+    end
+end
+
+scanAndRegister(SideBar)
+scanAndRegister(BoostPopup)
+scanAndRegister(Pages["Player"])
+scanAndRegister(Pages["AvancadoFuncoes"])
+scanAndRegister(Pages["Esp"])
+scanAndRegister(Pages["Bring"])
+
+-- ──────────────────────────────────────────────────────────────────
+--  FUNÇÃO DE APLICAR IDIOMA
+-- ──────────────────────────────────────────────────────────────────
+local function applyLanguage(code)
+    local tr = T[code]; if not tr then return end
+    currentLang = code
+    for _, entry in ipairs(TRANS_ELEMENTS) do
+        local inst, key = entry[1], entry[2]
+        if tr[key] and inst and inst.Parent then
+            pcall(function() inst.Text = tr[key] end)
+        end
+    end
+    -- Atualizar botão de idiomas
+    if tr["idiomas_btn"] then IdiText.Text = tr["idiomas_btn"] end
+end
+
+-- ──────────────────────────────────────────────────────────────────
+--  POPUP DE IDIOMAS — FRAME PRINCIPAL
+-- ──────────────────────────────────────────────────────────────────
+local LangPopup = Instance.new("Frame", ScreenGui)
+LangPopup.Name = "LangPopup"
+LangPopup.BackgroundColor3 = Color3.fromRGB(18, 19, 24)
+LangPopup.Size = UDim2.new(0, 272, 0, 0)
+LangPopup.Position = UDim2.new(0, 0, 0, 0)  -- será posicionado ao abrir
+LangPopup.Visible = false
+LangPopup.ZIndex = 300
+LangPopup.ClipsDescendants = true
+Instance.new("UICorner", LangPopup).CornerRadius = UDim.new(0, 14)
+local lpStroke = Instance.new("UIStroke", LangPopup)
+lpStroke.Color = C_ACCENT; lpStroke.Thickness = 1.5
+
+-- Header do popup
+local LPHeader = Instance.new("Frame", LangPopup)
+LPHeader.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
+LPHeader.BorderSizePixel = 0
+LPHeader.Size = UDim2.new(1, 0, 0, 46)
+LPHeader.ZIndex = 302
+Instance.new("UICorner", LPHeader).CornerRadius = UDim.new(0, 14)
+-- fix corners header bottom
+local hdrFix = Instance.new("Frame", LPHeader)
+hdrFix.BackgroundColor3 = Color3.fromRGB(24, 26, 34); hdrFix.BorderSizePixel = 0
+hdrFix.Position = UDim2.new(0, 0, 0.5, 0); hdrFix.Size = UDim2.new(1, 0, 0.5, 0); hdrFix.ZIndex = 302
+
+-- Decoração header: barra de gradiente
+local LPAccentBar = Instance.new("Frame", LPHeader)
+LPAccentBar.BackgroundColor3 = C_ACCENT; LPAccentBar.BorderSizePixel = 0
+LPAccentBar.Position = UDim2.new(0, 0, 1, -2); LPAccentBar.Size = UDim2.new(1, 0, 0, 2); LPAccentBar.ZIndex = 303
+
+local LPTitle = Instance.new("TextLabel", LPHeader)
+LPTitle.BackgroundTransparency = 1
+LPTitle.Position = UDim2.new(0, 16, 0, 0); LPTitle.Size = UDim2.new(1, -50, 1, 0)
+LPTitle.Font = Enum.Font.GothamBlack; LPTitle.Text = "🌐  Selecionar Idioma"
+LPTitle.TextColor3 = Color3.fromRGB(200, 210, 255); LPTitle.TextSize = 13
+LPTitle.TextXAlignment = Enum.TextXAlignment.Left; LPTitle.ZIndex = 304
+
+local LPCloseBtn = Instance.new("ImageButton", LPHeader)
+LPCloseBtn.BackgroundTransparency = 1
+LPCloseBtn.Position = UDim2.new(1, -36, 0.5, -10); LPCloseBtn.Size = UDim2.new(0, 20, 0, 20)
+LPCloseBtn.Image = "rbxassetid://7734053426"
+LPCloseBtn.ImageColor3 = Color3.fromRGB(130, 140, 160); LPCloseBtn.ZIndex = 305
+LPCloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(LPCloseBtn, TweenInfo.new(0.15), {ImageColor3 = Color3.fromRGB(255,80,80)}):Play()
+end)
+LPCloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(LPCloseBtn, TweenInfo.new(0.15), {ImageColor3 = Color3.fromRGB(130,140,160)}):Play()
+end)
+
+-- Separador
+local LPSep = Instance.new("Frame", LangPopup)
+LPSep.BackgroundColor3 = Color3.fromRGB(38, 41, 54); LPSep.BorderSizePixel = 0
+LPSep.Position = UDim2.new(0, 0, 0, 46); LPSep.Size = UDim2.new(1, 0, 0, 1); LPSep.ZIndex = 302
+
+-- Área de scroll das línguas
+local LPScroll = Instance.new("ScrollingFrame", LangPopup)
+LPScroll.BackgroundTransparency = 1; LPScroll.BorderSizePixel = 0
+LPScroll.Position = UDim2.new(0, 0, 0, 47)
+LPScroll.Size = UDim2.new(1, 0, 1, -47)
+LPScroll.ScrollBarThickness = 3
+LPScroll.ScrollBarImageColor3 = C_ACCENT
+LPScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+LPScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+LPScroll.ZIndex = 302
+
+local LPPad = Instance.new("UIPadding", LPScroll)
+LPPad.PaddingTop = UDim.new(0, 8); LPPad.PaddingBottom = UDim.new(0, 8)
+LPPad.PaddingLeft = UDim.new(0, 8); LPPad.PaddingRight = UDim.new(0, 8)
+
+local LPList = Instance.new("UIListLayout", LPScroll)
+LPList.Padding = UDim.new(0, 4); LPList.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- ──────────────────────────────────────────────────────────────────
+--  CRIAR ITEM DE IDIOMA NO POPUP
+-- ──────────────────────────────────────────────────────────────────
+local langItems = {}  -- para marcar selecionado visualmente
+local selectedIndicator = {}
+
+for idx, lang in ipairs(LANG_LIST) do
+    local isSelected = (lang.code == currentLang)
+
+    local row = Instance.new("Frame", LPScroll)
+    row.BackgroundColor3 = isSelected and Color3.fromRGB(40, 44, 68) or Color3.fromRGB(24, 26, 34)
+    row.BackgroundTransparency = isSelected and 0.2 or 0.5
+    row.BorderSizePixel = 0; row.Size = UDim2.new(1, 0, 0, 46); row.LayoutOrder = idx; row.ZIndex = 303
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+    local rowS = Instance.new("UIStroke", row)
+    rowS.Color = isSelected and C_ACCENT or Color3.fromRGB(36, 39, 52); rowS.Thickness = isSelected and 1.2 or 1
+
+    -- Bandeira (emoji)
+    local flagLbl = Instance.new("TextLabel", row)
+    flagLbl.BackgroundTransparency = 1
+    flagLbl.Position = UDim2.new(0, 10, 0.5, -12); flagLbl.Size = UDim2.new(0, 28, 0, 24)
+    flagLbl.Font = Enum.Font.Gotham; flagLbl.Text = lang.flag
+    flagLbl.TextSize = 20; flagLbl.TextScaled = false; flagLbl.ZIndex = 305
+
+    -- Nome nativo
+    local nameLbl = Instance.new("TextLabel", row)
+    nameLbl.BackgroundTransparency = 1
+    nameLbl.Position = UDim2.new(0, 46, 0, 6); nameLbl.Size = UDim2.new(1, -100, 0, 18)
+    nameLbl.Font = Enum.Font.GothamBold
+    nameLbl.Text = lang.name
+    nameLbl.TextColor3 = isSelected and Color3.fromRGB(220, 228, 255) or Color3.fromRGB(190, 196, 215)
+    nameLbl.TextSize = 12; nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+    nameLbl.TextTruncate = Enum.TextTruncate.AtEnd; nameLbl.ZIndex = 305
+
+    -- Subtítulo (nome em pt + país)
+    local subLbl = Instance.new("TextLabel", row)
+    subLbl.BackgroundTransparency = 1
+    subLbl.Position = UDim2.new(0, 46, 0, 24); subLbl.Size = UDim2.new(1, -100, 0, 14)
+    subLbl.Font = Enum.Font.Gotham
+    subLbl.Text = lang.sub .. "  •  " .. lang.country
+    subLbl.TextColor3 = Color3.fromRGB(90, 100, 125); subLbl.TextSize = 9
+    subLbl.TextXAlignment = Enum.TextXAlignment.Left
+    subLbl.TextTruncate = Enum.TextTruncate.AtEnd; subLbl.ZIndex = 305
+
+    -- Indicador de selecionado (tick)
+    local tickLbl = Instance.new("TextLabel", row)
+    tickLbl.BackgroundTransparency = 1
+    tickLbl.Position = UDim2.new(1, -32, 0.5, -10); tickLbl.Size = UDim2.new(0, 24, 0, 20)
+    tickLbl.Font = Enum.Font.GothamBold; tickLbl.Text = isSelected and "✓" or ""
+    tickLbl.TextColor3 = C_ACCENT; tickLbl.TextSize = 14; tickLbl.ZIndex = 305
+
+    table.insert(langItems, {row=row, rowS=rowS, nameLbl=nameLbl, tickLbl=tickLbl, code=lang.code})
+
+    -- Botão de clique
+    local rowBtn = Instance.new("TextButton", row)
+    rowBtn.BackgroundTransparency = 1; rowBtn.Size = UDim2.new(1,0,1,0); rowBtn.Text = ""; rowBtn.ZIndex = 306
+    rowBtn.MouseEnter:Connect(function()
+        if currentLang ~= lang.code then
+            TweenService:Create(row, TweenInfo.new(0.12), {BackgroundColor3=Color3.fromRGB(30,33,48), BackgroundTransparency=0.3}):Play()
+        end
+    end)
+    rowBtn.MouseLeave:Connect(function()
+        if currentLang ~= lang.code then
+            TweenService:Create(row, TweenInfo.new(0.12), {BackgroundColor3=Color3.fromRGB(24,26,34), BackgroundTransparency=0.5}):Play()
+        end
+    end)
+    rowBtn.MouseButton1Click:Connect(function()
+        -- Resetar visual anterior
+        for _, item in ipairs(langItems) do
+            TweenService:Create(item.row, TweenInfo.new(0.18), {
+                BackgroundColor3 = Color3.fromRGB(24,26,34), BackgroundTransparency = 0.5
+            }):Play()
+            TweenService:Create(item.rowS, TweenInfo.new(0.15), {
+                Color = Color3.fromRGB(36,39,52), Thickness = 1
+            }):Play()
+            item.nameLbl.TextColor3 = Color3.fromRGB(190,196,215)
+            item.tickLbl.Text = ""
+        end
+        -- Marcar selecionado
+        TweenService:Create(row, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(40,44,68), BackgroundTransparency = 0.15
+        }):Play()
+        TweenService:Create(rowS, TweenInfo.new(0.18), {Color = C_ACCENT, Thickness = 1.2}):Play()
+        nameLbl.TextColor3 = Color3.fromRGB(220,228,255)
+        tickLbl.Text = "✓"
+        -- Aplicar tradução
+        applyLanguage(lang.code)
+        -- Atualizar título do popup também
+        local tr = T[lang.code]
+        if tr and tr["idiomas_title"] then LPTitle.Text = tr["idiomas_title"] end
+        -- Fechar com delay
+        task.delay(0.5, function()
+            TweenService:Create(LangPopup, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Size=UDim2.new(0,272,0,0)}):Play()
+            task.delay(0.22, function() LangPopup.Visible = false end)
+        end)
+    end)
+end
+
+-- ──────────────────────────────────────────────────────────────────
+--  LÓGICA ABRIR/FECHAR POPUP DE IDIOMAS
+-- ──────────────────────────────────────────────────────────────────
+local langPopupOpen = false
+local POPUP_H = math.min(#LANG_LIST * 50 + 68, 400)  -- altura máxima 400px
+
+local function openLangPopup()
+    langPopupOpen = true
+    -- Posicionar acima do botão de idiomas
+    local ap = IdiomasBtnFrame.AbsolutePosition
+    local pw = 272
+    local px = math.clamp(ap.X, 5, workspace.CurrentCamera.ViewportSize.X - pw - 5)
+    local py = ap.Y - POPUP_H - 8
+    if py < 5 then py = ap.Y + IdiomasBtnFrame.AbsoluteSize.Y + 8 end
+    LangPopup.Position = UDim2.new(0, px, 0, py)
+    LangPopup.Size = UDim2.new(0, pw, 0, 0); LangPopup.Visible = true
+    TweenService:Create(LangPopup, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Size=UDim2.new(0, pw, 0, POPUP_H)}):Play()
+end
+
+local function closeLangPopup()
+    langPopupOpen = false
+    TweenService:Create(LangPopup, TweenInfo.new(0.18, Enum.EasingStyle.Quad),
+        {Size=UDim2.new(0,272,0,0)}):Play()
+    task.delay(0.2, function() LangPopup.Visible = false end)
+end
+
+IdiomasClickBtn.MouseButton1Click:Connect(function()
+    if langPopupOpen then closeLangPopup() else openLangPopup() end
+end)
+
+LPCloseBtn.MouseButton1Click:Connect(function() closeLangPopup() end)
+
+-- Fechar ao clicar fora
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+    if not langPopupOpen then return end
+    local mp = UserInputService:GetMouseLocation()
+    local ap, as = LangPopup.AbsolutePosition, LangPopup.AbsoluteSize
+    local bap, bas = IdiomasBtnFrame.AbsolutePosition, IdiomasBtnFrame.AbsoluteSize
+    local insidePopup = mp.X>=ap.X and mp.X<=ap.X+as.X and mp.Y>=ap.Y and mp.Y<=ap.Y+as.Y
+    local insideBtn   = mp.X>=bap.X and mp.X<=bap.X+bas.X and mp.Y>=bap.Y and mp.Y<=bap.Y+bas.Y
+    if not insidePopup and not insideBtn then closeLangPopup() end
+end)
+
+-- ──────────────────────────────────────────────────────────────────
+--  NOTA: Scroll automático para o idioma selecionado ao abrir
+-- ──────────────────────────────────────────────────────────────────
+IdiomasClickBtn.MouseButton1Click:Connect(function()
+    if langPopupOpen then return end
+    task.wait(0.05)
+    for idx, item in ipairs(langItems) do
+        if item.code == currentLang then
+            local targetY = math.max(0, (idx-1) * 50 - 50)
+            LPScroll.CanvasPosition = Vector2.new(0, targetY)
+            break
+        end
+    end
+end)
+
+print("  ✓ Sistema de Idiomas carregado — 25 línguas disponíveis")
+
+-- ══════════════════════════════════════════════════════
+--  ABA INICIAL
+-- ══════════════════════════════════════════════════════
+task.wait(0.05)
+selectTab("Info")
+
+print("╔══════════════════════════════════════════════════════╗")
+print("║  PUDIM HUB v4.5 — COMPLETO  Fev 2026                ║")
+print("║  ESP 20 cats | BRING 17 cats | Player | Aimbot      ║")
+print("║  Sistema de Idiomas: 25 línguas disponíveis         ║")
+print("╚══════════════════════════════════════════════════════╝")
