@@ -8233,7 +8233,6 @@ do
     end)
 end -- Auto Fogueira Anoitecer
 
-end -- Pegar Itens Baús
 end) () -- [[ PLAYER TAB ]]
 
 
