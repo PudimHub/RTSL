@@ -1,4 +1,4 @@
--- PudimHub v3 Premium 2026 🍮 (Script Completo com FastAttack Funcional)
+-- PudimHub v3 Premium 2026 🍮 (Versão com Inicialização Segura)
 -- ============================================================
 -- CONFIGURAÇÃO DE CORES
 -- ============================================================
@@ -50,36 +50,6 @@ ScreenGui.Name = "PudimHubPremium"
 ScreenGui.Parent = game.CoreGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- ============================================================
--- LÓGICA INTERNA DO FASTATTACK (BLOOF FRUITS)
--- ============================================================
-local CombatFramework
-local pcallSuccess, pcallError = pcall(function()
-	CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild("CombatFramework"))
-end)
-
-local function ExecutarAtaqueRapido()
-	task.spawn(function()
-		while FastAttackAtivo do
-			local delayAtual = AttackDelay or 0.15 
-			
-			pcall(function()
-				if CombatFramework and CombatFramework.activeController then
-					local ac = CombatFramework.activeController
-					if ac.mountedWeapon and ac.blades and ac.blades[1] then
-						-- Aplica o alcance longo (Hitbox)
-						ac.hitboxMagnitude = 55 
-						-- Envia o sinal de ataque rápido para o servidor
-						game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RE/WeaponHitboxEvent"):FireServer(ac.blades[1], ac.mountedWeapon.name)
-					end
-				end
-			end)
-			
-			task.wait(delayAtual)
-		end
-	end)
-end
 
 -- ============================================================
 -- OUTER FRAME (Sombra e Drag)
@@ -369,7 +339,7 @@ end
 -- PAINÉIS DA ABA CONFIGURAÇÃO
 -- ============================================================
 
--- 1. PAINEL DO FAST ATTACK (LÓGICA INCLUÍDA)
+-- 1. PAINEL DO FAST ATTACK
 local FastAttackCard = Instance.new("Frame", ConfigView)
 FastAttackCard.Size = UDim2.new(1, 0, 0, 155)
 FastAttackCard.BackgroundColor3 = Theme.CardBg
@@ -439,14 +409,6 @@ FAToggleLabel.Font = Enum.Font.GothamBold
 FAToggleLabel.TextSize = 12
 FAToggleLabel.TextColor3 = Theme.TextDefault
 FAToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-
--- Liga e Desliga o Ataque Conectado à Lógica
-CreateiOSSwitch(FAToggleRow, function(state)
-	FastAttackAtivo = state
-	if FastAttackAtivo then
-		ExecutarAtaqueRapido()
-	end
-end)
 
 
 -- 2. PAINEL DO BRING MOB
@@ -848,4 +810,45 @@ Min.MouseButton1Click:Connect(function()
 	OuterFrame.Size = minimized and UDim2.new(0, 640, 0, 42) or UDim2.new(0, 640, 0, 440)
 end)
 
-print("PudimHub Premium v3 - Iniciado com FastAttack funcional!")
+-- ============================================================
+-- CARREGAMENTO SEGURO DO COMBAT FRAMEWORK (EM SEGUNDO PLANO)
+-- ============================================================
+task.spawn(function()
+	local CombatFramework
+	local pcallSuccess, pcallError = pcall(function()
+		CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild("CombatFramework", 10))
+	end)
+
+	local function ExecutarAtaqueRapido()
+		task.spawn(function()
+			while FastAttackAtivo do
+				local delayAtual = AttackDelay or 0.15 
+				
+				pcall(function()
+					if CombatFramework and CombatFramework.activeController then
+						local ac = CombatFramework.activeController
+						if ac.mountedWeapon and ac.blades and ac.blades[1] then
+							ac.hitboxMagnitude = 55 
+							game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RE/WeaponHitboxEvent"):FireServer(ac.blades[1], ac.mountedWeapon.name)
+						end
+					end
+				end)
+				
+				task.wait(delayAtual)
+			end
+		end)
+	end
+
+	-- Conecta a lógica após carregar o framework com segurança
+	FAToggleRow.TextButton.MouseButton1Click:Connect(function()
+		-- O switch interno altera seu estado sozinho ao clicar. 
+		-- Criamos um pequeno atraso para ler a mudança na variável.
+		task.wait(0.05)
+		FastAttackAtivo = not FastAttackAtivo
+		if FastAttackAtivo then
+			ExecutarAtaqueRapido()
+		end
+	end)
+end)
+
+print("PudimHub Premium v3 - Menu carregado com sucesso!")
