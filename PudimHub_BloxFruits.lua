@@ -1,1772 +1,1864 @@
--- PudimHub v3 Premium 🍮 — Blox Fruits | Estilo iOS
-
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name           = "PudimHubIOS"
-ScreenGui.Parent         = game.CoreGui
-ScreenGui.ResetOnSpawn   = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-local TweenService = game:GetService("TweenService")
-
--- ══════════════════════════════════════════
---  PALETA iOS
--- ══════════════════════════════════════════
-local C = {
-	BG           = Color3.fromRGB(242, 242, 247),
-	SURFACE      = Color3.fromRGB(255, 255, 255),
-	TOPBAR       = Color3.fromRGB(249, 249, 249),
-	DIVIDER      = Color3.fromRGB(198, 198, 200),
-	ACCENT       = Color3.fromRGB(0,   122, 255),
-	ACCENT2      = Color3.fromRGB(52,  199,  89),
-	TEXT_PRIMARY = Color3.fromRGB(28,   28,  30),
-	TEXT_SEC     = Color3.fromRGB(142, 142, 147),
-	CLOSE        = Color3.fromRGB(255,  59,  48),
-	MIN          = Color3.fromRGB(255, 204,   0),
-	TAB_DEFAULT  = Color3.fromRGB(255, 255, 255),
-	TAB_HOVER    = Color3.fromRGB(235, 235, 240),
-	TAB_ACTIVE   = Color3.fromRGB(0,   122, 255),
-	TAB_TXT_DEF  = Color3.fromRGB(28,   28,  30),
-	TAB_TXT_ACT  = Color3.fromRGB(255, 255, 255),
-	ON_GREEN     = Color3.fromRGB(52,  199,  89),
-	OFF_GRAY     = Color3.fromRGB(198, 198, 200),
-	PANEL_BG     = Color3.fromRGB(248, 248, 252),
-	DROPDOWN_BG  = Color3.fromRGB(255, 255, 255),
-}
-
--- ══════════════════════════════════════════
---  SOMBRA
--- ══════════════════════════════════════════
-local Shadow = Instance.new("Frame", ScreenGui)
-Shadow.Size                   = UDim2.new(0, 650, 0, 450)
-Shadow.Position               = UDim2.new(0.5, -325, 0.5, -221)
-Shadow.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-Shadow.BackgroundTransparency = 0.82
-Shadow.ZIndex                 = 0
-Shadow.BorderSizePixel        = 0
-Instance.new("UICorner", Shadow).CornerRadius = UDim.new(0, 20)
-
--- ══════════════════════════════════════════
---  JANELA PRINCIPAL
--- ══════════════════════════════════════════
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent           = ScreenGui
-MainFrame.Size             = UDim2.new(0, 640, 0, 440)
-MainFrame.Position         = UDim2.new(0.5, -320, 0.5, -220)
-MainFrame.BackgroundColor3 = C.BG
-MainFrame.Active           = true
-MainFrame.Draggable        = true
-MainFrame.ClipsDescendants = true
-MainFrame.ZIndex           = 1
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 18)
-
--- ══════════════════════════════════════════
---  TOPBAR
--- ══════════════════════════════════════════
-local TopBar = Instance.new("Frame", MainFrame)
-TopBar.Size             = UDim2.new(1, 0, 0, 52)
-TopBar.Position         = UDim2.new(0, 0, 0, 0)
-TopBar.BackgroundColor3 = C.TOPBAR
-TopBar.BorderSizePixel  = 0
-TopBar.ZIndex           = 2
-
-local TopDivider = Instance.new("Frame", MainFrame)
-TopDivider.Size             = UDim2.new(1, 0, 0, 1)
-TopDivider.Position         = UDim2.new(0, 0, 0, 52)
-TopDivider.BackgroundColor3 = C.DIVIDER
-TopDivider.BorderSizePixel  = 0
-TopDivider.ZIndex           = 2
-
-local Title = Instance.new("TextLabel", TopBar)
-Title.BackgroundTransparency = 1
-Title.Size                   = UDim2.new(1, -160, 0, 22)
-Title.Position               = UDim2.new(0, 80, 0, 8)
-Title.Font                   = Enum.Font.GothamBold
-Title.Text                   = "🍮 PudimHub"
-Title.TextColor3             = C.TEXT_PRIMARY
-Title.TextSize               = 17
-Title.TextXAlignment         = Enum.TextXAlignment.Center
-Title.ZIndex                 = 3
-
-local SubTitle = Instance.new("TextLabel", TopBar)
-SubTitle.BackgroundTransparency = 1
-SubTitle.Size                   = UDim2.new(1, -160, 0, 14)
-SubTitle.Position               = UDim2.new(0, 80, 0, 30)
-SubTitle.Font                   = Enum.Font.Gotham
-SubTitle.Text                   = "Premium"
-SubTitle.TextColor3             = C.TEXT_SEC
-SubTitle.TextSize               = 11
-SubTitle.TextXAlignment         = Enum.TextXAlignment.Center
-SubTitle.ZIndex                 = 3
-
-local function MakeCircleBtn(pos, color, hoverColor)
-	local b = Instance.new("TextButton", TopBar)
-	b.Size             = UDim2.new(0, 14, 0, 14)
-	b.Position         = pos
-	b.Text             = ""
-	b.BackgroundColor3 = color
-	b.AutoButtonColor  = false
-	b.BorderSizePixel  = 0
-	b.ZIndex           = 4
-	Instance.new("UICorner", b).CornerRadius = UDim.new(1, 0)
-	b.MouseEnter:Connect(function()
-		TweenService:Create(b, TweenInfo.new(0.1), { BackgroundColor3 = hoverColor }):Play()
-	end)
-	b.MouseLeave:Connect(function()
-		TweenService:Create(b, TweenInfo.new(0.1), { BackgroundColor3 = color }):Play()
-	end)
-	return b
-end
-
-local BtnClose = MakeCircleBtn(UDim2.new(0, 14, 0.5, -7), C.CLOSE, Color3.fromRGB(200, 40, 30))
-local BtnMin   = MakeCircleBtn(UDim2.new(0, 36, 0.5, -7), C.MIN,   Color3.fromRGB(200, 160, 0))
-
--- ══════════════════════════════════════════
---  SIDEBAR
--- ══════════════════════════════════════════
-local Sidebar = Instance.new("ScrollingFrame", MainFrame)
-Sidebar.Position            = UDim2.new(0, 8, 0, 60)
-Sidebar.Size                = UDim2.new(0, 162, 1, -68)
-Sidebar.BackgroundColor3    = C.BG
-Sidebar.ScrollBarThickness  = 0
-Sidebar.CanvasSize          = UDim2.new(0, 0, 0, 0)
-Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
-Sidebar.BorderSizePixel     = 0
-Sidebar.ZIndex              = 2
-
-local SidebarLayout = Instance.new("UIListLayout", Sidebar)
-SidebarLayout.Padding             = UDim.new(0, 0)
-SidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local SidebarPad = Instance.new("UIPadding", Sidebar)
-SidebarPad.PaddingTop    = UDim.new(0, 4)
-SidebarPad.PaddingBottom = UDim.new(0, 8)
-
--- ══════════════════════════════════════════
---  CONTEÚDO PRINCIPAL (ScrollingFrame para suportar painéis longos)
--- ══════════════════════════════════════════
-local ContentScroll = Instance.new("ScrollingFrame", MainFrame)
-ContentScroll.Position            = UDim2.new(0, 178, 0, 60)
-ContentScroll.Size                = UDim2.new(1, -186, 1, -68)
-ContentScroll.BackgroundColor3    = C.SURFACE
-ContentScroll.BorderSizePixel     = 0
-ContentScroll.ZIndex              = 2
-ContentScroll.ScrollBarThickness  = 3
-ContentScroll.ScrollBarImageColor3 = C.DIVIDER
-ContentScroll.CanvasSize          = UDim2.new(0, 0, 0, 0)
-ContentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-Instance.new("UICorner", ContentScroll).CornerRadius = UDim.new(0, 13)
-
-local ContentStroke = Instance.new("UIStroke", ContentScroll)
-ContentStroke.Color     = C.DIVIDER
-ContentStroke.Thickness = 0.8
-
--- layout interno do conteúdo
-local ContentLayout = Instance.new("UIListLayout", ContentScroll)
-ContentLayout.Padding             = UDim.new(0, 0)
-ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-ContentLayout.SortOrder           = Enum.SortOrder.LayoutOrder
-
-local ContentPad = Instance.new("UIPadding", ContentScroll)
-ContentPad.PaddingTop    = UDim.new(0, 12)
-ContentPad.PaddingBottom = UDim.new(0, 16)
-ContentPad.PaddingLeft   = UDim.new(0, 12)
-ContentPad.PaddingRight  = UDim.new(0, 12)
-
--- ══════════════════════════════════════════
---  HEADER DA ABA ATIVA (sempre visível no topo do conteúdo)
--- ══════════════════════════════════════════
-local WelcomeHeader = Instance.new("Frame", ContentScroll)
-WelcomeHeader.Size             = UDim2.new(1, 0, 0, 38)
-WelcomeHeader.BackgroundTransparency = 1
-WelcomeHeader.BorderSizePixel  = 0
-WelcomeHeader.LayoutOrder      = 0
-WelcomeHeader.ZIndex           = 3
-
-local Welcome = Instance.new("TextLabel", WelcomeHeader)
-Welcome.BackgroundTransparency = 1
-Welcome.Size                   = UDim2.new(1, 0, 1, 0)
-Welcome.Font                   = Enum.Font.GothamBold
-Welcome.Text                   = "🏠  Home"
-Welcome.TextColor3             = C.TEXT_PRIMARY
-Welcome.TextSize               = 17
-Welcome.TextXAlignment         = Enum.TextXAlignment.Left
-Welcome.TextTruncate           = Enum.TextTruncate.AtEnd
-Welcome.ZIndex                 = 3
-
-local WelcomeDivider = Instance.new("Frame", ContentScroll)
-WelcomeDivider.Size             = UDim2.new(1, 0, 0, 1)
-WelcomeDivider.BackgroundColor3 = C.DIVIDER
-WelcomeDivider.BorderSizePixel  = 0
-WelcomeDivider.LayoutOrder      = 1
-WelcomeDivider.ZIndex           = 3
-
--- ══════════════════════════════════════════
---  TODAS AS ABAS (frames de conteúdo por aba)
--- ══════════════════════════════════════════
--- Cada aba tem um frame filho do ContentScroll, com LayoutOrder >= 2
--- Apenas o frame da aba ativa fica visível
-
-local TabFrames = {} -- ["nome da aba"] = Frame
-
-local function MakeTabFrame(name)
-	local f = Instance.new("Frame", ContentScroll)
-	f.Size             = UDim2.new(1, 0, 0, 0)
-	f.AutomaticSize    = Enum.AutomaticSize.Y
-	f.BackgroundTransparency = 1
-	f.BorderSizePixel  = 0
-	f.Visible          = false
-	f.LayoutOrder      = 2
-
-	local fl = Instance.new("UIListLayout", f)
-	fl.Padding             = UDim.new(0, 10)
-	fl.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	fl.SortOrder           = Enum.SortOrder.LayoutOrder
-
-	TabFrames[name] = f
-	return f
-end
-
--- ══════════════════════════════════════════
---  HELPERS DE UI PARA PAINÉIS
--- ══════════════════════════════════════════
-
--- Painel card com título
-local function MakePanel(parent, titleText, order)
-	local panel = Instance.new("Frame", parent)
-	panel.Size             = UDim2.new(1, 0, 0, 0)
-	panel.AutomaticSize    = Enum.AutomaticSize.Y
-	panel.BackgroundColor3 = C.SURFACE
-	panel.BorderSizePixel  = 0
-	panel.LayoutOrder      = order or 1
-	Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 10)
-	local stroke = Instance.new("UIStroke", panel)
-	stroke.Color     = C.DIVIDER
-	stroke.Thickness = 0.8
-
-	local panelLayout = Instance.new("UIListLayout", panel)
-	panelLayout.Padding             = UDim.new(0, 0)
-	panelLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-	-- título do painel
-	local header = Instance.new("Frame", panel)
-	header.Size             = UDim2.new(1, 0, 0, 36)
-	header.BackgroundColor3 = C.PANEL_BG
-	header.BorderSizePixel  = 0
-	header.LayoutOrder      = 0
-
-	local headerLabel = Instance.new("TextLabel", header)
-	headerLabel.BackgroundTransparency = 1
-	headerLabel.Size                   = UDim2.new(1, -16, 1, 0)
-	headerLabel.Position               = UDim2.new(0, 12, 0, 0)
-	headerLabel.Font                   = Enum.Font.GothamBold
-	headerLabel.Text                   = titleText
-	headerLabel.TextColor3             = C.TEXT_SEC
-	headerLabel.TextSize               = 11
-	headerLabel.TextXAlignment         = Enum.TextXAlignment.Left
-
-	local headerDiv = Instance.new("Frame", panel)
-	headerDiv.Size             = UDim2.new(1, 0, 0, 1)
-	headerDiv.BackgroundColor3 = C.DIVIDER
-	headerDiv.BorderSizePixel  = 0
-	headerDiv.LayoutOrder      = 1
-
-	return panel, panelLayout
-end
-
--- Linha de item dentro de painel (label à esquerda, widget à direita)
-local function MakePanelRow(parent, labelText, order)
-	local row = Instance.new("Frame", parent)
-	row.Size             = UDim2.new(1, 0, 0, 44)
-	row.BackgroundTransparency = 1
-	row.BorderSizePixel  = 0
-	row.LayoutOrder      = order or 10
-
-	local lbl = Instance.new("TextLabel", row)
-	lbl.BackgroundTransparency = 1
-	lbl.Size                   = UDim2.new(0.55, 0, 1, 0)
-	lbl.Position               = UDim2.new(0, 14, 0, 0)
-	lbl.Font                   = Enum.Font.Gotham
-	lbl.Text                   = labelText
-	lbl.TextColor3             = C.TEXT_PRIMARY
-	lbl.TextSize               = 14
-	lbl.TextXAlignment         = Enum.TextXAlignment.Left
-
-	return row, lbl
-end
-
--- Toggle iOS (pill verde/cinza)
-local function MakeToggle(parent, posX, posY)
-	local track = Instance.new("Frame", parent)
-	track.Size             = UDim2.new(0, 44, 0, 26)
-	track.Position         = UDim2.new(1, -58, 0.5, -13)
-	track.BackgroundColor3 = C.OFF_GRAY
-	track.BorderSizePixel  = 0
-	Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
-
-	local knob = Instance.new("Frame", track)
-	knob.Size             = UDim2.new(0, 22, 0, 22)
-	knob.Position         = UDim2.new(0, 2, 0.5, -11)
-	knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	knob.BorderSizePixel  = 0
-	Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-
-	local btn = Instance.new("TextButton", track)
-	btn.Size                   = UDim2.new(1, 0, 1, 0)
-	btn.BackgroundTransparency = 1
-	btn.Text                   = ""
-	btn.AutoButtonColor        = false
-
-	local isOn = false
-	btn.MouseButton1Click:Connect(function()
-		isOn = not isOn
-		if isOn then
-			TweenService:Create(track, TweenInfo.new(0.2), { BackgroundColor3 = C.ON_GREEN }):Play()
-			TweenService:Create(knob,  TweenInfo.new(0.2), { Position = UDim2.new(0, 20, 0.5, -11) }):Play()
-		else
-			TweenService:Create(track, TweenInfo.new(0.2), { BackgroundColor3 = C.OFF_GRAY }):Play()
-			TweenService:Create(knob,  TweenInfo.new(0.2), { Position = UDim2.new(0, 2, 0.5, -11) }):Play()
-		end
-	end)
-
-	return track
-end
-
--- Separador entre linhas de painel
-local function MakePanelSep(parent, order)
-	local sep = Instance.new("Frame", parent)
-	sep.Size             = UDim2.new(1, -14, 0, 1)
-	sep.BackgroundColor3 = C.DIVIDER
-	sep.BorderSizePixel  = 0
-	sep.LayoutOrder      = order or 99
-	return sep
-end
-
--- ══════════════════════════════════════════
---  DROPDOWN GENÉRICO
---  parent     = frame pai onde o dropdown vai aparecer
---  btnRef     = TextButton que dispara o dropdown
---  valueLabel = TextLabel que mostra o valor atual
---  options    = lista de strings
---  onSelect   = function(value) callback
--- ══════════════════════════════════════════
-local function MakeDropdown(contentParent, btnRef, valueLabel, options, onSelect)
-	-- o dropdown flutua sobre o ContentScroll, pai = MainFrame
-	local dropFrame = Instance.new("Frame", MainFrame)
-	dropFrame.Size             = UDim2.new(0, 160, 0, 0)
-	dropFrame.BackgroundColor3 = C.DROPDOWN_BG
-	dropFrame.BorderSizePixel  = 0
-	dropFrame.Visible          = false
-	dropFrame.ZIndex           = 20
-	dropFrame.ClipsDescendants = true
-	Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0, 10)
-	local dropStroke = Instance.new("UIStroke", dropFrame)
-	dropStroke.Color     = C.DIVIDER
-	dropStroke.Thickness = 0.8
-
-	local dropLayout = Instance.new("UIListLayout", dropFrame)
-	dropLayout.Padding             = UDim.new(0, 0)
-	dropLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-	local ITEM_H  = 36
-	local TOTAL_H = #options * ITEM_H
-
-	for i, opt in ipairs(options) do
-		local item = Instance.new("TextButton", dropFrame)
-		item.Size             = UDim2.new(1, 0, 0, ITEM_H)
-		item.BackgroundColor3 = C.DROPDOWN_BG
-		item.AutoButtonColor  = false
-		item.BorderSizePixel  = 0
-		item.Text             = ""
-		item.ZIndex           = 21
-
-		local itemLbl = Instance.new("TextLabel", item)
-		itemLbl.BackgroundTransparency = 1
-		itemLbl.Size                   = UDim2.new(1, -16, 1, 0)
-		itemLbl.Position               = UDim2.new(0, 14, 0, 0)
-		itemLbl.Font                   = Enum.Font.Gotham
-		itemLbl.Text                   = opt
-		itemLbl.TextColor3             = C.TEXT_PRIMARY
-		itemLbl.TextSize               = 13
-		itemLbl.TextXAlignment         = Enum.TextXAlignment.Left
-		itemLbl.ZIndex                 = 22
-
-		if i < #options then
-			local sep = Instance.new("Frame", item)
-			sep.Size             = UDim2.new(1, -14, 0, 1)
-			sep.Position         = UDim2.new(0, 14, 1, -1)
-			sep.BackgroundColor3 = C.DIVIDER
-			sep.BorderSizePixel  = 0
-			sep.ZIndex           = 22
-		end
-
-		item.MouseEnter:Connect(function()
-			item.BackgroundColor3 = C.TAB_HOVER
-		end)
-		item.MouseLeave:Connect(function()
-			item.BackgroundColor3 = C.DROPDOWN_BG
-		end)
-
-		item.MouseButton1Click:Connect(function()
-			-- fecha dropdown
-			TweenService:Create(dropFrame, TweenInfo.new(0.15), { Size = UDim2.new(0, 160, 0, 0) }):Play()
-			task.delay(0.15, function() dropFrame.Visible = false end)
-			-- atualiza label do botão
-			valueLabel.Text = opt
-			if onSelect then onSelect(opt) end
-		end)
-	end
-
-	-- posicionamento ao abrir: alinha ao btn dentro do ContentScroll
-	local isOpen = false
-	btnRef.MouseButton1Click:Connect(function()
-		isOpen = not isOpen
-		if isOpen then
-			-- calcula posição absoluta do btnRef e converte para MainFrame
-			local btnAbs = btnRef.AbsolutePosition
-			local mfAbs  = MainFrame.AbsolutePosition
-			local relX   = btnAbs.X - mfAbs.X
-			local relY   = btnAbs.Y - mfAbs.Y + btnRef.AbsoluteSize.Y + 4
-
-			dropFrame.Position = UDim2.new(0, relX, 0, relY)
-			dropFrame.Size     = UDim2.new(0, btnRef.AbsoluteSize.X, 0, 0)
-			dropFrame.Visible  = true
-			TweenService:Create(dropFrame, TweenInfo.new(0.18, Enum.EasingStyle.Quad),
-				{ Size = UDim2.new(0, btnRef.AbsoluteSize.X, 0, TOTAL_H) }):Play()
-		else
-			TweenService:Create(dropFrame, TweenInfo.new(0.15), { Size = UDim2.new(0, btnRef.AbsoluteSize.X, 0, 0) }):Play()
-			task.delay(0.15, function() dropFrame.Visible = false end)
-		end
-	end)
-end
-
--- ══════════════════════════════════════════
---  BOTÃO DROPDOWN (aparência)
---  Retorna: rowFrame, btn (TextButton), valueLabel (TextLabel)
--- ══════════════════════════════════════════
-local function MakeDropdownRow(parent, labelText, defaultValue, order)
-	local row, _ = MakePanelRow(parent, labelText, order)
-
-	local btn = Instance.new("TextButton", row)
-	btn.Size             = UDim2.new(0, 120, 0, 28)
-	btn.Position         = UDim2.new(1, -130, 0.5, -14)
-	btn.BackgroundColor3 = C.BG
-	btn.AutoButtonColor  = false
-	btn.BorderSizePixel  = 0
-	btn.Text             = ""
-	btn.ZIndex           = 3
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 7)
-	local btnStroke = Instance.new("UIStroke", btn)
-	btnStroke.Color     = C.DIVIDER
-	btnStroke.Thickness = 0.8
-
-	local valueLabel = Instance.new("TextLabel", btn)
-	valueLabel.BackgroundTransparency = 1
-	valueLabel.Size                   = UDim2.new(1, -24, 1, 0)
-	valueLabel.Position               = UDim2.new(0, 8, 0, 0)
-	valueLabel.Font                   = Enum.Font.Gotham
-	valueLabel.Text                   = defaultValue
-	valueLabel.TextColor3             = C.TEXT_PRIMARY
-	valueLabel.TextSize               = 13
-	valueLabel.TextXAlignment         = Enum.TextXAlignment.Left
-	valueLabel.ZIndex                 = 4
-
-	-- chevron ˅
-	local chev = Instance.new("TextLabel", btn)
-	chev.BackgroundTransparency = 1
-	chev.Size                   = UDim2.new(0, 18, 1, 0)
-	chev.Position               = UDim2.new(1, -20, 0, 0)
-	chev.Font                   = Enum.Font.GothamBold
-	chev.Text                   = "⌄"
-	chev.TextColor3             = C.TEXT_SEC
-	chev.TextSize               = 14
-	chev.TextXAlignment         = Enum.TextXAlignment.Center
-	chev.ZIndex                 = 4
-
-	return row, btn, valueLabel
-end
-
--- ══════════════════════════════════════════
---  ABA: HOME
--- ══════════════════════════════════════════
-local homeFrame = MakeTabFrame("🏠 Home")
-
-local autoPanel, _ = MakePanel(homeFrame, "AUTO FARM", 1)
-
--- linha: Auto Near Mobs
-local autoRow, _ = MakePanelRow(autoPanel, "🎯 Auto Near Mobs", 2)
-
-local autoTrack = Instance.new("Frame", autoRow)
-autoTrack.Size             = UDim2.new(0, 44, 0, 26)
-autoTrack.Position         = UDim2.new(1, -58, 0.5, -13)
-autoTrack.BackgroundColor3 = C.OFF_GRAY
-autoTrack.BorderSizePixel  = 0
-Instance.new("UICorner", autoTrack).CornerRadius = UDim.new(1, 0)
-
-local autoKnob = Instance.new("Frame", autoTrack)
-autoKnob.Size             = UDim2.new(0, 22, 0, 22)
-autoKnob.Position         = UDim2.new(0, 2, 0.5, -11)
-autoKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-autoKnob.BorderSizePixel  = 0
-Instance.new("UICorner", autoKnob).CornerRadius = UDim.new(1, 0)
-
-local autoBtn = Instance.new("TextButton", autoTrack)
-autoBtn.Size                   = UDim2.new(1, 0, 1, 0)
-autoBtn.BackgroundTransparency = 1
-autoBtn.Text                   = ""
-autoBtn.AutoButtonColor        = false
-autoBtn.MouseButton1Click:Connect(function()
-	_G.AutoNearMobs = not _G.AutoNearMobs
-	if _G.AutoNearMobs then
-		TweenService:Create(autoTrack, TweenInfo.new(0.2), { BackgroundColor3 = C.ON_GREEN }):Play()
-		TweenService:Create(autoKnob,  TweenInfo.new(0.2), { Position = UDim2.new(0, 20, 0.5, -11) }):Play()
-	else
-		TweenService:Create(autoTrack, TweenInfo.new(0.2), { BackgroundColor3 = C.OFF_GRAY }):Play()
-		TweenService:Create(autoKnob,  TweenInfo.new(0.2), { Position = UDim2.new(0, 2, 0.5, -11) }):Play()
-	end
-end)
-
--- descrição abaixo do toggle
-local autoDesc = Instance.new("Frame", autoPanel)
-autoDesc.Size             = UDim2.new(1, 0, 0, 36)
-autoDesc.BackgroundTransparency = 1
-autoDesc.BorderSizePixel  = 0
-autoDesc.LayoutOrder      = 3
-
-local autoDescLbl = Instance.new("TextLabel", autoDesc)
-autoDescLbl.BackgroundTransparency = 1
-autoDescLbl.Size                   = UDim2.new(1, -24, 1, 0)
-autoDescLbl.Position               = UDim2.new(0, 14, 0, 0)
-autoDescLbl.Font                   = Enum.Font.Gotham
-autoDescLbl.Text                   = "Voa até o mob mais próximo automaticamente"
-autoDescLbl.TextColor3             = C.TEXT_SEC
-autoDescLbl.TextSize               = 11
-autoDescLbl.TextXAlignment         = Enum.TextXAlignment.Left
-autoDescLbl.TextWrapped            = true
-
--- espaçador
-local homeSpacer = Instance.new("Frame", homeFrame)
-homeSpacer.Size                   = UDim2.new(1, 0, 0, 8)
-homeSpacer.BackgroundTransparency = 1
-homeSpacer.BorderSizePixel        = 0
-homeSpacer.LayoutOrder            = 99
-
--- ══════════════════════════════════════════
---  ABA: CONFIGURAÇÃO
---  Lógica portada do script pudimmeloteos
--- ══════════════════════════════════════════
-local cfgFrame = MakeTabFrame("⚙️ Configuração")
-
--- ── variáveis globais da aba ──
-SelectWeaponFarm   = "Melee"
-AutoFarmType       = "Above"
-DisFarm            = 30
-FastAttack         = false
-FastShot           = false
+-- ============================================================
+--                    PUDIMHUB - RAYFIELD
+--                    Com funções reais na Farm 1
+-- ============================================================
+
+-- Carregar Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Serviços
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+
+-- ============================================================
+--                    VARIÁVEIS GLOBAIS
+-- ============================================================
+SelectWeaponFarm = "Melee"
+AutoFarmType = "Above"
+DisFarm = 30
+FastAttack = true
+FastShot = false
 AttackToPlayersNow = false
-FastAttackSelected = "0.175 (Default)"
-FastAttackDelay    = 0.175
-bringfrec          = 250
-BringMobs          = false
-ByPassTP           = false
-AutoSetSpawn       = false
-_G.SkillZ          = false
-_G.SkillX          = false
-_G.SkillC          = false
-_G.SkillV          = false
-_G.SkillF          = false
-BusoHaki           = false
-KenHaki            = false
-DeleteAudioEffect  = false
-HideNotification   = false
+bringfrec = 250
+BringMobs = true
+ByPassTP = false
+AutoSetSpawn = true
 
--- ── PAINEL: Main Setting ─────────────────
-local mainSetPanel, _ = MakePanel(cfgFrame, "MAIN SETTING", 1)
+_G.SkillZ = false
+_G.SkillX = false
+_G.SkillC = false
+_G.SkillV = false
+_G.SkillF = false
 
--- Select Weapon
-local weaponRow, weaponBtn, weaponValue = MakeDropdownRow(mainSetPanel, "Select Weapon", "Melee", 2)
-weaponRow.LayoutOrder = 2
-local weaponOptions = {"Melee", "Blox Fruit", "Sword", "Gun"}
-MakeDropdown(cfgFrame, weaponBtn, weaponValue, weaponOptions, function(val)
-	SelectWeaponFarm = val
-end)
-task.spawn(function()
-	while task.wait() do
-		pcall(function()
-			for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-				if v.ToolTip == SelectWeaponFarm then
-					if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
-						SelectWeapon = v.Name
-					end
-				end
-			end
-		end)
-	end
-end)
+BusoHaki = true
+KenHaki = false
+DeleteAudioEffect = false
+HideNotification = false
 
-MakePanelSep(mainSetPanel, 3)
+-- Variáveis do Farm
+LevelFarmQuest = false
+AutoFarmBossQuest = false
+SelectBoss = "The Gorrila King"
 
--- Select Farm Type
-local farmTypeRow, farmTypeBtn, farmTypeValue = MakeDropdownRow(mainSetPanel, "Select Farm Type", "Above", 4)
-farmTypeRow.LayoutOrder = 4
-local farmTypeOptions = {"Above", "Beside"}
-MakeDropdown(cfgFrame, farmTypeBtn, farmTypeValue, farmTypeOptions, function(val)
-	AutoFarmType = val
-end)
-task.spawn(function()
-	while task.wait() do
-		if AutoFarmType == "Above" then
-			Farm_Mode = CFrame.new(0, DisFarm, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-		elseif AutoFarmType == "Beside" then
-			Farm_Mode = CFrame.new(0, 2, DisFarm) * CFrame.Angles(math.rad(0), 0, 0)
-		end
-	end
-end)
-
-MakePanelSep(mainSetPanel, 5)
-
--- Distance Farm
-local disFarmRow, _ = MakePanelRow(mainSetPanel, "Distance Farm", 6)
-local disFarmInput = Instance.new("TextBox", disFarmRow)
-disFarmInput.Size             = UDim2.new(0, 80, 0, 28)
-disFarmInput.Position         = UDim2.new(1, -92, 0.5, -14)
-disFarmInput.BackgroundColor3 = C.BG
-disFarmInput.BorderSizePixel  = 0
-disFarmInput.Font             = Enum.Font.Gotham
-disFarmInput.TextSize         = 13
-disFarmInput.Text             = "30"
-disFarmInput.TextColor3       = C.TEXT_PRIMARY
-disFarmInput.PlaceholderText  = "30"
-disFarmInput.ClearTextOnFocus = false
-Instance.new("UICorner", disFarmInput).CornerRadius = UDim.new(0, 7)
-local dis = Instance.new("UIStroke", disFarmInput)
-dis.Color = C.DIVIDER; dis.Thickness = 0.8
-disFarmInput.FocusLost:Connect(function()
-	DisFarm = tonumber(disFarmInput.Text) or 30
-end)
-
-MakePanelSep(mainSetPanel, 7)
-
--- Fast Attack Delay dropdown
-local delayRow, delayBtn, delayValue = MakeDropdownRow(mainSetPanel, "Fast Attack Delay", "0.175 (Default)", 8)
-delayRow.LayoutOrder = 8
-local delayOptions = {"0.100 (Risk)", "0.165", "0.175 (Default)", "0.185", "0.200", "0.300", "0.500", "0.700 (Slow)"}
-MakeDropdown(cfgFrame, delayBtn, delayValue, delayOptions, function(val)
-	FastAttackSelected = val
-	if val == "0.100 (Risk)" then FastAttackDelay = 0.1
-	elseif val == "0.165" then FastAttackDelay = 0.165
-	elseif val == "0.175 (Default)" then FastAttackDelay = 0.175
-	elseif val == "0.185" then FastAttackDelay = 0.185
-	elseif val == "0.200" then FastAttackDelay = 0.2
-	elseif val == "0.300" then FastAttackDelay = 0.3
-	elseif val == "0.500" then FastAttackDelay = 0.5
-	elseif val == "0.700 (Slow)" then FastAttackDelay = 0.7
-	end
-end)
-
-MakePanelSep(mainSetPanel, 9)
-
--- Fast Attack (Melee and Sword) toggle
-local faRow2, _ = MakePanelRow(mainSetPanel, "Fast Attack (Melee/Sword)", 10)
-local faTrack2 = Instance.new("Frame", faRow2)
-faTrack2.Size = UDim2.new(0,44,0,26); faTrack2.Position = UDim2.new(1,-58,0.5,-13)
-faTrack2.BackgroundColor3 = C.OFF_GRAY; faTrack2.BorderSizePixel = 0
-Instance.new("UICorner", faTrack2).CornerRadius = UDim.new(1,0)
-local faKnob2 = Instance.new("Frame", faTrack2)
-faKnob2.Size = UDim2.new(0,22,0,22); faKnob2.Position = UDim2.new(0,2,0.5,-11)
-faKnob2.BackgroundColor3 = Color3.fromRGB(255,255,255); faKnob2.BorderSizePixel = 0
-Instance.new("UICorner", faKnob2).CornerRadius = UDim.new(1,0)
-local faBtn2 = Instance.new("TextButton", faTrack2)
-faBtn2.Size = UDim2.new(1,0,1,0); faBtn2.BackgroundTransparency = 1
-faBtn2.Text = ""; faBtn2.AutoButtonColor = false
-faBtn2.MouseButton1Click:Connect(function()
-	FastAttack = not FastAttack
-	TweenService:Create(faTrack2, TweenInfo.new(0.2), { BackgroundColor3 = FastAttack and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(faKnob2, TweenInfo.new(0.2), { Position = FastAttack and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-
--- lógica Fast Attack Melee/Sword
-local function getHead()
-	local returntable = {}
-	local plr = game:GetService("Players").LocalPlayer
-	pcall(function()
-		for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-			if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-				if (v.Head.Position - plr.Character.HumanoidRootPart.Position).Magnitude < 70 then
-					table.insert(returntable, v.HumanoidRootPart)
-				end
-			end
-		end
-	end)
-	return returntable
+-- ============================================================
+--                    FUNÇÕES AUXILIARES
+-- ============================================================
+function getHead()
+    local returntable = {}
+    for _, v in pairs(Workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            if (v.Head.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 70 then
+                table.insert(returntable, v.HumanoidRootPart)
+            end
+        end
+    end
+    return returntable
 end
 
-local function FastAttacked()
-	local plr = game:GetService("Players").LocalPlayer
-	local heads = getHead()
-	pcall(function()
-		local RegisterAttack = game:GetService("ReplicatedStorage").Modules.Net["RE/RegisterAttack"]
-		local RegisterHit    = game:GetService("ReplicatedStorage").Modules.Net["RE/RegisterHit"]
-		for i = 1, #heads do
-			if #heads > 0 then
-				pcall(function()
-					local tool = plr.Character:FindFirstChildOfClass("Tool")
-					if tool and (tool.ToolTip == "Melee" or tool.ToolTip == "Sword") then
-						RegisterAttack:FireServer(0.0000001)
-						RegisterHit:FireServer(heads[i], {})
-						sethiddenproperty(plr, "SimulationRadius", math.huge)
-					end
-				end)
-			end
-		end
-	end)
+function FastShooted()
+    local ShootGunEvent = ReplicatedStorage.Modules.Net["RE/ShootGunEvent"]
+    for _, v in pairs(Workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            local toolEquiped = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+            if (v.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 50 then
+                if toolEquiped and toolEquiped.ToolTip == "Gun" then
+                    pcall(function()
+                        LocalPlayer.Character[SelectWeaponFarm].RemoteFunctionShoot:InvokeServer(v.HumanoidRootPart.Position, v.HumanoidRootPart)
+                        ShootGunEvent:FireServer(v.HumanoidRootPart.Position, { v.HumanoidRootPart })
+                    end)
+                end
+            end
+        end
+    end
 end
 
-task.spawn(function()
-	while task.wait() do
-		if FastAttack then
-			pcall(function()
-				local CameraShakerR = require(game.ReplicatedStorage.Util.CameraShaker)
-				repeat task.wait(FastAttackDelay)
-					FastAttacked()
-					CameraShakerR:Stop()
-				until not FastAttack
-			end)
-		end
-	end
-end)
-
-MakePanelSep(mainSetPanel, 11)
-
--- Fast Attack (Gun) toggle
-local faGunRow, _ = MakePanelRow(mainSetPanel, "Fast Attack (Gun)", 12)
-local faGunTrack = Instance.new("Frame", faGunRow)
-faGunTrack.Size = UDim2.new(0,44,0,26); faGunTrack.Position = UDim2.new(1,-58,0.5,-13)
-faGunTrack.BackgroundColor3 = C.OFF_GRAY; faGunTrack.BorderSizePixel = 0
-Instance.new("UICorner", faGunTrack).CornerRadius = UDim.new(1,0)
-local faGunKnob = Instance.new("Frame", faGunTrack)
-faGunKnob.Size = UDim2.new(0,22,0,22); faGunKnob.Position = UDim2.new(0,2,0.5,-11)
-faGunKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); faGunKnob.BorderSizePixel = 0
-Instance.new("UICorner", faGunKnob).CornerRadius = UDim.new(1,0)
-local faGunBtn = Instance.new("TextButton", faGunTrack)
-faGunBtn.Size = UDim2.new(1,0,1,0); faGunBtn.BackgroundTransparency = 1
-faGunBtn.Text = ""; faGunBtn.AutoButtonColor = false
-faGunBtn.MouseButton1Click:Connect(function()
-	FastShot = not FastShot
-	TweenService:Create(faGunTrack, TweenInfo.new(0.2), { BackgroundColor3 = FastShot and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(faGunKnob, TweenInfo.new(0.2), { Position = FastShot and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-
-local function FastShooted()
-	local plr = game:GetService("Players").LocalPlayer
-	pcall(function()
-		local ShootGunEvent = game:GetService("ReplicatedStorage").Modules.Net["RE/ShootGunEvent"]
-		for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-			if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-				local tool = plr.Character:FindFirstChildOfClass("Tool")
-				if tool and tool.ToolTip == "Gun" then
-					if (v.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude < 50 then
-						ShootGunEvent:FireServer(v.HumanoidRootPart.Position, {[1] = v.HumanoidRootPart})
-					end
-				end
-			end
-		end
-	end)
+function FastAttacked()
+    local getHeadAttack = getHead()
+    local RegisterAttack = ReplicatedStorage.Modules.Net["RE/RegisterAttack"]
+    local RegisterHit = ReplicatedStorage.Modules.Net["RE/RegisterHit"]
+    for _, part in ipairs(getHeadAttack) do
+        pcall(function()
+            local toolEquiped = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+            if toolEquiped and (toolEquiped.ToolTip == "Melee" or toolEquiped.ToolTip == "Sword") then
+                RegisterAttack:FireServer(0.0000001)
+                RegisterHit:FireServer(part, {})
+                sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+            end
+        end)
+    end
 end
 
-task.spawn(function()
-	while task.wait() do
-		if FastShot then
-			pcall(function()
-				local CameraShakerR = require(game.ReplicatedStorage.Util.CameraShaker)
-				repeat task.wait(FastAttackDelay)
-					FastShooted()
-					CameraShakerR:Stop()
-				until not FastShot
-			end)
-		end
-	end
-end)
+function AttackToPlayers()
+    local RegisterAttack = ReplicatedStorage.Modules.Net["RE/RegisterAttack"]
+    local RegisterHit = ReplicatedStorage.Modules.Net["RE/RegisterHit"]
+    for _, v in pairs(Players:GetChildren()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            if (v.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 50 then
+                local toolEquiped = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                if toolEquiped and (toolEquiped.ToolTip == "Melee" or toolEquiped.ToolTip == "Sword") then
+                    RegisterAttack:FireServer(0.1)
+                    RegisterHit:FireServer(v.Character.Head, {})
+                end
+            end
+        end
+    end
+end
 
-MakePanelSep(mainSetPanel, 13)
-
--- Attack Melee Player toggle
-local atkPlrRow, _ = MakePanelRow(mainSetPanel, "Attack Melee Player", 14)
-local atkPlrTrack = Instance.new("Frame", atkPlrRow)
-atkPlrTrack.Size = UDim2.new(0,44,0,26); atkPlrTrack.Position = UDim2.new(1,-58,0.5,-13)
-atkPlrTrack.BackgroundColor3 = C.OFF_GRAY; atkPlrTrack.BorderSizePixel = 0
-Instance.new("UICorner", atkPlrTrack).CornerRadius = UDim.new(1,0)
-local atkPlrKnob = Instance.new("Frame", atkPlrTrack)
-atkPlrKnob.Size = UDim2.new(0,22,0,22); atkPlrKnob.Position = UDim2.new(0,2,0.5,-11)
-atkPlrKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); atkPlrKnob.BorderSizePixel = 0
-Instance.new("UICorner", atkPlrKnob).CornerRadius = UDim.new(1,0)
-local atkPlrBtn = Instance.new("TextButton", atkPlrTrack)
-atkPlrBtn.Size = UDim2.new(1,0,1,0); atkPlrBtn.BackgroundTransparency = 1
-atkPlrBtn.Text = ""; atkPlrBtn.AutoButtonColor = false
-atkPlrBtn.MouseButton1Click:Connect(function()
-	AttackToPlayersNow = not AttackToPlayersNow
-	TweenService:Create(atkPlrTrack, TweenInfo.new(0.2), { BackgroundColor3 = AttackToPlayersNow and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(atkPlrKnob, TweenInfo.new(0.2), { Position = AttackToPlayersNow and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-task.spawn(function()
-	while task.wait() do
-		if AttackToPlayersNow then
-			pcall(function()
-				local plr = game:GetService("Players").LocalPlayer
-				local RegisterAttack = game:GetService("ReplicatedStorage").Modules.Net["RE/RegisterAttack"]
-				local RegisterHit    = game:GetService("ReplicatedStorage").Modules.Net["RE/RegisterHit"]
-				repeat task.wait()
-					for _, v in pairs(game.Players:GetChildren()) do
-						pcall(function()
-							if v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
-								if (v.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude < 50 then
-									local tool = plr.Character:FindFirstChildOfClass("Tool")
-									if tool and (tool.ToolTip == "Melee" or tool.ToolTip == "Sword") then
-										RegisterAttack:FireServer(0.1)
-										RegisterHit:FireServer(v.Character.Head, {})
-									end
-								end
-							end
-						end)
-					end
-				until not AttackToPlayersNow
-			end)
-		end
-	end
-end)
-
-MakePanelSep(mainSetPanel, 15)
-
--- Bring Mobs Distance textbox
-local bringDistRow, _ = MakePanelRow(mainSetPanel, "Bring Mobs Distance", 16)
-local bringDistInput = Instance.new("TextBox", bringDistRow)
-bringDistInput.Size = UDim2.new(0,80,0,28); bringDistInput.Position = UDim2.new(1,-92,0.5,-14)
-bringDistInput.BackgroundColor3 = C.BG; bringDistInput.BorderSizePixel = 0
-bringDistInput.Font = Enum.Font.Gotham; bringDistInput.TextSize = 13
-bringDistInput.Text = "250"; bringDistInput.TextColor3 = C.TEXT_PRIMARY
-bringDistInput.ClearTextOnFocus = false
-Instance.new("UICorner", bringDistInput).CornerRadius = UDim.new(0,7)
-local bdis = Instance.new("UIStroke", bringDistInput)
-bdis.Color = C.DIVIDER; bdis.Thickness = 0.8
-bringDistInput.FocusLost:Connect(function()
-	bringfrec = tonumber(bringDistInput.Text) or 250
-end)
-
-MakePanelSep(mainSetPanel, 17)
-
--- Bring Mob toggle
-local bringRow2, _ = MakePanelRow(mainSetPanel, "Bring Mob", 18)
-local bmTrack2 = Instance.new("Frame", bringRow2)
-bmTrack2.Size = UDim2.new(0,44,0,26); bmTrack2.Position = UDim2.new(1,-58,0.5,-13)
-bmTrack2.BackgroundColor3 = C.OFF_GRAY; bmTrack2.BorderSizePixel = 0
-Instance.new("UICorner", bmTrack2).CornerRadius = UDim.new(1,0)
-local bmKnob2 = Instance.new("Frame", bmTrack2)
-bmKnob2.Size = UDim2.new(0,22,0,22); bmKnob2.Position = UDim2.new(0,2,0.5,-11)
-bmKnob2.BackgroundColor3 = Color3.fromRGB(255,255,255); bmKnob2.BorderSizePixel = 0
-Instance.new("UICorner", bmKnob2).CornerRadius = UDim.new(1,0)
-local bmBtn2 = Instance.new("TextButton", bmTrack2)
-bmBtn2.Size = UDim2.new(1,0,1,0); bmBtn2.BackgroundTransparency = 1
-bmBtn2.Text = ""; bmBtn2.AutoButtonColor = false
-bmBtn2.MouseButton1Click:Connect(function()
-	BringMobs = not BringMobs
-	TweenService:Create(bmTrack2, TweenInfo.new(0.2), { BackgroundColor3 = BringMobs and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(bmKnob2, TweenInfo.new(0.2), { Position = BringMobs and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-
--- lógica Bring Mob (usa workspace.Enemies como o script original)
 function BringMonster(TargetName, TargetCFrame)
-	pcall(function()
-		for _, v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-			if v.Name == TargetName then
-				if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-					if (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < tonumber(bringfrec) then
-						v.HumanoidRootPart.CFrame    = TargetCFrame
-						v.HumanoidRootPart.CanCollide = false
-						v.HumanoidRootPart.Size       = Vector3.new(60, 60, 60)
-						v.HumanoidRootPart.Transparency = 1
-						v.Humanoid:ChangeState(11)
-						v.Humanoid:ChangeState(14)
-						if v.Humanoid:FindFirstChild("Animator") then
-							v.Humanoid.Animator:Destroy()
-						end
-						pcall(sethiddenproperty, game.Players.LocalPlayer, "SimulationRadius", math.huge)
-					end
-				end
-			end
-		end
-	end)
+    for _, v in pairs(Workspace.Enemies:GetChildren()) do
+        if v.Name == TargetName and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            if (v.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < bringfrec then
+                v.HumanoidRootPart.CFrame = TargetCFrame
+                v.HumanoidRootPart.CanCollide = false
+                v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                v.HumanoidRootPart.Transparency = 1
+                v.Humanoid:ChangeState(11)
+                v.Humanoid:ChangeState(14)
+                if v.Humanoid:FindFirstChild("Animator") then v.Humanoid.Animator:Destroy() end
+            end
+        end
+    end
+    pcall(sethiddenproperty, LocalPlayer, "SimulationRadius", math.huge)
 end
 
-MakePanelSep(mainSetPanel, 19)
-
--- Bypass Teleport toggle
-local bypassRow, _ = MakePanelRow(mainSetPanel, "Bypass Teleport", 20)
-local bypassTrack = Instance.new("Frame", bypassRow)
-bypassTrack.Size = UDim2.new(0,44,0,26); bypassTrack.Position = UDim2.new(1,-58,0.5,-13)
-bypassTrack.BackgroundColor3 = C.OFF_GRAY; bypassTrack.BorderSizePixel = 0
-Instance.new("UICorner", bypassTrack).CornerRadius = UDim.new(1,0)
-local bypassKnob = Instance.new("Frame", bypassTrack)
-bypassKnob.Size = UDim2.new(0,22,0,22); bypassKnob.Position = UDim2.new(0,2,0.5,-11)
-bypassKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); bypassKnob.BorderSizePixel = 0
-Instance.new("UICorner", bypassKnob).CornerRadius = UDim.new(1,0)
-local bypassBtn = Instance.new("TextButton", bypassTrack)
-bypassBtn.Size = UDim2.new(1,0,1,0); bypassBtn.BackgroundTransparency = 1
-bypassBtn.Text = ""; bypassBtn.AutoButtonColor = false
-bypassBtn.MouseButton1Click:Connect(function()
-	ByPassTP = not ByPassTP
-	TweenService:Create(bypassTrack, TweenInfo.new(0.2), { BackgroundColor3 = ByPassTP and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(bypassKnob, TweenInfo.new(0.2), { Position = ByPassTP and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-
-MakePanelSep(mainSetPanel, 21)
-
--- Set Spawn Point toggle
-local spawnRow, _ = MakePanelRow(mainSetPanel, "Set Spawn Point", 22)
-local spawnTrack = Instance.new("Frame", spawnRow)
-spawnTrack.Size = UDim2.new(0,44,0,26); spawnTrack.Position = UDim2.new(1,-58,0.5,-13)
-spawnTrack.BackgroundColor3 = C.OFF_GRAY; spawnTrack.BorderSizePixel = 0
-Instance.new("UICorner", spawnTrack).CornerRadius = UDim.new(1,0)
-local spawnKnob = Instance.new("Frame", spawnTrack)
-spawnKnob.Size = UDim2.new(0,22,0,22); spawnKnob.Position = UDim2.new(0,2,0.5,-11)
-spawnKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); spawnKnob.BorderSizePixel = 0
-Instance.new("UICorner", spawnKnob).CornerRadius = UDim.new(1,0)
-local spawnBtn = Instance.new("TextButton", spawnTrack)
-spawnBtn.Size = UDim2.new(1,0,1,0); spawnBtn.BackgroundTransparency = 1
-spawnBtn.Text = ""; spawnBtn.AutoButtonColor = false
-spawnBtn.MouseButton1Click:Connect(function()
-	AutoSetSpawn = not AutoSetSpawn
-	TweenService:Create(spawnTrack, TweenInfo.new(0.2), { BackgroundColor3 = AutoSetSpawn and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(spawnKnob, TweenInfo.new(0.2), { Position = AutoSetSpawn and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-task.spawn(function()
-	while task.wait(5) do
-		if AutoSetSpawn then
-			pcall(function()
-				game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetSpawnPoint")
-			end)
-		end
-	end
-end)
-
-MakePanelSep(mainSetPanel, 23)
-
--- Reset Character button
-local resetRow = Instance.new("Frame", mainSetPanel)
-resetRow.Size = UDim2.new(1,0,0,44); resetRow.BackgroundTransparency = 1
-resetRow.BorderSizePixel = 0; resetRow.LayoutOrder = 24
-local resetBtn = Instance.new("TextButton", resetRow)
-resetBtn.Size = UDim2.new(0,120,0,28); resetBtn.Position = UDim2.new(0.5,-60,0.5,-14)
-resetBtn.Text = "Reset Character"; resetBtn.Font = Enum.Font.GothamBold
-resetBtn.TextSize = 12; resetBtn.TextColor3 = Color3.fromRGB(255,255,255)
-resetBtn.BackgroundColor3 = C.CLOSE; resetBtn.AutoButtonColor = false
-resetBtn.BorderSizePixel = 0
-Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0,7)
-resetBtn.MouseButton1Click:Connect(function()
-	pcall(function()
-		for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-			if v:IsA("BasePart") then v:Destroy() end
-		end
-	end)
-end)
-
--- ── PAINEL: Skill Mastery ────────────────
-local skillPanel, _ = MakePanel(cfgFrame, "SKILL MASTERY", 2)
-local skillList = {
-	{ label = "Use Skill Z", key = "SkillZ" },
-	{ label = "Use Skill X", key = "SkillX" },
-	{ label = "Use Skill C", key = "SkillC" },
-	{ label = "Use Skill V", key = "SkillV" },
-	{ label = "Use Skill F", key = "SkillF" },
-}
-for i, skill in ipairs(skillList) do
-	local sRow, _ = MakePanelRow(skillPanel, skill.label, i * 2)
-	local sTrack = Instance.new("Frame", sRow)
-	sTrack.Size = UDim2.new(0,44,0,26); sTrack.Position = UDim2.new(1,-58,0.5,-13)
-	sTrack.BackgroundColor3 = C.OFF_GRAY; sTrack.BorderSizePixel = 0
-	Instance.new("UICorner", sTrack).CornerRadius = UDim.new(1,0)
-	local sKnob = Instance.new("Frame", sTrack)
-	sKnob.Size = UDim2.new(0,22,0,22); sKnob.Position = UDim2.new(0,2,0.5,-11)
-	sKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); sKnob.BorderSizePixel = 0
-	Instance.new("UICorner", sKnob).CornerRadius = UDim.new(1,0)
-	local sBtn = Instance.new("TextButton", sTrack)
-	sBtn.Size = UDim2.new(1,0,1,0); sBtn.BackgroundTransparency = 1
-	sBtn.Text = ""; sBtn.AutoButtonColor = false
-	local k = skill.key
-	sBtn.MouseButton1Click:Connect(function()
-		_G[k] = not _G[k]
-		TweenService:Create(sTrack, TweenInfo.new(0.2), { BackgroundColor3 = _G[k] and C.ON_GREEN or C.OFF_GRAY }):Play()
-		TweenService:Create(sKnob, TweenInfo.new(0.2), { Position = _G[k] and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-	end)
-	if i < #skillList then MakePanelSep(skillPanel, i*2+1) end
+function Tween(P1)
+    local Distance = (P1.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    local Speed = 350
+    if Distance > 1 then
+        game:GetService("TweenService"):Create(LocalPlayer.Character.HumanoidRootPart, TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear), {CFrame = P1}):Play()
+    end
 end
 
--- ── PAINEL: Ability Settings ─────────────
-local abilityPanel, _ = MakePanel(cfgFrame, "ABILITY SETTINGS", 3)
-
--- Buso Haki
-local busoRow, _ = MakePanelRow(abilityPanel, "Buso Haki", 2)
-local busoTrack = Instance.new("Frame", busoRow)
-busoTrack.Size = UDim2.new(0,44,0,26); busoTrack.Position = UDim2.new(1,-58,0.5,-13)
-busoTrack.BackgroundColor3 = C.OFF_GRAY; busoTrack.BorderSizePixel = 0
-Instance.new("UICorner", busoTrack).CornerRadius = UDim.new(1,0)
-local busoKnob = Instance.new("Frame", busoTrack)
-busoKnob.Size = UDim2.new(0,22,0,22); busoKnob.Position = UDim2.new(0,2,0.5,-11)
-busoKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); busoKnob.BorderSizePixel = 0
-Instance.new("UICorner", busoKnob).CornerRadius = UDim.new(1,0)
-local busoBtn = Instance.new("TextButton", busoTrack)
-busoBtn.Size = UDim2.new(1,0,1,0); busoBtn.BackgroundTransparency = 1
-busoBtn.Text = ""; busoBtn.AutoButtonColor = false
-busoBtn.MouseButton1Click:Connect(function()
-	BusoHaki = not BusoHaki
-	TweenService:Create(busoTrack, TweenInfo.new(0.2), { BackgroundColor3 = BusoHaki and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(busoKnob, TweenInfo.new(0.2), { Position = BusoHaki and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-task.spawn(function()
-	while task.wait() do
-		if BusoHaki then
-			pcall(function()
-				if not game.Players.LocalPlayer.Character:FindFirstChild("HasBuso") then
-					game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
-				end
-			end)
-		end
-	end
-end)
-
-MakePanelSep(abilityPanel, 3)
-
--- Ken Haki
-local kenRow, _ = MakePanelRow(abilityPanel, "Ken Haki", 4)
-local kenTrack = Instance.new("Frame", kenRow)
-kenTrack.Size = UDim2.new(0,44,0,26); kenTrack.Position = UDim2.new(1,-58,0.5,-13)
-kenTrack.BackgroundColor3 = C.OFF_GRAY; kenTrack.BorderSizePixel = 0
-Instance.new("UICorner", kenTrack).CornerRadius = UDim.new(1,0)
-local kenKnob = Instance.new("Frame", kenTrack)
-kenKnob.Size = UDim2.new(0,22,0,22); kenKnob.Position = UDim2.new(0,2,0.5,-11)
-kenKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); kenKnob.BorderSizePixel = 0
-Instance.new("UICorner", kenKnob).CornerRadius = UDim.new(1,0)
-local kenBtn = Instance.new("TextButton", kenTrack)
-kenBtn.Size = UDim2.new(1,0,1,0); kenBtn.BackgroundTransparency = 1
-kenBtn.Text = ""; kenBtn.AutoButtonColor = false
-kenBtn.MouseButton1Click:Connect(function()
-	KenHaki = not KenHaki
-	TweenService:Create(kenTrack, TweenInfo.new(0.2), { BackgroundColor3 = KenHaki and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(kenKnob, TweenInfo.new(0.2), { Position = KenHaki and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-task.spawn(function()
-	while task.wait() do
-		if KenHaki then
-			pcall(function()
-				if not game.Players.LocalPlayer.Character:FindFirstChild("Highlight") then
-					game:service("VirtualInputManager"):SendKeyEvent(true,  "K", false, game)
-					task.wait(0.1)
-					game:service("VirtualInputManager"):SendKeyEvent(false, "K", false, game)
-				end
-			end)
-		end
-	end
-end)
-
--- ── PAINEL: Misc Setting ─────────────────
-local miscSetPanel, _ = MakePanel(cfgFrame, "MISC SETTING", 4)
-
--- Disable Audio Effect
-local audioRow, _ = MakePanelRow(miscSetPanel, "Disable Audio Effect", 2)
-local audioTrack = Instance.new("Frame", audioRow)
-audioTrack.Size = UDim2.new(0,44,0,26); audioTrack.Position = UDim2.new(1,-58,0.5,-13)
-audioTrack.BackgroundColor3 = C.OFF_GRAY; audioTrack.BorderSizePixel = 0
-Instance.new("UICorner", audioTrack).CornerRadius = UDim.new(1,0)
-local audioKnob = Instance.new("Frame", audioTrack)
-audioKnob.Size = UDim2.new(0,22,0,22); audioKnob.Position = UDim2.new(0,2,0.5,-11)
-audioKnob.BackgroundColor3 = Color3.fromRGB(255,255,255); audioKnob.BorderSizePixel = 0
-Instance.new("UICorner", audioKnob).CornerRadius = UDim.new(1,0)
-local audioBtn = Instance.new("TextButton", audioTrack)
-audioBtn.Size = UDim2.new(1,0,1,0); audioBtn.BackgroundTransparency = 1
-audioBtn.Text = ""; audioBtn.AutoButtonColor = false
-audioBtn.MouseButton1Click:Connect(function()
-	DeleteAudioEffect = not DeleteAudioEffect
-	TweenService:Create(audioTrack, TweenInfo.new(0.2), { BackgroundColor3 = DeleteAudioEffect and C.ON_GREEN or C.OFF_GRAY }):Play()
-	TweenService:Create(audioKnob, TweenInfo.new(0.2), { Position = DeleteAudioEffect and UDim2.new(0,20,0.5,-11) or UDim2.new(0,2,0.5,-11) }):Play()
-end)
-task.spawn(function()
-	while task.wait() do
-		if DeleteAudioEffect then
-			pcall(function()
-				for _, v in pairs(game:GetService("Workspace")["_WorldOrigin"]:GetChildren()) do
-					if v.Name == "Sounds" then
-						for _, v2 in pairs(v:GetChildren()) do
-							if v2:IsA("Part") then v2:Destroy() end
-						end
-					end
-					if v.Name == "CurvedRing" or v.Name == "SlashHit" or v.Name == "SwordSlash" or v.Name == "SlashTail" then
-						v:Destroy()
-					end
-				end
-			end)
-		end
-	end
-end)
-
-MakePanelSep(miscSetPanel, 3)
-
--- Destroy Effect Animation button
-local destroyEffRow = Instance.new("Frame", miscSetPanel)
-destroyEffRow.Size = UDim2.new(1,0,0,44); destroyEffRow.BackgroundTransparency = 1
-destroyEffRow.BorderSizePixel = 0; destroyEffRow.LayoutOrder = 4
-local destroyEffBtn = Instance.new("TextButton", destroyEffRow)
-destroyEffBtn.Size = UDim2.new(0,160,0,28); destroyEffBtn.Position = UDim2.new(0.5,-80,0.5,-14)
-destroyEffBtn.Text = "Destroy Effect Animation"; destroyEffBtn.Font = Enum.Font.Gotham
-destroyEffBtn.TextSize = 11; destroyEffBtn.TextColor3 = Color3.fromRGB(255,255,255)
-destroyEffBtn.BackgroundColor3 = C.ACCENT; destroyEffBtn.AutoButtonColor = false
-destroyEffBtn.BorderSizePixel = 0
-Instance.new("UICorner", destroyEffBtn).CornerRadius = UDim.new(0,7)
-destroyEffBtn.MouseButton1Click:Connect(function()
-	pcall(function()
-		for _, v in pairs(game:GetService("Workspace")["_WorldOrigin"]:GetChildren()) do
-			if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Explosion") or
-				v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
-				v:Destroy()
-			end
-		end
-	end)
-end)
-
--- espaçador final da aba cfg
-local cfgSpacer = Instance.new("Frame", cfgFrame)
-cfgSpacer.Size = UDim2.new(1,0,0,8); cfgSpacer.BackgroundTransparency = 1
-cfgSpacer.BorderSizePixel = 0; cfgSpacer.LayoutOrder = 99
-
-local delayOptions = {} -- mantido para não quebrar referências abaixo
-
--- ══════════════════════════════════════════
---  LÓGICA: FAST ATTACK + BRING MOB + HIT POSITION
---
---  FastAttack: expande o hitbox do HumanoidRootPart do player
---  para um tamanho seguro (60 studs) via getrawmetatable,
---  depois ativa a tool em loop com o delay configurado.
---  O hitbox é restaurado ao desligar para evitar ban.
---
---  Bring Mob: move o HumanoidRootPart do mob para perto
---  do player usando os offsets de Hit Position/Height.
--- ══════════════════════════════════════════
-local Players    = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local lp         = Players.LocalPlayer
-
-_G.FastAttackActive = false
-_G.FastAttackDelay  = 0.15
-_G.BringMobActive   = false
-_G.BringMobCount    = 1
-_G.HitHeight        = 15
-_G.HitOffsetX       = 0
-_G.HitOffsetY       = 15
-_G.HitOffsetZ       = -3
-
--- tamanho do hitbox expandido (60 = alcance bom e seguro)
--- valores muito altos (>150) aumentam risco de detecção
-local HITBOX_SIZE    = Vector3.new(60, 60, 60)
-local HITBOX_DEFAULT = Vector3.new(2, 2, 1) -- tamanho original do HRP
-
-local function parseDelay(txt)
-	return tonumber(txt:match("[%d%.]+")) or 0.15
+function EquipTool(Tool)
+    pcall(function()
+        LocalPlayer.Character.Humanoid:EquipTool(LocalPlayer.Backpack[Tool])
+    end)
 end
 
--- expande ou restaura o hitbox do HumanoidRootPart
-local function setHitbox(hrp, expanded)
-	-- usa getrawmetatable para bypassar o __newindex protegido
-	local ok = pcall(function()
-		local mt = getrawmetatable(game)
-		setreadonly(mt, false)
-		local oldNI = mt.__newindex
-		mt.__newindex = rawset
-		setreadonly(mt, true)
-
-		hrp.Size = expanded and HITBOX_SIZE or HITBOX_DEFAULT
-
-		setreadonly(mt, false)
-		mt.__newindex = oldNI
-		setreadonly(mt, true)
-	end)
-	-- fallback caso o executor não suporte getrawmetatable
-	if not ok then
-		pcall(function()
-			hrp.Size = expanded and HITBOX_SIZE or HITBOX_DEFAULT
-		end)
-	end
+function BTP(Tarpos)
+    if (Tarpos.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 2000 then
+        LocalPlayer.Character.Head:Destroy()
+        LocalPlayer.Character.HumanoidRootPart.CFrame = Tarpos
+        ReplicatedStorage.Remotes.CommF_:InvokeServer("SetSpawnPoint")
+        wait(1)
+        LocalPlayer.Character.HumanoidRootPart.CFrame = Tarpos
+        ReplicatedStorage.Remotes.CommF_:InvokeServer("SetSpawnPoint")
+        wait(7)
+    elseif (Tarpos.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2000 then
+        Tween(Tarpos)
+    end
 end
 
--- nomes de NPCs amigáveis/vendedores para ignorar
-local FRIENDLY_NPCS = {
-	["Blox Fruit Dealer"] = true,
-	["Blox Fruit Dealer Cousin"] = true,
-	["Sword Dealer"] = true,
-	["Sword Dealer Of The East"] = true,
-	["Ability Teacher"] = true,
-	["Master Sword Dealer"] = true,
-	["Arowe"] = true,
-	["Bartilo"] = true,
-	["Mysterious Scientist"] = true,
-	["Tort"] = true,
-	["Hungry Man"] = true,
-	["Sick Man"] = true,
-	["Living NPCs"] = true,
-	["Advanced Blade Dealer"] = true,
-	["Ship Dealer"] = true,
-	["Terraform"] = true,
-	["Dragon Talon Sage"] = true,
-	["Bon Bons"] = true,
-	["Sabi"] = true,
-	["Phoeyu, The Reformed"] = true,
-	["Blacksmith"] = true,
-	["Enchantment Specialist"] = true,
-	["NPC"] = true,
-}
+-- ============================================================
+--                    FUNÇÕES DE FARM
+-- ============================================================
 
--- retorna os N mobs mais próximos, filtrando players e NPCs amigáveis
-local function getNearestMobs(count)
-	local char = lp.Character
-	if not char then return {} end
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return {} end
+-- Check World
+local First_Sea = false
+local Second_Sea = false
+local Third_Sea = false
+local placeId = game.PlaceId
+if placeId == 2753915549 then First_Sea = true
+elseif placeId == 4442272183 then Second_Sea = true
+elseif placeId == 7449423635 then Third_Sea = true end
 
-	-- monta lista de nomes de players para ignorar
-	local playerNames = {}
-	for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
-		playerNames[p.Name] = true
-		-- personagem do player também
-		if p.Character then
-			playerNames[p.Character.Name] = true
-		end
-	end
+-- Variáveis globais do farm
+Ms = ""
+NameQuest = ""
+QuestLv = 1
+NameMon = ""
+CFrameQ = CFrame.new()
+CFrameMon = CFrame.new()
+Level_Farm_Name = ""
+Level_Farm_CFrame = CFrame.new()
 
-	local mobs = {}
-	for _, obj in ipairs(workspace:GetDescendants()) do
-		if obj:IsA("Model") and obj ~= char then
-			-- ignora outros jogadores
-			if playerNames[obj.Name] then continue end
-			-- ignora NPCs amigáveis/vendedores
-			if FRIENDLY_NPCS[obj.Name] then continue end
-
-			local hum    = obj:FindFirstChildOfClass("Humanoid")
-			local mobHrp = obj:FindFirstChild("HumanoidRootPart")
-
-			if hum and hum.Health > 0 and mobHrp then
-				local dist = (mobHrp.Position - hrp.Position).Magnitude
-				-- só considera mobs dentro do raio de farm
-				if dist <= _G.FLY_RANGE then
-					table.insert(mobs, { model = obj, hrp = mobHrp, dist = dist })
-				end
-			end
-		end
-	end
-
-	table.sort(mobs, function(a, b) return a.dist < b.dist end)
-
-	local result = {}
-	for i = 1, math.min(count, #mobs) do
-		result[i] = mobs[i]
-	end
-	return result
+-- ============================================================
+--                    CHECK LEVEL (FARM QUEST)
+-- ============================================================
+function CheckLevel()
+    local Lv = LocalPlayer.Data.Level.Value
+    if First_Sea then
+        if Lv == 1 or Lv <= 9 then
+            Ms = "Bandit"
+            NameQuest = "BanditQuest1"
+            QuestLv = 1
+            NameMon = "Bandit"
+            CFrameQ = CFrame.new(1060.9383544922, 16.455066680908, 1547.7841796875)
+            CFrameMon = CFrame.new(1038.5533447266, 41.296249389648, 1576.5098876953)
+        elseif Lv == 10 or Lv <= 14 then
+            Ms = "Monkey"
+            NameQuest = "JungleQuest"
+            QuestLv = 1
+            NameMon = "Monkey"
+            CFrameQ = CFrame.new(-1601.6553955078, 36.85213470459, 153.38809204102)
+            CFrameMon = CFrame.new(-1448.1446533203, 50.851993560791, 63.60718536377)
+        elseif Lv == 15 or Lv <= 29 then
+            Ms = "Gorilla"
+            NameQuest = "JungleQuest"
+            QuestLv = 2
+            NameMon = "Gorilla"
+            CFrameQ = CFrame.new(-1601.6553955078, 36.85213470459, 153.38809204102)
+            CFrameMon = CFrame.new(-1142.6488037109, 40.462348937988, -515.39227294922)
+        elseif Lv == 30 or Lv <= 39 then
+            Ms = "Pirate"
+            NameQuest = "BuggyQuest1"
+            QuestLv = 1
+            NameMon = "Pirate"
+            CFrameQ = CFrame.new(-1140.1761474609, 4.752049446106, 3827.4057617188)
+            CFrameMon = CFrame.new(-1201.0881347656, 40.628940582275, 3857.5966796875)
+        elseif Lv == 40 or Lv <= 59 then
+            Ms = "Brute"
+            NameQuest = "BuggyQuest1"
+            QuestLv = 2
+            NameMon = "Brute"
+            CFrameQ = CFrame.new(-1140.1761474609, 4.752049446106, 3827.4057617188)
+            CFrameMon = CFrame.new(-1387.5324707031, 24.592035293579, 4100.9575195313)
+        elseif Lv == 60 or Lv <= 74 then
+            Ms = "Desert Bandit"
+            NameQuest = "DesertQuest"
+            QuestLv = 1
+            NameMon = "Desert Bandit"
+            CFrameQ = CFrame.new(896.51721191406, 6.4384617805481, 4390.1494140625)
+            CFrameMon = CFrame.new(984.99896240234, 16.109552383423, 4417.91015625)
+        elseif Lv == 75 or Lv <= 89 then
+            Ms = "Desert Officer"
+            NameQuest = "DesertQuest"
+            QuestLv = 2
+            NameMon = "Desert Officer"
+            CFrameQ = CFrame.new(896.51721191406, 6.4384617805481, 4390.1494140625)
+            CFrameMon = CFrame.new(1547.1510009766, 14.452038764954, 4381.8002929688)
+        elseif Lv == 90 or Lv <= 99 then
+            Ms = "Snow Bandit"
+            NameQuest = "SnowQuest"
+            QuestLv = 1
+            NameMon = "Snow Bandit"
+            CFrameQ = CFrame.new(1386.8073730469, 87.272789001465, -1298.3576660156)
+            CFrameMon = CFrame.new(1356.3028564453, 105.76865386963, -1328.2418212891)
+        elseif Lv == 100 or Lv <= 119 then
+            Ms = "Snowman"
+            NameQuest = "SnowQuest"
+            QuestLv = 2
+            NameMon = "Snowman"
+            CFrameQ = CFrame.new(1386.8073730469, 87.272789001465, -1298.3576660156)
+            CFrameMon = CFrame.new(1218.7956542969, 138.01184082031, -1488.0262451172)
+        elseif Lv == 120 or Lv <= 149 then
+            Ms = "Chief Petty Officer"
+            NameQuest = "MarineQuest2"
+            QuestLv = 1
+            NameMon = "Chief Petty Officer"
+            CFrameQ = CFrame.new(-5035.49609375, 28.677835464478, 4324.1840820313)
+            CFrameMon = CFrame.new(-4931.1552734375, 65.793113708496, 4121.8393554688)
+        elseif Lv == 150 or Lv <= 174 then
+            Ms = "Sky Bandit"
+            NameQuest = "SkyQuest"
+            QuestLv = 1
+            NameMon = "Sky Bandit"
+            CFrameQ = CFrame.new(-4842.1372070313, 717.69543457031, -2623.0483398438)
+            CFrameMon = CFrame.new(-4955.6411132813, 365.46365356445, -2908.1865234375)
+        elseif Lv == 175 or Lv <= 189 then
+            Ms = "Dark Master"
+            NameQuest = "SkyQuest"
+            QuestLv = 2
+            NameMon = "Dark Master"
+            CFrameQ = CFrame.new(-4842.1372070313, 717.69543457031, -2623.0483398438)
+            CFrameMon = CFrame.new(-5148.1650390625, 439.04571533203, -2332.9611816406)
+        elseif Lv == 190 or Lv <= 209 then
+            Ms = "Prisoner"
+            NameQuest = "PrisonerQuest"
+            QuestLv = 1
+            NameMon = "Prisoner"
+            CFrameQ = CFrame.new(5310.60547, 0.350014925, 474.946594)
+            CFrameMon = CFrame.new(4937.31885, 0.332031399, 649.574524)
+        elseif Lv == 210 or Lv <= 249 then
+            Ms = "Dangerous Prisoner"
+            NameQuest = "PrisonerQuest"
+            QuestLv = 2
+            NameMon = "Dangerous Prisoner"
+            CFrameQ = CFrame.new(5310.60547, 0.350014925, 474.946594)
+            CFrameMon = CFrame.new(5099.6626, 0.351562679, 1055.7583)
+        elseif Lv == 250 or Lv <= 274 then
+            Ms = "Toga Warrior"
+            NameQuest = "ColosseumQuest"
+            QuestLv = 1
+            NameMon = "Toga Warrior"
+            CFrameQ = CFrame.new(-1577.7890625, 7.4151420593262, -2984.4838867188)
+            CFrameMon = CFrame.new(-1872.5166015625, 49.080215454102, -2913.810546875)
+        elseif Lv == 275 or Lv <= 299 then
+            Ms = "Gladiator"
+            NameQuest = "ColosseumQuest"
+            QuestLv = 2
+            NameMon = "Gladiator"
+            CFrameQ = CFrame.new(-1577.7890625, 7.4151420593262, -2984.4838867188)
+            CFrameMon = CFrame.new(-1521.3740234375, 81.203170776367, -3066.3139648438)
+        elseif Lv == 300 or Lv <= 324 then
+            Ms = "Military Soldier"
+            NameQuest = "MagmaQuest"
+            QuestLv = 1
+            NameMon = "Military Soldier"
+            CFrameQ = CFrame.new(-5316.1157226563, 12.262831687927, 8517.00390625)
+            CFrameMon = CFrame.new(-5369.0004882813, 61.24352645874, 8556.4921875)
+        elseif Lv == 325 or Lv <= 374 then
+            Ms = "Military Spy"
+            NameQuest = "MagmaQuest"
+            QuestLv = 2
+            NameMon = "Military Spy"
+            CFrameQ = CFrame.new(-5316.1157226563, 12.262831687927, 8517.00390625)
+            CFrameMon = CFrame.new(-5787.00293, 75.8262634, 8651.69922)
+        elseif Lv == 375 or Lv <= 399 then
+            Ms = "Fishman Warrior"
+            NameQuest = "FishmanQuest"
+            QuestLv = 1
+            NameMon = "Fishman Warrior"
+            CFrameQ = CFrame.new(61122.65234375, 18.497442245483, 1569.3997802734)
+            CFrameMon = CFrame.new(60844.10546875, 98.462875366211, 1298.3985595703)
+        elseif Lv == 400 or Lv <= 449 then
+            Ms = "Fishman Commando"
+            NameQuest = "FishmanQuest"
+            QuestLv = 2
+            NameMon = "Fishman Commando"
+            CFrameQ = CFrame.new(61122.65234375, 18.497442245483, 1569.3997802734)
+            CFrameMon = CFrame.new(61738.3984375, 64.207321166992, 1433.8375244141)
+        elseif Lv == 450 or Lv <= 474 then
+            Ms = "God's Guard"
+            NameQuest = "SkyExp1Quest"
+            QuestLv = 1
+            NameMon = "God's Guard"
+            CFrameQ = CFrame.new(-4721.8603515625, 845.30297851563, -1953.8489990234)
+            CFrameMon = CFrame.new(-4628.0498046875, 866.92877197266, -1931.2352294922)
+        elseif Lv == 475 or Lv <= 524 then
+            Ms = "Shanda"
+            NameQuest = "SkyExp1Quest"
+            QuestLv = 2
+            NameMon = "Shanda"
+            CFrameQ = CFrame.new(-7863.1596679688, 5545.5190429688, -378.42266845703)
+            CFrameMon = CFrame.new(-7685.1474609375, 5601.0751953125, -441.38876342773)
+        elseif Lv == 525 or Lv <= 549 then
+            Ms = "Royal Squad"
+            NameQuest = "SkyExp2Quest"
+            QuestLv = 1
+            NameMon = "Royal Squad"
+            CFrameQ = CFrame.new(-7903.3828125, 5635.9897460938, -1410.923828125)
+            CFrameMon = CFrame.new(-7654.2514648438, 5637.1079101563, -1407.7550048828)
+        elseif Lv == 550 or Lv <= 624 then
+            Ms = "Royal Soldier"
+            NameQuest = "SkyExp2Quest"
+            QuestLv = 2
+            NameMon = "Royal Soldier"
+            CFrameQ = CFrame.new(-7903.3828125, 5635.9897460938, -1410.923828125)
+            CFrameMon = CFrame.new(-7760.4106445313, 5679.9077148438, -1884.8112792969)
+        elseif Lv == 625 or Lv <= 649 then
+            Ms = "Galley Pirate"
+            NameQuest = "FountainQuest"
+            QuestLv = 1
+            NameMon = "Galley Pirate"
+            CFrameQ = CFrame.new(5258.2788085938, 38.526931762695, 4050.044921875)
+            CFrameMon = CFrame.new(5557.1684570313, 152.32717895508, 3998.7758789063)
+        elseif Lv >= 650 then
+            Ms = "Galley Captain"
+            NameQuest = "FountainQuest"
+            QuestLv = 2
+            NameMon = "Galley Captain"
+            CFrameQ = CFrame.new(5258.2788085938, 38.526931762695, 4050.044921875)
+            CFrameMon = CFrame.new(5677.6772460938, 92.786109924316, 4966.6323242188)
+        end
+    end
+    if Second_Sea then
+        if Lv == 700 or Lv <= 724 then
+            Ms = "Raider"
+            NameQuest = "Area1Quest"
+            QuestLv = 1
+            NameMon = "Raider"
+            CFrameQ = CFrame.new(-427.72567749023, 72.99634552002, 1835.9426269531)
+            CFrameMon = CFrame.new(68.874565124512, 93.635643005371, 2429.6752929688)
+        elseif Lv == 725 or Lv <= 774 then
+            Ms = "Mercenary"
+            NameQuest = "Area1Quest"
+            QuestLv = 2
+            NameMon = "Mercenary"
+            CFrameQ = CFrame.new(-427.72567749023, 72.99634552002, 1835.9426269531)
+            CFrameMon = CFrame.new(-864.85009765625, 122.47104644775, 1453.1505126953)
+        elseif Lv == 775 or Lv <= 799 then
+            Ms = "Swan Pirate"
+            NameQuest = "Area2Quest"
+            QuestLv = 1
+            NameMon = "Swan Pirate"
+            CFrameQ = CFrame.new(635.61151123047, 73.096351623535, 917.81298828125)
+            CFrameMon = CFrame.new(1065.3669433594, 137.64012145996, 1324.3798828125)
+        elseif Lv == 800 or Lv <= 874 then
+            Ms = "Factory Staff"
+            NameQuest = "Area2Quest"
+            QuestLv = 2
+            NameMon = "Factory Staff"
+            CFrameQ = CFrame.new(635.61151123047, 73.096351623535, 917.81298828125)
+            CFrameMon = CFrame.new(533.22045898438, 128.46876525879, 355.62615966797)
+        elseif Lv == 875 or Lv <= 899 then
+            Ms = "Marine Lieutenant"
+            NameQuest = "MarineQuest3"
+            QuestLv = 1
+            NameMon = "Marine Lieutenant"
+            CFrameQ = CFrame.new(-2440.9934082031, 73.04190826416, -3217.7082519531)
+            CFrameMon = CFrame.new(-2489.2622070313, 84.613594055176, -3151.8830566406)
+        elseif Lv == 900 or Lv <= 949 then
+            Ms = "Marine Captain"
+            NameQuest = "MarineQuest3"
+            QuestLv = 2
+            NameMon = "Marine Captain"
+            CFrameQ = CFrame.new(-2440.9934082031, 73.04190826416, -3217.7082519531)
+            CFrameMon = CFrame.new(-2335.2026367188, 79.786659240723, -3245.8674316406)
+        elseif Lv == 950 or Lv <= 974 then
+            Ms = "Zombie"
+            NameQuest = "ZombieQuest"
+            QuestLv = 1
+            NameMon = "Zombie"
+            CFrameQ = CFrame.new(-5494.3413085938, 48.505931854248, -794.59094238281)
+            CFrameMon = CFrame.new(-5536.4970703125, 101.08577728271, -835.59075927734)
+        elseif Lv == 975 or Lv <= 999 then
+            Ms = "Vampire"
+            NameQuest = "ZombieQuest"
+            QuestLv = 2
+            NameMon = "Vampire"
+            CFrameQ = CFrame.new(-5494.3413085938, 48.505931854248, -794.59094238281)
+            CFrameMon = CFrame.new(-5806.1098632813, 16.722528457642, -1164.4384765625)
+        elseif Lv == 1000 or Lv <= 1049 then
+            Ms = "Snow Trooper"
+            NameQuest = "SnowMountainQuest"
+            QuestLv = 1
+            NameMon = "Snow Trooper"
+            CFrameQ = CFrame.new(607.05963134766, 401.44781494141, -5370.5546875)
+            CFrameMon = CFrame.new(535.21051025391, 432.74209594727, -5484.9165039063)
+        elseif Lv == 1050 or Lv <= 1099 then
+            Ms = "Winter Warrior"
+            NameQuest = "SnowMountainQuest"
+            QuestLv = 2
+            NameMon = "Winter Warrior"
+            CFrameQ = CFrame.new(607.05963134766, 401.44781494141, -5370.5546875)
+            CFrameMon = CFrame.new(1234.4449462891, 456.95419311523, -5174.130859375)
+        elseif Lv == 1100 or Lv <= 1124 then
+            Ms = "Lab Subordinate"
+            NameQuest = "IceSideQuest"
+            QuestLv = 1
+            NameMon = "Lab Subordinate"
+            CFrameQ = CFrame.new(-6061.841796875, 15.926671981812, -4902.0385742188)
+            CFrameMon = CFrame.new(-5720.5576171875, 63.309471130371, -4784.6103515625)
+        elseif Lv == 1125 or Lv <= 1174 then
+            Ms = "Horned Warrior"
+            NameQuest = "IceSideQuest"
+            QuestLv = 2
+            NameMon = "Horned Warrior"
+            CFrameQ = CFrame.new(-6061.841796875, 15.926671981812, -4902.0385742188)
+            CFrameMon = CFrame.new(-6292.751953125, 91.181983947754, -5502.6499023438)
+        elseif Lv == 1175 or Lv <= 1199 then
+            Ms = "Magma Ninja"
+            NameQuest = "FireSideQuest"
+            QuestLv = 1
+            NameMon = "Magma Ninja"
+            CFrameQ = CFrame.new(-5429.0473632813, 15.977565765381, -5297.9614257813)
+            CFrameMon = CFrame.new(-5461.8388671875, 130.36347961426, -5836.4702148438)
+        elseif Lv == 1200 or Lv <= 1249 then
+            Ms = "Lava Pirate"
+            NameQuest = "FireSideQuest"
+            QuestLv = 2
+            NameMon = "Lava Pirate"
+            CFrameQ = CFrame.new(-5429.0473632813, 15.977565765381, -5297.9614257813)
+            CFrameMon = CFrame.new(-5251.1889648438, 55.164535522461, -4774.4096679688)
+        elseif Lv == 1250 or Lv <= 1274 then
+            Ms = "Ship Deckhand"
+            NameQuest = "ShipQuest1"
+            QuestLv = 1
+            NameMon = "Ship Deckhand"
+            CFrameQ = CFrame.new(1040.2927246094, 125.08293151855, 32911.0390625)
+            CFrameMon = CFrame.new(921.12365722656, 125.9839553833, 33088.328125)
+        elseif Lv == 1275 or Lv <= 1299 then
+            Ms = "Ship Engineer"
+            NameQuest = "ShipQuest1"
+            QuestLv = 2
+            NameMon = "Ship Engineer"
+            CFrameQ = CFrame.new(1040.2927246094, 125.08293151855, 32911.0390625)
+            CFrameMon = CFrame.new(886.28179931641, 40.47790145874, 32800.83203125)
+        elseif Lv == 1300 or Lv <= 1324 then
+            Ms = "Ship Steward"
+            NameQuest = "ShipQuest2"
+            QuestLv = 1
+            NameMon = "Ship Steward"
+            CFrameQ = CFrame.new(971.42065429688, 125.08293151855, 33245.54296875)
+            CFrameMon = CFrame.new(943.85504150391, 129.58183288574, 33444.3671875)
+        elseif Lv == 1325 or Lv <= 1349 then
+            Ms = "Ship Officer"
+            NameQuest = "ShipQuest2"
+            QuestLv = 2
+            NameMon = "Ship Officer"
+            CFrameQ = CFrame.new(971.42065429688, 125.08293151855, 33245.54296875)
+            CFrameMon = CFrame.new(955.38458251953, 181.08335876465, 33331.890625)
+        elseif Lv == 1350 or Lv <= 1374 then
+            Ms = "Arctic Warrior"
+            NameQuest = "FrostQuest"
+            QuestLv = 1
+            NameMon = "Arctic Warrior"
+            CFrameQ = CFrame.new(5668.1372070313, 28.202531814575, -6484.6005859375)
+            CFrameMon = CFrame.new(5935.4541015625, 77.26016998291, -6472.7568359375)
+        elseif Lv == 1375 or Lv <= 1424 then
+            Ms = "Snow Lurker"
+            NameQuest = "FrostQuest"
+            QuestLv = 2
+            NameMon = "Snow Lurker"
+            CFrameQ = CFrame.new(5668.1372070313, 28.202531814575, -6484.6005859375)
+            CFrameMon = CFrame.new(5628.482421875, 57.574996948242, -6618.3481445313)
+        elseif Lv == 1425 or Lv <= 1449 then
+            Ms = "Sea Soldier"
+            NameQuest = "ForgottenQuest"
+            QuestLv = 1
+            NameMon = "Sea Soldier"
+            CFrameQ = CFrame.new(-3054.5827636719, 236.87213134766, -10147.790039063)
+            CFrameMon = CFrame.new(-3185.0153808594, 58.789089202881, -9663.6064453125)
+        elseif Lv >= 1450 then
+            Ms = "Water Fighter"
+            NameQuest = "ForgottenQuest"
+            QuestLv = 2
+            NameMon = "Water Fighter"
+            CFrameQ = CFrame.new(-3054.5827636719, 236.87213134766, -10147.790039063)
+            CFrameMon = CFrame.new(-3262.9301757813, 298.69036865234, -10552.529296875)
+        end
+    end
+    if Third_Sea then
+        if Lv == 1500 or Lv <= 1524 then
+            Ms = "Pirate Millionaire"
+            NameQuest = "PiratePortQuest"
+            QuestLv = 1
+            NameMon = "Pirate Millionaire"
+            CFrameQ = CFrame.new(-289.61752319336, 43.819011688232, 5580.0903320313)
+            CFrameMon = CFrame.new(-435.68109130859, 189.69866943359, 5551.0756835938)
+        elseif Lv == 1525 or Lv <= 1574 then
+            Ms = "Pistol Billionaire"
+            NameQuest = "PiratePortQuest"
+            QuestLv = 2
+            NameMon = "Pistol Billionaire"
+            CFrameQ = CFrame.new(-289.61752319336, 43.819011688232, 5580.0903320313)
+            CFrameMon = CFrame.new(-236.53652954102, 217.46676635742, 6006.0883789063)
+        elseif Lv == 1575 or Lv <= 1599 then
+            Ms = "Dragon Crew Warrior"
+            NameQuest = "AmazonQuest"
+            QuestLv = 1
+            NameMon = "Dragon Crew Warrior"
+            CFrameQ = CFrame.new(5833.1147460938, 51.60498046875, -1103.0693359375)
+            CFrameMon = CFrame.new(6301.9975585938, 104.77153015137, -1082.6075439453)
+        elseif Lv == 1600 or Lv <= 1624 then
+            Ms = "Dragon Crew Archer"
+            NameQuest = "AmazonQuest"
+            QuestLv = 2
+            NameMon = "Dragon Crew Archer"
+            CFrameQ = CFrame.new(5833.1147460938, 51.60498046875, -1103.0693359375)
+            CFrameMon = CFrame.new(6831.1171875, 441.76708984375, 446.58615112305)
+        elseif Lv == 1625 or Lv <= 1649 then
+            Ms = "Female Islander"
+            NameQuest = "AmazonQuest2"
+            QuestLv = 1
+            NameMon = "Female Islander"
+            CFrameQ = CFrame.new(5446.8793945313, 601.62945556641, 749.45672607422)
+            CFrameMon = CFrame.new(5792.5166015625, 848.14392089844, 1084.1818847656)
+        elseif Lv == 1650 or Lv <= 1699 then
+            Ms = "Giant Islander"
+            NameQuest = "AmazonQuest2"
+            QuestLv = 2
+            NameMon = "Giant Islander"
+            CFrameQ = CFrame.new(5446.8793945313, 601.62945556641, 749.45672607422)
+            CFrameMon = CFrame.new(5009.5068359375, 664.11071777344, -40.960144042969)
+        elseif Lv == 1700 or Lv <= 1724 then
+            Ms = "Marine Commodore"
+            NameQuest = "MarineTreeIsland"
+            QuestLv = 1
+            NameMon = "Marine Commodore"
+            CFrameQ = CFrame.new(2179.98828125, 28.731239318848, -6740.0551757813)
+            CFrameMon = CFrame.new(2198.0063476563, 128.71075439453, -7109.5043945313)
+        elseif Lv == 1725 or Lv <= 1774 then
+            Ms = "Marine Rear Admiral"
+            NameQuest = "MarineTreeIsland"
+            QuestLv = 2
+            NameMon = "Marine Rear Admiral"
+            CFrameQ = CFrame.new(2179.98828125, 28.731239318848, -6740.0551757813)
+            CFrameMon = CFrame.new(3294.3142089844, 385.41125488281, -7048.6342773438)
+        elseif Lv == 1775 or Lv <= 1799 then
+            Ms = "Fishman Raider"
+            NameQuest = "DeepForestIsland3"
+            QuestLv = 1
+            NameMon = "Fishman Raider"
+            CFrameQ = CFrame.new(-10582.759765625, 331.78845214844, -8757.666015625)
+            CFrameMon = CFrame.new(-10553.268554688, 521.38439941406, -8176.9458007813)
+        elseif Lv == 1800 or Lv <= 1824 then
+            Ms = "Fishman Captain"
+            NameQuest = "DeepForestIsland3"
+            QuestLv = 2
+            NameMon = "Fishman Captain"
+            CFrameQ = CFrame.new(-10583.099609375, 331.78845214844, -8759.4638671875)
+            CFrameMon = CFrame.new(-10789.401367188, 427.18637084961, -9131.4423828125)
+        elseif Lv == 1825 or Lv <= 1849 then
+            Ms = "Forest Pirate"
+            NameQuest = "DeepForestIsland"
+            QuestLv = 1
+            NameMon = "Forest Pirate"
+            CFrameQ = CFrame.new(-13232.662109375, 332.40396118164, -7626.4819335938)
+            CFrameMon = CFrame.new(-13489.397460938, 400.30349731445, -7770.251953125)
+        elseif Lv == 1850 or Lv <= 1899 then
+            Ms = "Mythological Pirate"
+            NameQuest = "DeepForestIsland"
+            QuestLv = 2
+            NameMon = "Mythological Pirate"
+            CFrameQ = CFrame.new(-13232.662109375, 332.40396118164, -7626.4819335938)
+            CFrameMon = CFrame.new(-13508.616210938, 582.46228027344, -6985.3037109375)
+        elseif Lv == 1900 or Lv <= 1924 then
+            Ms = "Jungle Pirate"
+            NameQuest = "DeepForestIsland2"
+            QuestLv = 1
+            NameMon = "Jungle Pirate"
+            CFrameQ = CFrame.new(-12682.096679688, 390.88653564453, -9902.1240234375)
+            CFrameMon = CFrame.new(-12267.103515625, 459.75262451172, -10277.200195313)
+        elseif Lv == 1925 or Lv <= 1974 then
+            Ms = "Musketeer Pirate"
+            NameQuest = "DeepForestIsland2"
+            QuestLv = 2
+            NameMon = "Musketeer Pirate"
+            CFrameQ = CFrame.new(-12682.096679688, 390.88653564453, -9902.1240234375)
+            CFrameMon = CFrame.new(-13291.5078125, 520.47338867188, -9904.638671875)
+        elseif Lv == 1975 or Lv <= 1999 then
+            Ms = "Reborn Skeleton"
+            NameQuest = "HauntedQuest1"
+            QuestLv = 1
+            NameMon = "Reborn Skeleton"
+            CFrameQ = CFrame.new(-9480.80762, 142.130661, 5566.37305)
+            CFrameMon = CFrame.new(-8761.77148, 183.431747, 6168.33301)
+        elseif Lv == 2000 or Lv <= 2024 then
+            Ms = "Living Zombie"
+            NameQuest = "HauntedQuest1"
+            QuestLv = 2
+            NameMon = "Living Zombie"
+            CFrameQ = CFrame.new(-9480.80762, 142.130661, 5566.37305)
+            CFrameMon = CFrame.new(-10103.7529, 238.565979, 6179.75977)
+        elseif Lv == 2025 or Lv <= 2049 then
+            Ms = "Demonic Soul"
+            NameQuest = "HauntedQuest2"
+            QuestLv = 1
+            NameMon = "Demonic Soul"
+            CFrameQ = CFrame.new(-9516.9931640625, 178.00651550293, 6078.4653320313)
+            CFrameMon = CFrame.new(-9712.03125, 204.69589233398, 6193.322265625)
+        elseif Lv == 2050 or Lv <= 2074 then
+            Ms = "Posessed Mummy"
+            NameQuest = "HauntedQuest2"
+            QuestLv = 2
+            NameMon = "Posessed Mummy"
+            CFrameQ = CFrame.new(-9516.9931640625, 178.00651550293, 6078.4653320313)
+            CFrameMon = CFrame.new(-9545.7763671875, 69.619895935059, 6339.5615234375)
+        elseif Lv == 2075 or Lv <= 2099 then
+            Ms = "Peanut Scout"
+            NameQuest = "NutsIslandQuest"
+            QuestLv = 1
+            NameMon = "Peanut Scout"
+            CFrameQ = CFrame.new(-2105.53198, 37.2495995, -10195.5088)
+            CFrameMon = CFrame.new(-2150.587890625, 122.49767303467, -10358.994140625)
+        elseif Lv == 2100 or Lv <= 2124 then
+            Ms = "Peanut President"
+            NameQuest = "NutsIslandQuest"
+            QuestLv = 2
+            NameMon = "Peanut President"
+            CFrameQ = CFrame.new(-2105.53198, 37.2495995, -10195.5088)
+            CFrameMon = CFrame.new(-2150.587890625, 122.49767303467, -10358.994140625)
+        elseif Lv == 2125 or Lv <= 2149 then
+            Ms = "Ice Cream Chef"
+            NameQuest = "IceCreamIslandQuest"
+            QuestLv = 1
+            NameMon = "Ice Cream Chef"
+            CFrameQ = CFrame.new(-819.376709, 64.9259796, -10967.2832)
+            CFrameMon = CFrame.new(-789.941528, 209.382889, -11009.9805)
+        elseif Lv == 2150 or Lv <= 2199 then
+            Ms = "Ice Cream Commander"
+            NameQuest = "IceCreamIslandQuest"
+            QuestLv = 2
+            NameMon = "Ice Cream Commander"
+            CFrameQ = CFrame.new(-819.376709, 64.9259796, -10967.2832)
+            CFrameMon = CFrame.new(-789.941528, 209.382889, -11009.9805)
+        elseif Lv == 2200 or Lv <= 2224 then
+            Ms = "Cookie Crafter"
+            NameQuest = "CakeQuest1"
+            QuestLv = 1
+            NameMon = "Cookie Crafter"
+            CFrameQ = CFrame.new(-2022.29858, 36.9275894, -12030.9766)
+            CFrameMon = CFrame.new(-2321.71216, 36.699482, -12216.7871)
+        elseif Lv == 2225 or Lv <= 2249 then
+            Ms = "Cake Guard"
+            NameQuest = "CakeQuest1"
+            QuestLv = 2
+            NameMon = "Cake Guard"
+            CFrameQ = CFrame.new(-2022.29858, 36.9275894, -12030.9766)
+            CFrameMon = CFrame.new(-1418.11011, 36.6718941, -12255.7324)
+        elseif Lv == 2250 or Lv <= 2274 then
+            Ms = "Baking Staff"
+            NameQuest = "CakeQuest2"
+            QuestLv = 1
+            NameMon = "Baking Staff"
+            CFrameQ = CFrame.new(-1928.31763, 37.7296638, -12840.626)
+            CFrameMon = CFrame.new(-1980.43848, 36.6716766, -12983.8418)
+        elseif Lv == 2275 or Lv <= 2299 then
+            Ms = "Head Baker"
+            NameQuest = "CakeQuest2"
+            QuestLv = 2
+            NameMon = "Head Baker"
+            CFrameQ = CFrame.new(-1928.31763, 37.7296638, -12840.626)
+            CFrameMon = CFrame.new(-2251.5791, 52.2714615, -13033.3965)
+        elseif Lv == 2300 or Lv <= 2324 then
+            Ms = "Cocoa Warrior"
+            NameQuest = "ChocQuest1"
+            QuestLv = 1
+            NameMon = "Cocoa Warrior"
+            CFrameQ = CFrame.new(231.75, 23.9003029, -12200.292)
+            CFrameMon = CFrame.new(167.978516, 26.2254658, -12238.874)
+        elseif Lv == 2325 or Lv <= 2349 then
+            Ms = "Chocolate Bar Battler"
+            NameQuest = "ChocQuest1"
+            QuestLv = 2
+            NameMon = "Chocolate Bar Battler"
+            CFrameQ = CFrame.new(231.75, 23.9003029, -12200.292)
+            CFrameMon = CFrame.new(701.312073, 25.5824986, -12708.2148)
+        elseif Lv == 2350 or Lv <= 2374 then
+            Ms = "Sweet Thief"
+            NameQuest = "ChocQuest2"
+            QuestLv = 1
+            NameMon = "Sweet Thief"
+            CFrameQ = CFrame.new(151.198242, 23.8907146, -12774.6172)
+            CFrameMon = CFrame.new(-140.258301, 25.5824986, -12652.3115)
+        elseif Lv == 2375 or Lv <= 2400 then
+            Ms = "Candy Rebel"
+            NameQuest = "ChocQuest2"
+            QuestLv = 2
+            NameMon = "Candy Rebel"
+            CFrameQ = CFrame.new(151.198242, 23.8907146, -12774.6172)
+            CFrameMon = CFrame.new(47.9231453, 25.5824986, -13029.2402)
+        elseif Lv == 2400 or Lv <= 2424 then
+            Ms = "Candy Pirate"
+            NameQuest = "CandyQuest1"
+            QuestLv = 1
+            NameMon = "Candy Pirate"
+            CFrameQ = CFrame.new(-1149.328, 13.5759039, -14445.6143)
+            CFrameMon = CFrame.new(-1437.56348, 17.1481285, -14385.6934)
+        elseif Lv == 2425 or Lv <= 2449 then
+            Ms = "Snow Demon"
+            NameQuest = "CandyQuest1"
+            QuestLv = 2
+            NameMon = "Snow Demon"
+            CFrameQ = CFrame.new(-1149.328, 13.5759039, -14445.6143)
+            CFrameMon = CFrame.new(-916.222656, 17.1481285, -14638.8125)
+        elseif Lv == 2450 or Lv <= 2474 then
+            Ms = "Isle Outlaw"
+            NameQuest = "TikiQuest1"
+            QuestLv = 1
+            NameMon = "Isle Outlaw"
+            CFrameQ = CFrame.new(-16548.8164, 55.6059914, -172.8125)
+            CFrameMon = CFrame.new(-16122.4062, 10.6328173, -257.351685)
+        elseif Lv == 2475 or Lv <= 2499 then
+            Ms = "Island Boy"
+            NameQuest = "TikiQuest1"
+            QuestLv = 2
+            NameMon = "Island Boy"
+            CFrameQ = CFrame.new(-16548.8164, 55.6059914, -172.8125)
+            CFrameMon = CFrame.new(-16736.2266, 20.533947, -131.718811)
+        elseif Lv == 2500 or Lv <= 2524 then
+            Ms = "Sun-kissed Warrior"
+            NameQuest = "TikiQuest2"
+            QuestLv = 1
+            NameMon = "Sun-kissed Warrior"
+            CFrameQ = CFrame.new(-16541.0215, 54.770813, 1051.46118)
+            CFrameMon = CFrame.new(-16413.5078, 54.6350479, 1054.43555)
+        elseif Lv == 2525 or Lv <= 2549 then
+            Ms = "Isle Champion"
+            NameQuest = "TikiQuest2"
+            QuestLv = 2
+            NameMon = "Isle Champion"
+            CFrameQ = CFrame.new(-16541.0215, 54.770813, 1051.46118)
+            CFrameMon = CFrame.new(-16787.3203, 20.6350517, 992.131836)
+        elseif Lv == 2550 or Lv <= 2574 then
+            Ms = "Serpent Hunter"
+            NameQuest = "TikiQuest3"
+            QuestLv = 1
+            NameMon = "Serpent Hunter"
+            CFrameQ = CFrame.new(-16665.1914, 104.596405, 1579.69434)
+            CFrameMon = CFrame.new(-16654.7754, 105.286232, 1579.67444)
+        elseif Lv >= 2575 then
+            Ms = "Skull Slayer"
+            NameQuest = "TikiQuest3"
+            QuestLv = 2
+            NameMon = "Skull Slayer"
+            CFrameQ = CFrame.new(-16665.1914, 104.596405, 1579.69434)
+            CFrameMon = CFrame.new(-16654.7754, 105.286232, 1579.67444)
+        end
+    end
 end
 
--- ao renascer: restaura hitbox mas MANTÉM os toggles como estavam
-lp.CharacterAdded:Connect(function(char)
-	-- mantém toggles ao renascer
-	local hrp = char:WaitForChild("HumanoidRootPart", 5)
-	if hrp then setHitbox(hrp, false) end
+-- ============================================================
+--                    CHECK BOSS QUEST
+-- ============================================================
+function CheckBossQuest()
+    if First_Sea then
+        if SelectBoss == "The Gorrila King" then
+            BossMon = "The Gorilla King [Lv. 25] [Boss]"
+            NameBoss = 'The Gorrila King'
+            NameQuestBoss = "JungleQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-1601.6553955078, 36.85213470459, 153.38809204102)
+            CFrameBoss = CFrame.new(-1088.75977, 8.13463783, -488.559906)
+        elseif SelectBoss == "Bobby" then
+            BossMon = "Bobby [Lv. 55] [Boss]"
+            NameBoss = 'Bobby'
+            NameQuestBoss = "BuggyQuest1"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-1140.1761474609, 4.752049446106, 3827.4057617188)
+            CFrameBoss = CFrame.new(-1087.3760986328, 46.949409484863, 4040.1462402344)
+        elseif SelectBoss == "The Saw" then
+            BossMon = "The Saw [Lv. 100] [Boss]"
+            NameBoss = 'The Saw'
+            CFrameBoss = CFrame.new(-784.89715576172, 72.427383422852, 1603.5822753906)
+        elseif SelectBoss == "Yeti" then
+            BossMon = "Yeti [Lv. 110] [Boss]"
+            NameBoss = 'Yeti'
+            NameQuestBoss = "SnowQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(1386.8073730469, 87.272789001465, -1298.3576660156)
+            CFrameBoss = CFrame.new(1218.7956542969, 138.01184082031, -1488.0262451172)
+        elseif SelectBoss == "Mob Leader" then
+            BossMon = "Mob Leader [Lv. 120] [Boss]"
+            NameBoss = 'Mob Leader'
+            CFrameBoss = CFrame.new(-2844.7307128906, 7.4180502891541, 5356.6723632813)
+        elseif SelectBoss == "Vice Admiral" then
+            BossMon = "Vice Admiral [Lv. 130] [Boss]"
+            NameBoss = 'Vice Admiral'
+            NameQuestBoss = "MarineQuest2"
+            QuestLvBoss = 2
+            CFrameQBoss = CFrame.new(-5036.2465820313, 28.677835464478, 4324.56640625)
+            CFrameBoss = CFrame.new(-5006.5454101563, 88.032081604004, 4353.162109375)
+        elseif SelectBoss == "Saber Expert" then
+            NameBoss = 'Saber Expert'
+            BossMon = "Saber Expert [Lv. 200] [Boss]"
+            CFrameBoss = CFrame.new(-1458.89502, 29.8870335, -50.633564)
+        elseif SelectBoss == "Warden" then
+            BossMon = "Warden [Lv. 220] [Boss]"
+            NameBoss = 'Warden'
+            NameQuestBoss = "ImpelQuest"
+            QuestLvBoss = 1
+            CFrameBoss = CFrame.new(5278.04932, 2.15167475, 944.101929)
+            CFrameQBoss = CFrame.new(5191.86133, 2.84020686, 686.438721)
+        elseif SelectBoss == "Chief Warden" then
+            BossMon = "Chief Warden [Lv. 230] [Boss]"
+            NameBoss = 'Chief Warden'
+            NameQuestBoss = "ImpelQuest"
+            QuestLvBoss = 2
+            CFrameBoss = CFrame.new(5206.92578, 0.997753382, 814.976746)
+            CFrameQBoss = CFrame.new(5191.86133, 2.84020686, 686.438721)
+        elseif SelectBoss == "Swan" then
+            BossMon = "Swan [Lv. 240] [Boss]"
+            NameBoss = 'Swan'
+            NameQuestBoss = "ImpelQuest"
+            QuestLvBoss = 3
+            CFrameBoss = CFrame.new(5325.09619, 7.03906584, 719.570679)
+            CFrameQBoss = CFrame.new(5191.86133, 2.84020686, 686.438721)
+        elseif SelectBoss == "Magma Admiral" then
+            BossMon = "Magma Admiral [Lv. 350] [Boss]"
+            NameBoss = 'Magma Admiral'
+            NameQuestBoss = "MagmaQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-5314.6220703125, 12.262420654297, 8517.279296875)
+            CFrameBoss = CFrame.new(-5765.8969726563, 82.92064666748, 8718.3046875)
+        elseif SelectBoss == "Fishman Lord" then
+            BossMon = "Fishman Lord [Lv. 425] [Boss]"
+            NameBoss = 'Fishman Lord'
+            NameQuestBoss = "FishmanQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(61122.65234375, 18.497442245483, 1569.3997802734)
+            CFrameBoss = CFrame.new(61260.15234375, 30.950881958008, 1193.4329833984)
+        elseif SelectBoss == "Wysper" then
+            BossMon = "Wysper [Lv. 500] [Boss]"
+            NameBoss = 'Wysper'
+            NameQuestBoss = "SkyExp1Quest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-7861.947265625, 5545.517578125, -379.85974121094)
+            CFrameBoss = CFrame.new(-7866.1333007813, 5576.4311523438, -546.74816894531)
+        elseif SelectBoss == "Thunder God" then
+            BossMon = "Thunder God [Lv. 575] [Boss]"
+            NameBoss = 'Thunder God'
+            NameQuestBoss = "SkyExp2Quest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-7903.3828125, 5635.9897460938, -1410.923828125)
+            CFrameBoss = CFrame.new(-7994.984375, 5761.025390625, -2088.6479492188)
+        elseif SelectBoss == "Cyborg" then
+            BossMon = "Cyborg [Lv. 675] [Boss]"
+            NameBoss = 'Cyborg'
+            NameQuestBoss = "FountainQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(5258.2788085938, 38.526931762695, 4050.044921875)
+            CFrameBoss = CFrame.new(6094.0249023438, 73.770050048828, 3825.7348632813)
+        elseif SelectBoss == "Ice Admiral" then
+            BossMon = "Ice Admiral [Lv. 700] [Boss]"
+            NameBoss = 'Ice Admiral'
+            CFrameBoss = CFrame.new(1266.08948, 26.1757946, -1399.57678)
+        elseif SelectBoss == "Greybeard" then
+            BossMon = "Greybeard [Lv. 750] [Raid Boss]"
+            NameBoss = 'Greybeard'
+            CFrameBoss = CFrame.new(-5081.3452148438, 85.221641540527, 4257.3588867188)
+        end
+    end
+    if Second_Sea then
+        if SelectBoss == "Diamond" then
+            BossMon = "Diamond [Lv. 750] [Boss]"
+            NameBoss = 'Diamond'
+            NameQuestBoss = "Area1Quest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-427.5666809082, 73.313781738281, 1835.4208984375)
+            CFrameBoss = CFrame.new(-1576.7166748047, 198.59265136719, 13.724286079407)
+        elseif SelectBoss == "Jeremy" then
+            BossMon = "Jeremy [Lv. 850] [Boss]"
+            NameBoss = 'Jeremy'
+            NameQuestBoss = "Area2Quest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(636.79943847656, 73.413787841797, 918.00415039063)
+            CFrameBoss = CFrame.new(2006.9261474609, 448.95666503906, 853.98284912109)
+        elseif SelectBoss == "Fajita" then
+            BossMon = "Fajita [Lv. 925] [Boss]"
+            NameBoss = 'Fajita'
+            NameQuestBoss = "MarineQuest3"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-2441.986328125, 73.359344482422, -3217.5324707031)
+            CFrameBoss = CFrame.new(-2172.7399902344, 103.32216644287, -4015.025390625)
+        elseif SelectBoss == "Don Swan" then
+            BossMon = "Don Swan [Lv. 1000] [Boss]"
+            NameBoss = 'Don Swan'
+            CFrameBoss = CFrame.new(2286.2004394531, 15.177839279175, 863.8388671875)
+        elseif SelectBoss == "Smoke Admiral" then
+            BossMon = "Smoke Admiral [Lv. 1150] [Boss]"
+            NameBoss = 'Smoke Admiral'
+            NameQuestBoss = "IceSideQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-5429.0473632813, 15.977565765381, -5297.9614257813)
+            CFrameBoss = CFrame.new(-5275.1987304688, 20.757257461548, -5260.6669921875)
+        elseif SelectBoss == "Awakened Ice Admiral" then
+            BossMon = "Awakened Ice Admiral [Lv. 1400] [Boss]"
+            NameBoss = 'Awakened Ice Admiral'
+            NameQuestBoss = "FrostQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(5668.9780273438, 28.519989013672, -6483.3520507813)
+            CFrameBoss = CFrame.new(6403.5439453125, 340.29766845703, -6894.5595703125)
+        elseif SelectBoss == "Tide Keeper" then
+            BossMon = "Tide Keeper [Lv. 1475] [Boss]"
+            NameBoss = 'Tide Keeper'
+            NameQuestBoss = "ForgottenQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-3053.9814453125, 237.18954467773, -10145.0390625)
+            CFrameBoss = CFrame.new(-3795.6423339844, 105.88877105713, -11421.307617188)
+        elseif SelectBoss == "Darkbeard" then
+            BossMon = "Darkbeard [Lv. 1000] [Raid Boss]"
+            NameBoss = 'Darkbeard'
+            CFrameBoss = CFrame.new(3677.08203125, 62.751937866211, -3144.8332519531)
+        elseif SelectBoss == "Cursed Captain" then
+            BossMon = "Cursed Captain [Lv. 1325] [Raid Boss]"
+            NameBoss = 'Cursed Captain'
+            CFrameBoss = CFrame.new(916.928589, 181.092773, 33422)
+        elseif SelectBoss == "Order" then
+            BossMon = "Order [Lv. 1250] [Raid Boss]"
+            NameBoss = 'Order'
+            CFrameBoss = CFrame.new(-6217.2021484375, 28.047645568848, -5053.1357421875)
+        end
+    end
+    if Third_Sea then
+        if SelectBoss == "Stone" then
+            BossMon = "Stone [Lv. 1550] [Boss]"
+            NameBoss = 'Stone'
+            NameQuestBoss = "PiratePortQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-289.76705932617, 43.819011688232, 5579.9384765625)
+            CFrameBoss = CFrame.new(-1027.6512451172, 92.404174804688, 6578.8530273438)
+        elseif SelectBoss == "Island Empress" then
+            BossMon = "Island Empress [Lv. 1675] [Boss]"
+            NameBoss = 'Island Empress'
+            NameQuestBoss = "AmazonQuest2"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(5445.9541015625, 601.62945556641, 751.43792724609)
+            CFrameBoss = CFrame.new(5543.86328125, 668.97399902344, 199.0341796875)
+        elseif SelectBoss == "Kilo Admiral" then
+            BossMon = "Kilo Admiral [Lv. 1750] [Boss]"
+            NameBoss = 'Kilo Admiral'
+            NameQuestBoss = "MarineTreeIsland"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(2179.3010253906, 28.731239318848, -6739.9741210938)
+            CFrameBoss = CFrame.new(2764.2233886719, 432.46154785156, -7144.4580078125)
+        elseif SelectBoss == "Captain Elephant" then
+            BossMon = "Captain Elephant [Lv. 1875] [Boss]"
+            NameBoss = 'Captain Elephant'
+            NameQuestBoss = "DeepForestIsland"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-13232.682617188, 332.40396118164, -7626.01171875)
+            CFrameBoss = CFrame.new(-13376.7578125, 433.28689575195, -8071.392578125)
+        elseif SelectBoss == "Beautiful Pirate" then
+            BossMon = "Beautiful Pirate [Lv. 1950] [Boss]"
+            NameBoss = 'Beautiful Pirate'
+            NameQuestBoss = "DeepForestIsland2"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-12682.096679688, 390.88653564453, -9902.1240234375)
+            CFrameBoss = CFrame.new(5283.609375, 22.56223487854, -110.78285217285)
+        elseif SelectBoss == "Cake Queen" then
+            BossMon = "Cake Queen [Lv. 2175] [Boss]"
+            NameBoss = 'Cake Queen'
+            NameQuestBoss = "IceCreamIslandQuest"
+            QuestLvBoss = 3
+            CFrameQBoss = CFrame.new(-819.376709, 64.9259796, -10967.2832)
+            CFrameBoss = CFrame.new(-678.648804, 381.353943, -11114.2012)
+        elseif SelectBoss == "Longma" then
+            BossMon = "Longma [Lv. 2000] [Boss]"
+            NameBoss = 'Longma'
+            CFrameBoss = CFrame.new(-10238.875976563, 389.7912902832, -9549.7939453125)
+        elseif SelectBoss == "Soul Reaper" then
+            BossMon = "Soul Reaper [Lv. 2100] [Raid Boss]"
+            NameBoss = 'Soul Reaper'
+            CFrameBoss = CFrame.new(-9524.7890625, 315.80429077148, 6655.7192382813)
+        elseif SelectBoss == "rip_indra True Form" then
+            BossMon = "rip_indra True Form [Lv. 5000] [Raid Boss]"
+            NameBoss = 'rip_indra True Form'
+            CFrameBoss = CFrame.new(-5415.3920898438, 505.74133300781, -2814.0166015625)
+        end
+    end
+end
+
+-- ============================================================
+--                    CRIAÇÃO DA JANELA
+-- ============================================================
+local Window = Rayfield:CreateWindow({
+    Name = "PudimHub",
+    LoadingTitle = "PudimHub",
+    LoadingSubtitle = "Carregando...",
+    ConfigurationSaving = {
+        Enabled = true,
+        FileName = "PudimHub"
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false
+})
+
+-- Notificação de inicialização
+Rayfield:Notify({
+    Title = "PudimHub",
+    Content = "Carregado com sucesso!",
+    Duration = 3,
+    Image = 4483362458
+})
+
+-- ============================================================
+--                        ABAS
+-- ============================================================
+
+-- ========== HOME ==========
+local HomeTab = Window:CreateTab("🏠 Home", 4483362458)
+local HomeSection = HomeTab:CreateSection("Informações do Jogador")
+
+HomeTab:CreateParagraph({
+    Title = "📊 Status do Jogador",
+    Content = "Level: 2450\n💰 Dinheiro: $12.450.000\n💎 Fragmentos: 8.250\n🏴‍☠️ Bounty: 15.000.000"
+})
+
+local ServerSection = HomeTab:CreateSection("Informações do Servidor")
+HomeTab:CreateParagraph({
+    Title = "🌐 Status do Servidor",
+    Content = "Servidor: BR-01 (São Paulo)\nPing: 32ms\nJogadores: 12/32\nTempo de Atividade: 3h 24m"
+})
+
+-- ========== FARM 1 (COM FUNÇÕES REAIS) ==========
+local Farm1Tab = Window:CreateTab("⚔️ Farm 1", 4483362458)
+local Farm1Section = Farm1Tab:CreateSection("Configurações de Farm")
+
+-- LEVEL FARM QUEST (COM FUNÇÕES REAIS)
+Farm1Tab:CreateToggle({
+    Name = "🤖 Level Farm Quest",
+    CurrentValue = false,
+    Flag = "LevelFarmQuest",
+    Callback = function(Value)
+        LevelFarmQuest = Value
+    end
+})
+
+-- Loop do Level Farm Quest
+spawn(function()
+    while task.wait() do
+        if LevelFarmQuest then
+            pcall(function()
+                CheckLevel()
+                if not string.find(LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) or LocalPlayer.PlayerGui.Main.Quest.Visible == false then
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
+                    if ByPassTP then
+                        BTP(CFrameQ)
+                    else
+                        Tween(CFrameQ)
+                    end
+                    if (CFrameQ.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 5 then
+                        wait(1)
+                        ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, QuestLv)
+                    end
+                elseif string.find(LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) or LocalPlayer.PlayerGui.Main.Quest.Visible == true then
+                    if Workspace.Enemies:FindFirstChild(Ms) then
+                        for _, v in pairs(Workspace.Enemies:GetChildren()) do
+                            if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                                if v.Name == Ms then
+                                    repeat
+                                        task.wait()
+                                        EquipTool(SelectWeapon)
+                                        Tween(v.HumanoidRootPart.CFrame * Farm_Mode)
+                                        v.HumanoidRootPart.CanCollide = false
+                                        v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                                        v.HumanoidRootPart.Transparency = 1
+                                        Level_Farm_Name = v.Name
+                                        Level_Farm_CFrame = v.HumanoidRootPart.CFrame
+                                        -- Auto Click
+                                        local toolEquiped = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                                        if toolEquiped and (toolEquiped.ToolTip == "Melee" or toolEquiped.ToolTip == "Sword") then
+                                            local RegisterAttack = ReplicatedStorage.Modules.Net["RE/RegisterAttack"]
+                                            local RegisterHit = ReplicatedStorage.Modules.Net["RE/RegisterHit"]
+                                            RegisterAttack:FireServer(0.0000001)
+                                            RegisterHit:FireServer(v.HumanoidRootPart, {})
+                                        end
+                                    until not LevelFarmQuest or not v.Parent or v.Humanoid.Health <= 0 or not Workspace.Enemies:FindFirstChild(v.Name) or LocalPlayer.PlayerGui.Main.Quest.Visible == false
+                                end
+                            end
+                        end
+                    else
+                        Tween(CFrameMon)
+                    end
+                end
+            end)
+        end
+    end
 end)
 
--- ── loop do Bring Mob (separado, intervalo maior)
--- 0.35s entre cada pull: o mob tem tempo de deslizar
--- naturalmente entre um pull e outro, sem ficar travado
-task.spawn(function()
-	while true do
-		task.wait(0.35)
+-- ========== FARM 1 - BOSS FARM ==========
+local BossSection = Farm1Tab:CreateSection("Auto Farm Boss")
 
-		if not _G.BringMobActive then continue end
+-- SELECT BOSS (DROPDOWN COM LISTA DE CHEFES)
+local BossList = {}
+if First_Sea then
+    BossList = {"The Gorrila King", "Bobby", "The Saw", "Yeti", "Mob Leader", "Vice Admiral", "Saber Expert", "Warden", "Chief Warden", "Swan", "Magma Admiral", "Fishman Lord", "Wysper", "Thunder God", "Cyborg", "Ice Admiral", "Greybeard"}
+elseif Second_Sea then
+    BossList = {"Diamond", "Jeremy", "Fajita", "Don Swan", "Smoke Admiral", "Awakened Ice Admiral", "Tide Keeper", "Darkbeard", "Cursed Captain", "Order"}
+elseif Third_Sea then
+    BossList = {"Stone", "Island Empress", "Kilo Admiral", "Captain Elephant", "Beautiful Pirate", "Cake Queen", "Longma", "Soul Reaper", "rip_indra True Form"}
+end
 
-		local char = lp.Character
-		if not char then continue end
-		local hrp = char:FindFirstChild("HumanoidRootPart")
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if not hrp or not hum or hum.Health <= 0 then continue end
+Farm1Tab:CreateDropdown({
+    Name = "🎮 Seletor de Chefes",
+    Options = BossList,
+    CurrentOption = BossList[1] or "Nenhum chefe disponível",
+    Flag = "BossSelector",
+    Callback = function(Value)
+        SelectBoss = Value
+    end
+})
 
-		local mobs = getNearestMobs(_G.BringMobCount)
-		for _, mob in ipairs(mobs) do
-			pcall(function()
-				mob.hrp.CFrame = hrp.CFrame
-					* CFrame.new(_G.HitOffsetX, _G.HitOffsetY, _G.HitOffsetZ)
-			end)
-		end
-	end
+-- AUTO FARM BOSS (QUEST)
+Farm1Tab:CreateToggle({
+    Name = "👑 Auto Farm Boss (Quest)",
+    CurrentValue = false,
+    Flag = "AutoFarmBossQuest",
+    Callback = function(Value)
+        AutoFarmBossQuest = Value
+    end
+})
+
+-- Loop do Auto Farm Boss
+spawn(function()
+    while task.wait() do
+        if AutoFarmBossQuest then
+            pcall(function()
+                CheckBossQuest()
+                if not string.find(LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameBoss) or LocalPlayer.PlayerGui.Main.Quest.Visible == false then
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
+                    if ByPassTP then
+                        BTP(CFrameQBoss)
+                    else
+                        Tween(CFrameQBoss)
+                    end
+                    if (CFrameQBoss.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 5 then
+                        wait(1)
+                        ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuestBoss, QuestLvBoss)
+                    end
+                elseif string.find(LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameBoss) or LocalPlayer.PlayerGui.Main.Quest.Visible == true then
+                    if Workspace.Enemies:FindFirstChild(SelectBoss) then
+                        for _, v in pairs(Workspace.Enemies:GetChildren()) do
+                            if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                                if v.Name == SelectBoss then
+                                    repeat
+                                        task.wait()
+                                        EquipTool(SelectWeapon)
+                                        Tween(v.HumanoidRootPart.CFrame * Farm_Mode)
+                                        v.HumanoidRootPart.CanCollide = false
+                                        v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                                        v.HumanoidRootPart.Transparency = 1
+                                        v.Humanoid:ChangeState(11)
+                                        v.Humanoid:ChangeState(14)
+                                        -- Auto Click
+                                        local toolEquiped = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                                        if toolEquiped and (toolEquiped.ToolTip == "Melee" or toolEquiped.ToolTip == "Sword") then
+                                            local RegisterAttack = ReplicatedStorage.Modules.Net["RE/RegisterAttack"]
+                                            local RegisterHit = ReplicatedStorage.Modules.Net["RE/RegisterHit"]
+                                            RegisterAttack:FireServer(0.0000001)
+                                            RegisterHit:FireServer(v.HumanoidRootPart, {})
+                                        end
+                                    until not AutoFarmBossQuest or not v.Parent or v.Humanoid.Health <= 0 or not Workspace.Enemies:FindFirstChild(v.Name) or LocalPlayer.PlayerGui.Main.Quest.Visible == false
+                                end
+                            end
+                        end
+                    else
+                        Tween(CFrameBoss)
+                    end
+                end
+            end)
+        end
+    end
 end)
 
--- ── loop do FastAttack (rápido, independente do Bring Mob)
-task.spawn(function()
-	while true do
-		task.wait(0.05)
+-- ========== FARM 2 ==========
+local Farm2Tab = Window:CreateTab("📈 Farm 2", 4483362458)
+local Farm2Section = Farm2Tab:CreateSection("Auto Farm Mastery")
 
-		local char = lp.Character
-		if not char then continue end
-		local hrp = char:FindFirstChild("HumanoidRootPart")
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if not hrp or not hum or hum.Health <= 0 then
-			if hrp then setHitbox(hrp, false) end
-			continue
-		end
+Farm2Tab:CreateToggle({
+    Name = "⚔️ Auto Farm Mastery - Sword",
+    CurrentValue = false,
+    Flag = "MasterySword",
+    Callback = function() end
+})
 
-		if _G.FastAttackActive then
-			setHitbox(hrp, true)
-			pcall(function()
-				local tool = char:FindFirstChildOfClass("Tool")
-				if tool then tool:Activate() end
-			end)
-			task.wait(_G.FastAttackDelay)
-		else
-			setHitbox(hrp, false)
-		end
-	end
+Farm2Tab:CreateToggle({
+    Name = "👊 Auto Farm Mastery - Melee",
+    CurrentValue = false,
+    Flag = "MasteryMelee",
+    Callback = function() end
+})
+
+Farm2Tab:CreateToggle({
+    Name = "🍎 Auto Farm Mastery - Devil Fruit",
+    CurrentValue = false,
+    Flag = "MasteryDevil",
+    Callback = function() end
+})
+
+-- ========== FARM 3 ==========
+local Farm3Tab = Window:CreateTab("👑 Farm 3", 4483362458)
+local Farm3Section = Farm3Tab:CreateSection("Auto Farm Bosses")
+
+Farm3Tab:CreateToggle({
+    Name = "👑 Auto Farm Bosses (Todos)",
+    CurrentValue = false,
+    Flag = "AutoFarmBosses",
+    Callback = function() end
+})
+
+Farm3Tab:CreateDropdown({
+    Name = "🎮 Seletor de Chefes",
+    Options = {"Saber Expert", "Greybeard", "Cake Queen", "Diamond", "Fajita", "Don Swan", "Cursed Captain", "Rip_indra"},
+    CurrentOption = "Saber Expert",
+    Flag = "BossSelector2",
+    Callback = function() end
+})
+
+-- ========== FARM MORE ==========
+local FarmMoreTab = Window:CreateTab("📦 Farm More", 4483362458)
+local FarmMoreSection = FarmMoreTab:CreateSection("Farms Secundários")
+
+FarmMoreTab:CreateToggle({
+    Name = "📦 Auto Chest Collector",
+    CurrentValue = false,
+    Flag = "FarmChest",
+    Callback = function() end
+})
+
+FarmMoreTab:CreateToggle({
+    Name = "⚙️ Auto Material Farm",
+    CurrentValue = false,
+    Flag = "FarmMaterial",
+    Callback = function() end
+})
+
+FarmMoreTab:CreateToggle({
+    Name = "🦴 Auto Bones Farm",
+    CurrentValue = false,
+    Flag = "FarmBones",
+    Callback = function() end
+})
+
+FarmMoreTab:CreateToggle({
+    Name = "🍎 Auto Fruit Finder",
+    CurrentValue = false,
+    Flag = "FarmFruit",
+    Callback = function() end
+})
+
+-- ========== TELEPORT ==========
+local TeleportTab = Window:CreateTab("🗺️ Teleport", 4483362458)
+local TeleportSection = TeleportTab:CreateSection("Sistema de Teleporte")
+
+TeleportTab:CreateDropdown({
+    Name = "🌍 Seletor de Mundo",
+    Options = {"Primeiro Mar", "Segundo Mar", "Terceiro Mar"},
+    CurrentOption = "Primeiro Mar",
+    Flag = "WorldSelector",
+    Callback = function() end
+})
+
+TeleportTab:CreateDropdown({
+    Name = "🏝️ Seletor de Ilhas",
+    Options = {"Starter Island", "Jungle", "Pirate Village", "Desert", "Frozen Village", "Marine Ford", "Skypiea", "Colosseum"},
+    CurrentOption = "Starter Island",
+    Flag = "IslandSelector",
+    Callback = function() end
+})
+
+TeleportTab:CreateButton({
+    Name = "🚀 Teleportar",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Teleporte",
+            Content = "Simulação de teleporte",
+            Duration = 2
+        })
+    end
+})
+
+-- ========== SEA EVENTS ==========
+local SeaTab = Window:CreateTab("🌊 Sea Events", 4483362458)
+local SeaSection = SeaTab:CreateSection("Eventos Marítimos")
+
+SeaTab:CreateToggle({
+    Name = "🐋 Auto Sea Beast Hunter",
+    CurrentValue = false,
+    Flag = "SeaBeast",
+    Callback = function() end
+})
+
+SeaTab:CreateToggle({
+    Name = "🚢 Auto Ship Raid",
+    CurrentValue = false,
+    Flag = "ShipRaid",
+    Callback = function() end
+})
+
+SeaTab:CreateToggle({
+    Name = "🔍 Auto Find Mirage Island",
+    CurrentValue = false,
+    Flag = "FindMirage",
+    Callback = function() end
+})
+
+SeaTab:CreateParagraph({
+    Title = "📡 Status dos Eventos",
+    Content = "Sea Beasts: 0\nShips: 0\nMirage Island: ❌"
+})
+
+-- ========== ISLANDS ==========
+local IslandsTab = Window:CreateTab("🏝️ Islands", 4483362458)
+local IslandsSection = IslandsTab:CreateSection("Informações das Ilhas")
+
+local islands = {"Starter Island (Lv 1-10)", "Jungle (Lv 15-30)", "Pirate Village (Lv 35-45)", "Desert (Lv 50-70)", "Frozen Village (Lv 80-100)", "Marine Ford (Lv 120-150)", "Skypiea (Lv 160-200)", "Colosseum (Lv 210-250)"}
+
+for _, island in ipairs(islands) do
+    IslandsTab:CreateButton({
+        Name = "📍 " .. island .. " - Check-in",
+        Callback = function()
+            Rayfield:Notify({
+                Title = "Check-in",
+                Content = "Visitando " .. island,
+                Duration = 2
+            })
+        end
+    })
+end
+
+-- ========== RACE V4 ==========
+local RaceTab = Window:CreateTab("⭐ Race V4", 4483362458)
+local RaceSection = RaceTab:CreateSection("Progresso Racial V4")
+
+RaceTab:CreateToggle({
+    Name = "⚡ Auto Trial Completion",
+    CurrentValue = false,
+    Flag = "AutoTrial",
+    Callback = function() end
+})
+
+RaceTab:CreateToggle({
+    Name = "🌀 Auto Mirage Gear Collection",
+    CurrentValue = false,
+    Flag = "AutoMirageGear",
+    Callback = function() end
+})
+
+RaceTab:CreateToggle({
+    Name = "💪 Train Mastery V4",
+    CurrentValue = false,
+    Flag = "TrainMasteryV4",
+    Callback = function() end
+})
+
+RaceTab:CreateParagraph({
+    Title = "📊 Progresso Atual",
+    Content = "Raça Atual: Human\nTrials Completos: 2/5\nGears Encontrados: 1/3\nMastery V4: 47%"
+})
+
+-- ========== SHOP ==========
+local ShopTab = Window:CreateTab("🛒 Shop", 4483362458)
+
+local ShopFighting = ShopTab:CreateSection("Estilos de Luta")
+for _, style in ipairs({"Dragon Talon", "Electric Claw", "Death Step", "Sharkman Karate", "Superhuman", "Godhuman"}) do
+    ShopTab:CreateButton({
+        Name = "🥋 " .. style .. " - 3.000 Fragmentos",
+        Callback = function()
+            Rayfield:Notify({
+                Title = "Loja",
+                Content = "Simulação: " .. style .. " adquirido",
+                Duration = 2
+            })
+        end
+    })
+end
+
+local ShopSword = ShopTab:CreateSection("Espadas")
+for _, sword in ipairs({"True Triple Katana", "Dark Blade", "Cursed Dual Katana", "Saber V2", "Hallow Scythe"}) do
+    ShopTab:CreateButton({
+        Name = "⚔️ " .. sword .. " - 5.000 Fragmentos",
+        Callback = function()
+            Rayfield:Notify({
+                Title = "Loja",
+                Content = "Simulação: " .. sword .. " adquirida",
+                Duration = 2
+            })
+        end
+    })
+end
+
+local ShopFruit = ShopTab:CreateSection("Frutas")
+for _, fruit in ipairs({"Dragon (Mítico)", "Leopard (Mítico)", "Dough (Mítico)", "Spirit (Lendário)", "Control (Lendário)"}) do
+    ShopTab:CreateButton({
+        Name = "🍎 " .. fruit .. " - 3.500 Fragmentos",
+        Callback = function()
+            Rayfield:Notify({
+                Title = "Loja",
+                Content = "Simulação: " .. fruit .. " adicionada",
+                Duration = 2
+            })
+        end
+    })
+end
+
+-- ========== RAID ==========
+local RaidTab = Window:CreateTab("🐉 Raid", 4483362458)
+local RaidSection = RaidTab:CreateSection("Configurações de Raid")
+
+RaidTab:CreateDropdown({
+    Name = "🌀 Tipo de Raid",
+    Options = {"Flame Raid", "Ice Raid", "Dark Raid", "Light Raid", "Earth Raid"},
+    CurrentOption = "Flame Raid",
+    Flag = "RaidType",
+    Callback = function() end
+})
+
+RaidTab:CreateDropdown({
+    Name = "💠 Seletor de Chips",
+    Options = {"Fire Chip", "Water Chip", "Thunder Chip", "Wind Chip", "Crystal Chip"},
+    CurrentOption = "Fire Chip",
+    Flag = "ChipSelector",
+    Callback = function() end
+})
+
+RaidTab:CreateToggle({
+    Name = "🚀 Auto Start Raid",
+    CurrentValue = false,
+    Flag = "AutoStartRaid",
+    Callback = function() end
+})
+
+-- ========== MORE ==========
+local MoreTab = Window:CreateTab("⋯ More", 4483362458)
+local MoreSection = MoreTab:CreateSection("Extras")
+
+MoreTab:CreateButton({
+    Name = "🎁 Menu de Códigos",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Códigos",
+            Content = "Códigos: PUDIM2024, BLOXFRUITS, ULTIMATE",
+            Duration = 3
+        })
+    end
+})
+
+MoreTab:CreateButton({
+    Name = "👥 Créditos",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Créditos",
+            Content = "Design: PudimHub Team | Rayfield UI",
+            Duration = 3
+        })
+    end
+})
+
+MoreTab:CreateButton({
+    Name = "📱 Discord Oficial",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Discord",
+            Content = "discord.gg/pudimhub (Servidor fictício)",
+            Duration = 3
+        })
+    end
+})
+
+MoreTab:CreateButton({
+    Name = "🐙 GitHub do Projeto",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "GitHub",
+            Content = "github.com/pudimhub/rayfield-ui",
+            Duration = 3
+        })
+    end
+})
+
+-- ============================================================
+--                    ABA SETTINGS (COM FUNÇÕES)
+-- ============================================================
+local SettingsTab = Window:CreateTab("⚙️ Settings", 4483362458)
+
+-- Main Setting
+local MainSettingSection = SettingsTab:CreateSection("Main Setting")
+
+SettingsTab:CreateDropdown({
+    Name = "Select Weapon",
+    Options = {"Melee", "Blox Fruit", "Sword", "Gun"},
+    CurrentOption = "Melee",
+    Flag = "SelectWeapon",
+    Callback = function(Value)
+        SelectWeaponFarm = Value
+    end
+})
+
+SettingsTab:CreateDropdown({
+    Name = "Select Farm Type",
+    Options = {"Above", "Beside"},
+    CurrentOption = "Above",
+    Flag = "FarmType",
+    Callback = function(Value)
+        AutoFarmType = Value
+    end
+})
+
+SettingsTab:CreateInput({
+    Name = "Distance Farm",
+    PlaceholderText = "30",
+    RemoveTextAfterFocus = false,
+    Flag = "DistanceFarm",
+    Callback = function(Value)
+        DisFarm = tonumber(Value) or 30
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Fast Attack (Melee and Sword)",
+    CurrentValue = true,
+    Flag = "FastAttack",
+    Callback = function(Value)
+        FastAttack = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Fast Attack (Gun)",
+    CurrentValue = false,
+    Flag = "FastShot",
+    Callback = function(Value)
+        FastShot = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Attack Melee Player",
+    CurrentValue = false,
+    Flag = "AttackPlayers",
+    Callback = function(Value)
+        AttackToPlayersNow = Value
+    end
+})
+
+SettingsTab:CreateInput({
+    Name = "Bring Mobs Distance",
+    PlaceholderText = "250",
+    RemoveTextAfterFocus = false,
+    Flag = "BringDistance",
+    Callback = function(Value)
+        bringfrec = tonumber(Value) or 250
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Bring Mob",
+    CurrentValue = true,
+    Flag = "BringMobs",
+    Callback = function(Value)
+        BringMobs = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Bypass Teleport",
+    CurrentValue = false,
+    Flag = "BypassTeleport",
+    Callback = function(Value)
+        ByPassTP = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Set Spawn Point",
+    CurrentValue = true,
+    Flag = "AutoSetSpawn",
+    Callback = function(Value)
+        AutoSetSpawn = Value
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Reset Character",
+    Callback = function()
+        local pc = LocalPlayer.Character
+        if pc then
+            for _, p in pairs(pc:GetDescendants()) do
+                if p:IsA("BasePart") then
+                    p:Destroy()
+                end
+            end
+        end
+        Rayfield:Notify({
+            Title = "Reset",
+            Content = "Personagem resetado!",
+            Duration = 2
+        })
+    end
+})
+
+-- Skill Mastery
+local SkillSection = SettingsTab:CreateSection("Skill Mastery")
+
+SettingsTab:CreateToggle({
+    Name = "Use Skill Z",
+    CurrentValue = false,
+    Flag = "SkillZ",
+    Callback = function(Value)
+        _G.SkillZ = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Use Skill X",
+    CurrentValue = false,
+    Flag = "SkillX",
+    Callback = function(Value)
+        _G.SkillX = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Use Skill C",
+    CurrentValue = false,
+    Flag = "SkillC",
+    Callback = function(Value)
+        _G.SkillC = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Use Skill V",
+    CurrentValue = false,
+    Flag = "SkillV",
+    Callback = function(Value)
+        _G.SkillV = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Use Skill F",
+    CurrentValue = false,
+    Flag = "SkillF",
+    Callback = function(Value)
+        _G.SkillF = Value
+    end
+})
+
+-- Ability Settings
+local AbilitySection = SettingsTab:CreateSection("Ability Settings")
+
+SettingsTab:CreateToggle({
+    Name = "Buso Haki",
+    CurrentValue = true,
+    Flag = "BusoHaki",
+    Callback = function(Value)
+        BusoHaki = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Ken Haki",
+    CurrentValue = false,
+    Flag = "KenHaki",
+    Callback = function(Value)
+        KenHaki = Value
+    end
+})
+
+-- Misc Settings
+local MiscSection = SettingsTab:CreateSection("Misc Settings")
+
+SettingsTab:CreateToggle({
+    Name = "Disable Audio Effect",
+    CurrentValue = false,
+    Flag = "DisableAudio",
+    Callback = function(Value)
+        DeleteAudioEffect = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Hide Notification",
+    CurrentValue = false,
+    Flag = "HideNotification",
+    Callback = function(Value)
+        HideNotification = Value
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Destroy Effect Animation",
+    Callback = function()
+        pcall(function()
+            ReplicatedStorage.Assets.Models:Destroy()
+            ReplicatedStorage.Assets.GUI:Destroy()
+            ReplicatedStorage.Assets.SlashHit:Destroy()
+            Rayfield:Notify({
+                Title = "Efeitos",
+                Content = "Efeitos destruídos!",
+                Duration = 2
+            })
+        end)
+    end
+})
+
+-- ============================================================
+--                    LOOPS DE FUNÇÕES
+-- ============================================================
+spawn(function()
+    while wait() do
+        if AutoFarmType == "Above" then
+            Farm_Mode = CFrame.new(0, DisFarm, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+        else
+            Farm_Mode = CFrame.new(0, 2, DisFarm) * CFrame.Angles(math.rad(0), 0, 0)
+        end
+    end
 end)
 
-
-local flySpeedOptions = {
-	"100", "150", "200", "250", "300",
-	"350", "400", "450", "500"
-}
-
-MakeDropdown(cfgFrame, flySpeedBtn, flySpeedValue, flySpeedOptions, function(val)
-	_G.FlySpeed = tonumber(val) or 200
+spawn(function()
+    while task.wait() do
+        if FastAttack then
+            pcall(function()
+                repeat task.wait()
+                    FastAttacked()
+                until not FastAttack
+            end)
+        end
+    end
 end)
 
--- ══════════════════════════════════════════
---  LÓGICA: VOO CONDICIONAL + AUTO NEAR MOBS
---
---  Voo OFF por padrão — personagem anda normal.
---  Liga automaticamente quando AutoNearMobs (ou outra
---  função futura) for ativada. Desliga e restaura o
---  personagem ao normal quando tudo for desativado.
--- ══════════════════════════════════════════
-_G.FlySpeed     = 200
-_G.AutoNearMobs = false
-_G.FLY_RANGE    = 100
-
--- verifica se alguma função que precisa de voo está ativa
-local function flyNeeded()
-	return _G.AutoNearMobs -- futuramente: or _G.OutraFuncao etc
-end
-
-local DEFAULT_WALKSPEED = 16
-local DEFAULT_JUMPPOWER = 50
-
-local function cleanFly(char)
-	if not char then return end
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if hrp then
-		for _, name in ipairs({"PudimFlyBP", "PudimFlyBV", "PudimFlyBG"}) do
-			local obj = hrp:FindFirstChild(name)
-			if obj then obj:Destroy() end
-		end
-	end
-	-- restaura movimento normal
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	if hum then
-		hum.WalkSpeed = DEFAULT_WALKSPEED
-		hum.JumpPower = DEFAULT_JUMPPOWER
-	end
-end
-
-local function setupFly(char)
-	cleanFly(char)
-	local hrp = char:WaitForChild("HumanoidRootPart", 5)
-	if not hrp then return end
-
-	local bp = Instance.new("BodyPosition", hrp)
-	bp.Name     = "PudimFlyBP"
-	bp.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-	bp.P        = 10000
-	bp.D        = 600
-	bp.Position = hrp.Position
-
-	local bv = Instance.new("BodyVelocity", hrp)
-	bv.Name     = "PudimFlyBV"
-	bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-	bv.Velocity = Vector3.zero
-
-	local bg = Instance.new("BodyGyro", hrp)
-	bg.Name      = "PudimFlyBG"
-	bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
-	bg.P         = 10000
-	bg.D         = 600
-	bg.CFrame    = hrp.CFrame
-
-	-- zera movimento pra não conflitar com voo
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	if hum then
-		hum.WalkSpeed = 0
-		hum.JumpPower = 0
-	end
-
-	return bp, bv, bg
-end
-
--- estado anterior do voo pra detectar mudança
-local wasFlying = false
-
--- respawn: NÃO reseta toggles — mantém FastAttack, AutoNearMobs etc
--- só reseta wasFlying pra forçar o voo recriar as instâncias no novo char
-lp.CharacterAdded:Connect(function(newChar)
-	wasFlying = false  -- força reinicialização das instâncias de voo
-	task.wait(1)       -- espera o personagem carregar completamente
-	-- se AutoNearMobs estava ON, o loop vai detectar wasFlying=false
-	-- e recriar setupFly automaticamente no novo personagem
+spawn(function()
+    while task.wait() do
+        if FastShot then
+            pcall(function()
+                repeat task.wait()
+                    FastShooted()
+                until not FastShot
+            end)
+        end
+    end
 end)
 
--- ── loop principal ──────────────────────────
-task.spawn(function()
-	local UIS = game:GetService("UserInputService")
-
-	while true do
-		task.wait(0.1)
-
-		local c = lp.Character
-		if not c then continue end
-		local hrp = c:FindFirstChild("HumanoidRootPart")
-		local hum = c:FindFirstChildOfClass("Humanoid")
-		if not hrp or not hum then continue end
-
-		-- morreu: limpa voo e reseta flags
-		if hum.Health <= 0 then
-			if wasFlying then
-				cleanFly(c)
-				wasFlying = false
-			end
-			continue
-		end
-
-		local needFly = flyNeeded()
-
-		-- ── voo acabou de ser desativado ──
-		if wasFlying and not needFly then
-			cleanFly(c)
-			wasFlying = false
-			continue
-		end
-
-		-- ── voo acabou de ser ativado ──
-		if needFly and not wasFlying then
-			setupFly(c)
-			wasFlying = true
-		end
-
-		-- ── voo não necessário: personagem normal ──
-		if not needFly then continue end
-
-		-- pega instâncias (recria se sumiram — proteção anti-bug)
-		local bp = hrp:FindFirstChild("PudimFlyBP")
-		local bv = hrp:FindFirstChild("PudimFlyBV")
-		local bg = hrp:FindFirstChild("PudimFlyBG")
-		if not bp or not bv or not bg then
-			setupFly(c)
-			bp = hrp:FindFirstChild("PudimFlyBP")
-			bv = hrp:FindFirstChild("PudimFlyBV")
-			bg = hrp:FindFirstChild("PudimFlyBG")
-			if not bp or not bv or not bg then continue end
-		end
-
-		-- ── Auto Near Mobs ─────────────────────
-		if _G.AutoNearMobs then
-			local mobs = getNearestMobs(1)
-			if #mobs > 0 then
-				local target    = mobs[1]
-				local targetPos = target.hrp.Position
-					+ Vector3.new(_G.HitOffsetX, _G.HitOffsetY, _G.HitOffsetZ)
-				local dist = (hrp.Position - targetPos).Magnitude
-
-				if dist > 5 then
-					-- voa em direção ao mob
-					local dir   = (targetPos - hrp.Position).Unit
-					bv.Velocity = dir * _G.FlySpeed
-					bp.Position = hrp.Position
-				else
-					-- chegou: trava exatamente na posição
-					bv.Velocity = Vector3.zero
-					bp.Position = targetPos
-				end
-
-				bg.CFrame = CFrame.lookAt(hrp.Position,
-					Vector3.new(target.hrp.Position.X, hrp.Position.Y, target.hrp.Position.Z))
-			else
-				-- sem mobs: fica parado no ar onde está
-				bv.Velocity = Vector3.zero
-				bp.Position = hrp.Position
-				bg.CFrame   = hrp.CFrame
-			end
-		end
-	end
+spawn(function()
+    while task.wait() do
+        if AttackToPlayersNow then
+            pcall(AttackToPlayers)
+        end
+    end
 end)
 
--- ══════════════════════════════════════════
---  LABEL DE GRUPO (sidebar)
--- ══════════════════════════════════════════
-local function MakeGroupLabel(text)
-	local holder = Instance.new("Frame", Sidebar)
-	holder.Size                   = UDim2.new(1, 0, 0, 26)
-	holder.BackgroundTransparency = 1
-	holder.BorderSizePixel        = 0
-
-	local lbl = Instance.new("TextLabel", holder)
-	lbl.BackgroundTransparency = 1
-	lbl.Size                   = UDim2.new(1, -16, 1, 0)
-	lbl.Position               = UDim2.new(0, 12, 0, 0)
-	lbl.Font                   = Enum.Font.GothamBold
-	lbl.Text                   = text
-	lbl.TextColor3             = C.TEXT_SEC
-	lbl.TextSize               = 11
-	lbl.TextXAlignment         = Enum.TextXAlignment.Left
-end
-
-local function MakeGroupCard()
-	local card = Instance.new("Frame", Sidebar)
-	card.Size               = UDim2.new(1, -16, 0, 0)
-	card.AutomaticSize      = Enum.AutomaticSize.Y
-	card.BackgroundColor3   = C.SURFACE
-	card.BorderSizePixel    = 0
-	card.ClipsDescendants   = true
-	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
-
-	local stroke = Instance.new("UIStroke", card)
-	stroke.Color     = C.DIVIDER
-	stroke.Thickness = 0.8
-
-	local layout = Instance.new("UIListLayout", card)
-	layout.Padding             = UDim.new(0, 0)
-	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-	return card
-end
-
--- ══════════════════════════════════════════
---  TABS DA SIDEBAR
--- ══════════════════════════════════════════
-local TabList = {
-	{ group = "GERAL",  items = { "🏠 Home", "⚙️ Configuração", "👁️ ESP" } },
-	{ group = "MUNDO",  items = { "🏝️ Ilhas", "🌊 Sea Events", "🚀 Teleport" } },
-	{ group = "EXTRAS", items = { "🛠️ Misc", "📜 Servidor", "🐲 Raça V4" } },
-	{ group = "FARM BF",   items = { "⚔️ Farm Raid", "🌊 Farm Sea Beast", "👊 Farm Boss" } },
-}
-
-local activeTab    = nil
-local activeTabRef = nil
-
-local function applyActive(ref)
-	ref.tab.BackgroundColor3 = C.TAB_ACTIVE
-	ref.label.TextColor3     = C.TAB_TXT_ACT
-	ref.chevron.TextColor3   = C.TAB_TXT_ACT
-	Welcome.Text             = ref.name
-	-- mostra frame da aba ativa, esconde os outros
-	for name, f in pairs(TabFrames) do
-		f.Visible = (name == ref.name)
-	end
-end
-
-local function clearRef(ref)
-	ref.tab.BackgroundColor3 = C.TAB_DEFAULT
-	ref.label.TextColor3     = C.TAB_TXT_DEF
-	ref.chevron.TextColor3   = C.TEXT_SEC
-end
-
-for _, group in ipairs(TabList) do
-	local sp = Instance.new("Frame", Sidebar)
-	sp.Size                   = UDim2.new(1, 0, 0, 4)
-	sp.BackgroundTransparency = 1
-	sp.BorderSizePixel        = 0
-
-	MakeGroupLabel(group.group)
-
-	local card = MakeGroupCard()
-
-	for idx, v in ipairs(group.items) do
-		-- cria o frame da aba se não existir ainda
-		if not TabFrames[v] then
-			MakeTabFrame(v)
-		end
-
-		local Tab = Instance.new("Frame", card)
-		Tab.Size             = UDim2.new(1, 0, 0, 40)
-		Tab.BackgroundColor3 = C.TAB_DEFAULT
-		Tab.BorderSizePixel  = 0
-		Tab.ZIndex           = 2
-
-		local TabBtn = Instance.new("TextButton", Tab)
-		TabBtn.Size                   = UDim2.new(1, 0, 1, 0)
-		TabBtn.BackgroundTransparency = 1
-		TabBtn.Text                   = ""
-		TabBtn.ZIndex                 = 5
-		TabBtn.AutoButtonColor        = false
-
-		local Label = Instance.new("TextLabel", Tab)
-		Label.BackgroundTransparency = 1
-		Label.Size                   = UDim2.new(1, -36, 1, 0)
-		Label.Position               = UDim2.new(0, 12, 0, 0)
-		Label.Font                   = Enum.Font.Gotham
-		Label.Text                   = v
-		Label.TextColor3             = C.TAB_TXT_DEF
-		Label.TextSize               = 13
-		Label.TextXAlignment         = Enum.TextXAlignment.Left
-		Label.ZIndex                 = 3
-
-		local Chevron = Instance.new("TextLabel", Tab)
-		Chevron.BackgroundTransparency = 1
-		Chevron.Size                   = UDim2.new(0, 22, 1, 0)
-		Chevron.Position               = UDim2.new(1, -24, 0, 0)
-		Chevron.Font                   = Enum.Font.GothamBold
-		Chevron.Text                   = "›"
-		Chevron.TextColor3             = C.TEXT_SEC
-		Chevron.TextSize               = 18
-		Chevron.TextXAlignment         = Enum.TextXAlignment.Center
-		Chevron.ZIndex                 = 3
-
-		if idx < #group.items then
-			local sep = Instance.new("Frame", Tab)
-			sep.Size             = UDim2.new(1, -12, 0, 1)
-			sep.Position         = UDim2.new(0, 12, 1, -1)
-			sep.BackgroundColor3 = C.DIVIDER
-			sep.BorderSizePixel  = 0
-			sep.ZIndex           = 4
-		end
-
-		local ref = { tab = Tab, label = Label, chevron = Chevron, name = v }
-
-		TabBtn.MouseEnter:Connect(function()
-			if Tab ~= activeTab then
-				Tab.BackgroundColor3 = C.TAB_HOVER
-				Label.TextColor3     = C.TEXT_SEC
-			end
-		end)
-		TabBtn.MouseLeave:Connect(function()
-			if Tab ~= activeTab then
-				Tab.BackgroundColor3 = C.TAB_DEFAULT
-				Label.TextColor3     = C.TAB_TXT_DEF
-			end
-		end)
-		TabBtn.MouseButton1Click:Connect(function()
-			if activeTabRef and activeTabRef.tab ~= Tab then
-				clearRef(activeTabRef)
-			end
-			activeTab    = Tab
-			activeTabRef = ref
-			applyActive(ref)
-		end)
-	end
-
-	local sp2 = Instance.new("Frame", Sidebar)
-	sp2.Size                   = UDim2.new(1, 0, 0, 4)
-	sp2.BackgroundTransparency = 1
-	sp2.BorderSizePixel        = 0
-end
-
--- ══════════════════════════════════════════
---  TRAY
--- ══════════════════════════════════════════
-local Tray = Instance.new("Frame", ScreenGui)
-Tray.Size             = UDim2.new(0, 36, 0, 120)
-Tray.Position         = UDim2.new(0, 0, 0.5, -60)
-Tray.BackgroundColor3 = C.SURFACE
-Tray.Visible          = false
-Tray.Active           = true
-Tray.Draggable        = true
-Tray.BorderSizePixel  = 0
-Tray.ZIndex           = 10
-Instance.new("UICorner", Tray).CornerRadius = UDim.new(0, 12)
-local TrayStroke = Instance.new("UIStroke", Tray)
-TrayStroke.Color     = C.DIVIDER
-TrayStroke.Thickness = 1
-
-local TrayEmoji = Instance.new("TextLabel", Tray)
-TrayEmoji.BackgroundTransparency = 1
-TrayEmoji.Size                   = UDim2.new(1, 0, 0, 30)
-TrayEmoji.Position               = UDim2.new(0, 0, 0, 6)
-TrayEmoji.Text                   = "🍮"
-TrayEmoji.TextSize               = 18
-TrayEmoji.Font                   = Enum.Font.Gotham
-TrayEmoji.TextXAlignment         = Enum.TextXAlignment.Center
-TrayEmoji.ZIndex                 = 11
-
-local TrayLabel = Instance.new("TextLabel", Tray)
-TrayLabel.BackgroundTransparency = 1
-TrayLabel.Size                   = UDim2.new(0, 80, 0, 18)
-TrayLabel.Position               = UDim2.new(0.5, -40, 0.5, -9)
-TrayLabel.Rotation               = 90
-TrayLabel.Font                   = Enum.Font.GothamBold
-TrayLabel.Text                   = "PudimHub"
-TrayLabel.TextColor3             = C.TEXT_PRIMARY
-TrayLabel.TextSize               = 11
-TrayLabel.TextXAlignment         = Enum.TextXAlignment.Center
-TrayLabel.ZIndex                 = 11
-
-local TrayBtn = Instance.new("TextButton", Tray)
-TrayBtn.Size                   = UDim2.new(1, 0, 1, 0)
-TrayBtn.BackgroundTransparency = 1
-TrayBtn.Text                   = ""
-TrayBtn.ZIndex                 = 12
-TrayBtn.AutoButtonColor        = false
-
--- ══════════════════════════════════════════
---  ABRIR / FECHAR / MINIMIZAR
--- ══════════════════════════════════════════
-local minimized = false
-
-local function showMain()
-	Shadow.Visible        = true
-	MainFrame.Visible     = true
-	Tray.Visible          = false
-	MainFrame.Position    = UDim2.new(0.5, -320, 0.5, -240)
-	TweenService:Create(MainFrame,
-		TweenInfo.new(0.24, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-		{ Position = UDim2.new(0.5, -320, 0.5, -220) }
-	):Play()
-	if not minimized then
-		Sidebar.Visible       = true
-		ContentScroll.Visible = true
-	end
-	if activeTabRef then applyActive(activeTabRef) end
-end
-
-local function hideMain()
-	local t = TweenService:Create(MainFrame,
-		TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-		{ Position = UDim2.new(0.5, -320, 0.5, -205) }
-	)
-	t:Play()
-	t.Completed:Once(function()
-		MainFrame.Visible = false
-		Shadow.Visible    = false
-	end)
-	Tray.Visible = true
-end
-
-BtnClose.MouseButton1Click:Connect(hideMain)
-
-BtnMin.MouseButton1Click:Connect(function()
-	minimized = not minimized
-	if minimized then
-		Sidebar.Visible       = false
-		ContentScroll.Visible = false
-		TweenService:Create(MainFrame,
-			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ Size = UDim2.new(0, 640, 0, 52) }
-		):Play()
-	else
-		TweenService:Create(MainFrame,
-			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ Size = UDim2.new(0, 640, 0, 440) }
-		):Play()
-		task.delay(0.2, function()
-			Sidebar.Visible       = true
-			ContentScroll.Visible = true
-		end)
-	end
+spawn(function()
+    while wait() do
+        if AutoSetSpawn then
+            pcall(function()
+                ReplicatedStorage.Remotes.CommF_:InvokeServer("SetSpawnPoint")
+            end)
+        end
+    end
 end)
 
-TrayBtn.MouseButton1Click:Connect(showMain)
+spawn(function()
+    while wait() do
+        if BusoHaki and not LocalPlayer.Character:FindFirstChild("HasBuso") then
+            pcall(function()
+                ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
+            end)
+        end
+    end
+end)
 
-print("PudimHub Premium — Blox Fruits carregado!")
+spawn(function()
+    while wait() do
+        if KenHaki and not LocalPlayer.Character:FindFirstChild("Highlight") then
+            VirtualInputManager:SendKeyEvent(true, "K", false, game)
+            wait(0.1)
+            VirtualInputManager:SendKeyEvent(false, "K", false, game)
+        end
+    end
+end)
+
+spawn(function()
+    while wait() do
+        if DeleteAudioEffect then
+            for _, v in pairs(Workspace["_WorldOrigin"]:GetChildren()) do
+                if v.Name == "Sounds" then
+                    for _, s in pairs(v:GetChildren()) do
+                        if s:IsA("Part") then s:Destroy() end
+                    end
+                end
+                if v.Name == "CurvedRing" or v.Name == "SlashHit" or v.Name == "SwordSlash" then
+                    v:Destroy()
+                end
+            end
+        end
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        if HideNotification then
+            for _, n in pairs(LocalPlayer.PlayerGui.Notifications:GetChildren()) do
+                n:Destroy()
+            end
+        end
+    end
+end)
+
+-- ============================================================
+--                    NOTIFICAÇÃO FINAL
+-- ============================================================
+Rayfield:Notify({
+    Title = "PudimHub",
+    Content = "Interface carregada com sucesso!",
+    Duration = 4
+})
